@@ -14,7 +14,9 @@ import type {
   MintTokenRequest,
   PairingCodeResponse,
   Patient,
+  UpdateCameraRequest,
   UpdateDetectorRequest,
+  UpdatePatientRequest,
 } from './types';
 
 // Thin convenience wrapper. Methods mirror nemara-backend routers 1:1.
@@ -30,6 +32,11 @@ export class NemaraClient {
   listPatients = () => this.api.request<Patient[]>('/v1/patients');
   createPatient = (body: CreatePatientRequest) =>
     this.api.request<Patient>('/v1/patients', { method: 'POST', body });
+  updatePatient = (id: string, body: UpdatePatientRequest) =>
+    this.api.request<Patient>(`/v1/patients/${id}`, {
+      method: 'PATCH',
+      body,
+    });
   deletePatient = (id: string) =>
     this.api.request<void>(`/v1/patients/${id}`, { method: 'DELETE' });
 
@@ -41,6 +48,11 @@ export class NemaraClient {
       `/v1/patients/${patientId}/cameras/pairing-code`,
       { method: 'POST', body },
     );
+  updateCamera = (id: string, body: UpdateCameraRequest) =>
+    this.api.request<Camera>(`/v1/cameras/${id}`, {
+      method: 'PATCH',
+      body,
+    });
   deleteCamera = (id: string) =>
     this.api.request<void>(`/v1/cameras/${id}`, { method: 'DELETE' });
 

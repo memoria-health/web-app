@@ -4,6 +4,7 @@ import { env } from '@/lib/env';
 import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
+import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,20 @@ export default async function HomePage() {
 
   const patients = await api.listPatients();
   const patient = patients[0];
+
+  // Fetch cameras + compute which are visible to this user.
+  // Hidden cameras: (a) any with disabled=true, or (b) all of them when
+  // patient.cameras_paused=true. The backend independently skips the LLM
+  // for the same conditions — this client-side filter just keeps the UI
+  // honest about what the user has chosen to see.
+  const cameras = await api.listCameras(patient.id);
+  const visibleCameras = patient.cameras_paused
+    ? []
+    : cameras.filter((c) => !c.disabled);
+  const enabledLivekitIdentities = visibleCameras
+    .map((c) => c.livekit_identity)
+    .filter((id): id is string => id !== null);
+  const enabledCameraIds = visibleCameras.map((c) => c.id);
 
   // Mint a viewer LiveKit token for this patient's room.
   // Token TTL is 1h on the backend; user refreshes to renew.
@@ -39,6 +54,13 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4">
+      <PauseMonitoringToggle
+        patientId={patient.id}
+        initialPaused={patient.cameras_paused}
+        hiddenCount={cameras.filter((c) => c.disabled).length}
+        totalCount={cameras.length}
+      />
+
       <section className="max-w-2xl">
         <header className="mb-2 flex items-baseline justify-between gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
@@ -53,7 +75,11 @@ export default async function HomePage() {
             Couldn&apos;t mint LiveKit token: {lkError}
           </div>
         ) : (
-          <VideoGrid token={token!} serverUrl={env.LIVEKIT_URL} />
+          <VideoGrid
+            token={token!}
+            serverUrl={env.LIVEKIT_URL}
+            enabledIdentities={enabledLivekitIdentities}
+          />
         )}
       </section>
 
@@ -67,7 +93,10 @@ export default async function HomePage() {
             agitation, medication, speech
           </span>
         </header>
-        <AnalysesFeed patientId={patient.id} />
+        <AnalysesFeed
+          patientId={patient.id}
+          enabledCameraIds={enabledCameraIds}
+        />
       </section>
 
       <section>

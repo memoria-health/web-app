@@ -30,6 +30,7 @@ export function CameraList({
   const router = useRouter();
   const [cameras, setCameras] = useState(initial);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -74,6 +75,30 @@ export function CameraList({
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setRemoving(null);
+    }
+  }
+
+  async function toggleDisabled(id: string, nextDisabled: boolean) {
+    setToggling(id);
+    setError(null);
+    // Optimistic update — flip local state, roll back on failure.
+    setCameras((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, disabled: nextDisabled } : c)),
+    );
+    try {
+      const updated = await getBrowserNemara().updateCamera(id, {
+        disabled: nextDisabled,
+      });
+      setCameras((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      startTransition(() => router.refresh());
+    } catch (err) {
+      // Roll back the optimistic flip.
+      setCameras((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, disabled: !nextDisabled } : c)),
+      );
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setToggling(null);
     }
   }
 
@@ -124,6 +149,28 @@ export function CameraList({
                   Last seen {timeAgo(cam.last_seen_at)}
                 </p>
               </div>
+              <button
+                onClick={() => toggleDisabled(cam.id, !cam.disabled)}
+                disabled={toggling === cam.id}
+                aria-pressed={!cam.disabled}
+                title={
+                  cam.disabled
+                    ? 'Camera is OFF — LLM is skipping ticks. Click to turn ON.'
+                    : 'Camera is ON. Click to turn OFF (LLM stops; LiveKit stays connected).'
+                }
+                className={cn(
+                  'rounded border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide disabled:opacity-50',
+                  cam.disabled
+                    ? 'border-zinc-700 bg-zinc-900 text-zinc-400'
+                    : 'border-emerald-800 bg-emerald-950/50 text-emerald-300',
+                )}
+              >
+                {toggling === cam.id
+                  ? '…'
+                  : cam.disabled
+                    ? 'OFF'
+                    : 'ON'}
+              </button>
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}

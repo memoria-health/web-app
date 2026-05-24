@@ -51,6 +51,11 @@ export interface Camera {
   room: string;
   icon_name: string;
   online: boolean;
+  // User-facing "off" toggle. When true, the backend tick skips
+  // the LLM call (writes synthetic skipped row), and the web hides
+  // this camera from the live grid + analyses feed. LiveKit
+  // connection stays alive in case the user re-enables.
+  disabled: boolean;
   livekit_identity: string | null;
   last_seen_at: string | null;
   created_at: string;
@@ -151,6 +156,26 @@ export interface CreatePatientRequest {
   date_of_birth?: string;
   gender?: string;
   home_address?: string;
+}
+
+export interface UpdatePatientRequest {
+  full_name?: string;
+  preferred_name?: string;
+  relation?: Relation;
+  date_of_birth?: string;
+  gender?: string;
+  home_address?: string;
+  // Patient-wide monitoring off toggle. When true, ALL cameras for
+  // this patient skip their LLM tick (and the web hides them from
+  // the live grid + analyses feed). Per-camera disable lives on
+  // the Camera row instead.
+  cameras_paused?: boolean;
+}
+
+export interface UpdateCameraRequest {
+  // The only user-facing field exposed by PATCH /v1/cameras/{id}.
+  // Backend uses extra='forbid'; any other field will 422.
+  disabled?: boolean;
 }
 
 export interface CreatePairingCodeRequest {

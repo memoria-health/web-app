@@ -89,6 +89,48 @@ cam_id=$(echo "$pair" | python3 -c 'import sys,json; print(json.load(sys.stdin).
 [[ "$code" =~ ^[0-9]{6}$ ]] || fail "expected 6-digit code, got: $pair"
 ok "pairing code: $code (camera $cam_id)"
 
+# 9. PATCH camera disabled toggle (NEW: per-camera off)
+step "PATCH /v1/cameras/$cam_id disabled=true"
+resp=$(curl -sS "${auth[@]}" -X PATCH "$BACKEND_URL/v1/cameras/$cam_id" \
+  -H "Content-Type: application/json" -d '{"disabled":true}')
+d=$(echo "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("disabled"))')
+[[ "$d" == "True" ]] || fail "expected disabled=True, got: $resp"
+ok "camera disabled"
+
+step "PATCH /v1/cameras/$cam_id disabled=false (back to default)"
+resp=$(curl -sS "${auth[@]}" -X PATCH "$BACKEND_URL/v1/cameras/$cam_id" \
+  -H "Content-Type: application/json" -d '{"disabled":false}')
+d=$(echo "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("disabled"))')
+[[ "$d" == "False" ]] || fail "expected disabled=False, got: $resp"
+ok "camera re-enabled"
+
+step "PATCH /v1/cameras/$cam_id {} — empty body should 200 (no-op)"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH "${auth[@]}" \
+  "$BACKEND_URL/v1/cameras/$cam_id" -H "Content-Type: application/json" -d '{}')
+[[ "$code" == "200" ]] || fail "empty PATCH returned $code"
+ok "empty PATCH no-ops"
+
+step "PATCH /v1/cameras/$cam_id {room:'hacked'} — extra field should 422"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH "${auth[@]}" \
+  "$BACKEND_URL/v1/cameras/$cam_id" -H "Content-Type: application/json" -d '{"room":"hacked"}')
+[[ "$code" == "422" ]] || fail "extra-field PATCH returned $code (expected 422)"
+ok "unknown fields rejected"
+
+# 10. PATCH patient cameras_paused toggle (NEW: global off)
+step "PATCH /v1/patients/$PATIENT_ID cameras_paused=true"
+resp=$(curl -sS "${auth[@]}" -X PATCH "$BACKEND_URL/v1/patients/$PATIENT_ID" \
+  -H "Content-Type: application/json" -d '{"cameras_paused":true}')
+p=$(echo "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("cameras_paused"))')
+[[ "$p" == "True" ]] || fail "expected cameras_paused=True, got: $resp"
+ok "patient cameras_paused on"
+
+step "PATCH /v1/patients/$PATIENT_ID cameras_paused=false"
+resp=$(curl -sS "${auth[@]}" -X PATCH "$BACKEND_URL/v1/patients/$PATIENT_ID" \
+  -H "Content-Type: application/json" -d '{"cameras_paused":false}')
+p=$(echo "$resp" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("cameras_paused"))')
+[[ "$p" == "False" ]] || fail "expected cameras_paused=False, got: $resp"
+ok "patient cameras_paused off"
+
 # Clean up the smoke-test camera so re-runs don't pile up rows.
 step "DELETE /v1/cameras/$cam_id"
 code=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE \

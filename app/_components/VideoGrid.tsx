@@ -9,23 +9,30 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 
-function GridInner() {
+function GridInner({ enabledIdentities }: { enabledIdentities: string[] }) {
   const tracks = useTracks(
     [{ source: Track.Source.Camera, withPlaceholder: false }],
     { onlySubscribed: true },
   );
 
-  // Only show actual wall-phone cameras — hide internal participants like
-  // the backend subscriber-bot worker, which joins the same room as a
-  // viewer to pull frames for the detector pipeline.
+  // Whitelist: only show tracks whose participant identity is in the
+  // enabled list. The enabled list:
+  //  - Always excludes the backend subscriber-bot (its identity starts
+  //    with `detector_worker_`, never with `cam_`, so it's never in
+  //    the list which is computed from the cameras DB rows).
+  //  - Excludes any camera the user has disabled (cameras.disabled = true).
+  //  - Is EMPTY when patient.cameras_paused = true (hides everything).
+  const enabledSet = new Set(enabledIdentities);
   const cameraTracks = tracks.filter((t) =>
-    t.participant.identity.startsWith('cam_'),
+    enabledSet.has(t.participant.identity),
   );
 
   if (cameraTracks.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
-        Waiting for cameras to join the room…
+        {enabledIdentities.length === 0
+          ? 'All cameras are off. Turn one back on to see live video.'
+          : 'Waiting for cameras to join the room…'}
       </div>
     );
   }
@@ -42,14 +49,25 @@ function GridInner() {
 export function VideoGrid({
   token,
   serverUrl,
+  enabledIdentities,
 }: {
   token: string;
   serverUrl: string;
+  enabledIdentities: string[];
 }) {
   if (!token) {
     return (
       <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
         No LiveKit token available
+      </div>
+    );
+  }
+  // Short-circuit: if NO cameras are enabled, don't even bother connecting
+  // to LiveKit. Saves a WebSocket + token round-trip every refresh.
+  if (enabledIdentities.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
+        All cameras are off. Turn one back on to see live video.
       </div>
     );
   }
@@ -62,7 +80,7 @@ export function VideoGrid({
       video={false}
       data-lk-theme="default"
     >
-      <GridInner />
+      <GridInner enabledIdentities={enabledIdentities} />
       <RoomAudioRenderer />
     </LiveKitRoom>
   );

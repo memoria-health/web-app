@@ -28,12 +28,22 @@ function asNumber(v: unknown): number | null {
 
 export function AnalysesFeed({
   patientId,
+  enabledCameraIds,
   initial = [],
 }: {
   patientId: string;
+  // Whitelist of camera IDs to show analyses for. Analyses from
+  // disabled cameras (or all cameras when patient.cameras_paused is
+  // true) are dropped both on initial render and as they arrive via
+  // Realtime. The backend writes synthetic "skipped" rows for them
+  // anyway — this filter just keeps the UI clean from the user's POV.
+  enabledCameraIds: string[];
   initial?: Analysis[];
 }) {
-  const [rows, setRows] = useState<Analysis[]>(initial);
+  const enabledSet = new Set(enabledCameraIds);
+  const [rows, setRows] = useState<Analysis[]>(
+    initial.filter((r) => enabledSet.has(r.camera_id)),
+  );
   const [tick, setTick] = useState(0);
   const [debug, setDebug] = useState<{
     mounted: boolean;
@@ -72,12 +82,20 @@ export function AnalysesFeed({
             payload.new.id,
             payload.new.provider,
             payload.new.created_at,
+            'camera_in_enabled_set:',
+            enabledSet.has(payload.new.camera_id),
           );
           setDebug((d) => ({
             ...d,
             eventsReceived: receivedCount,
             lastEventAt: new Date().toISOString(),
           }));
+          // Drop analyses from disabled cameras silently — the backend
+          // wrote them (as `skipped` rows) but the user has chosen not
+          // to see them. Decision happens here, not on the server,
+          // because the user can toggle cameras on/off live and we
+          // don't want to re-subscribe.
+          if (!enabledSet.has(payload.new.camera_id)) return;
           setRows((prev) => {
             const next = payload.new;
             if (prev.some((r) => r.id === next.id)) return prev;
@@ -97,7 +115,11 @@ export function AnalysesFeed({
       console.log('[ANALYSES-FEED] unmount, removing channel');
       void supa.removeChannel(channel);
     };
-  }, [patientId]);
+    // Re-subscribe (effectively just re-bind the enabledSet closure)
+    // whenever the enabled camera list changes — so toggling a camera
+    // off from /cameras takes effect on this feed immediately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientId, enabledCameraIds.join(',')]);
 
   // Re-render every 5s so relative timestamps stay fresh.
   useEffect(() => {
