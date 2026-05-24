@@ -1,0 +1,190 @@
+// Mirrors nemara-backend's pydantic response schemas. snake_case on the wire.
+
+export type PatientState = 'calm' | 'critical' | 'offline';
+export type Relation =
+  | 'parent'
+  | 'spouse'
+  | 'grandparent'
+  | 'sibling'
+  | 'client'
+  | 'other';
+export type DetectorCategory = 'safety' | 'routine';
+export type DetectorSource = 'preset' | 'custom';
+export type DetectorShape = 'point_in_time' | 'state';
+export type DetectorSensitivity = 'low' | 'standard' | 'high' | 'off';
+export type ReviewChoice = 'correct' | 'wrong' | 'unsure';
+export type EventFilter = 'all' | 'unreviewed' | 'reviewed';
+export type LiveKitRole = 'camera' | 'viewer' | 'broadcaster';
+
+export interface Caregiver {
+  id: string;
+  display_name: string;
+  email: string;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Patient {
+  id: string;
+  caregiver_id: string;
+  full_name: string;
+  preferred_name: string;
+  date_of_birth: string | null;
+  gender: string | null;
+  relation: Relation;
+  home_address: string | null;
+  state: PatientState;
+  status_line: string;
+  last_event_at: string | null;
+  battery_percent: number | null;
+  cameras_paused: boolean;
+  photo_storage_key: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Camera {
+  id: string;
+  patient_id: string;
+  display_id: number;
+  room: string;
+  icon_name: string;
+  online: boolean;
+  livekit_identity: string | null;
+  last_seen_at: string | null;
+  created_at: string;
+}
+
+export interface Detector {
+  id: string;
+  patient_id: string;
+  name: string;
+  icon_name: string;
+  description: string;
+  category: DetectorCategory;
+  source: DetectorSource;
+  shape: DetectorShape;
+  where_scope: string;
+  when_scope: string;
+  sensitivity: DetectorSensitivity;
+  is_on: boolean;
+  custom_prompt: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DetectionEvent {
+  id: string;
+  patient_id: string;
+  detector_id: string | null;
+  camera_id: string | null;
+  category: DetectorCategory;
+  source: DetectorSource;
+  icon_name: string;
+  title: string;
+  location: string;
+  occurred_at: string;
+  has_clip: boolean;
+  narrative: string;
+  opened: boolean;
+  reviewed: boolean;
+  review_choice: ReviewChoice | null;
+  review_notes: string | null;
+  reviewed_at: string | null;
+  clip_storage_key: string | null;
+  created_at: string;
+}
+
+// Per-tick LLM output. Not exposed via REST — only consumed via
+// Supabase Realtime subscription on the `analyses` table. Mirrors
+// nemara-backend's analyses table row shape (snake_case on the wire).
+export interface Analysis {
+  id: string;
+  caregiver_id: string;
+  patient_id: string;
+  camera_id: string;
+  provider: 'gemini' | 'openai' | 'skipped';
+  description: string;
+  // JSONB blob; shape depends on which detectors were enabled at tick time.
+  // Common keys: people_present, people_count, fall_detected, fall_confidence,
+  // fall_reasoning, wandering_detected, wandering_confidence, wandering_reasoning,
+  // agitation_detected, agitation_confidence, agitation_reasoning,
+  // medication_taken, medication_confidence, medication_reasoning,
+  // speech_heard, speech_transcript, skipped_reason (when provider=skipped).
+  detector_fields: Record<string, unknown>;
+  people_present: boolean;
+  motion_in_clip: boolean;
+  state_after: 'open' | 'closed';
+  captured_at: string;
+  created_at: string;
+}
+
+export interface EventListResponse {
+  items: DetectionEvent[];
+  next_cursor: string | null;
+}
+
+export interface PairingCodeResponse {
+  pairing_code: string;
+  expires_at: string;
+  camera_id: string;
+}
+
+export interface LiveKitTokenResponse {
+  token: string;
+  url: string;
+  expires_at: string;
+}
+
+// Request bodies
+
+export interface CreateCaregiverRequest {
+  display_name: string;
+  phone?: string;
+}
+
+export interface CreatePatientRequest {
+  full_name: string;
+  preferred_name: string;
+  relation: Relation;
+  date_of_birth?: string;
+  gender?: string;
+  home_address?: string;
+}
+
+export interface CreatePairingCodeRequest {
+  room: string;
+  icon_name?: string;
+}
+
+export interface CreateDetectorRequest {
+  name: string;
+  icon_name: string;
+  description: string;
+  category: DetectorCategory;
+  shape: DetectorShape;
+  where_scope: string;
+  when_scope: string;
+  custom_prompt: string;
+  sensitivity?: DetectorSensitivity;
+}
+
+export interface UpdateDetectorRequest {
+  name?: string;
+  icon_name?: string;
+  description?: string;
+  category?: DetectorCategory;
+  shape?: DetectorShape;
+  where_scope?: string;
+  when_scope?: string;
+  sensitivity?: DetectorSensitivity;
+  is_on?: boolean;
+  custom_prompt?: string;
+}
+
+export interface MintTokenRequest {
+  room: string;
+  identity: string;
+  role: LiveKitRole;
+}
