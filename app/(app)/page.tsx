@@ -130,7 +130,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4">
+    <div className="flex flex-1 flex-col gap-7 px-6 py-6 max-w-7xl w-full mx-auto">
       <PauseMonitoringToggle
         patientId={patient.id}
         initialPaused={patient.cameras_paused}
@@ -139,16 +139,14 @@ export default async function HomePage() {
       />
 
       <section>
-        <header className="mb-2 flex items-baseline justify-between gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Live Grid
+        <header className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-2xl tracking-tight text-ink">
+            Live grid
           </h2>
-          <span className="text-[11px] font-mono text-zinc-600">
-            room: {room}
-          </span>
+          <span className="text-xs font-mono text-ink4">room: {room}</span>
         </header>
         {lkError ? (
-          <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+          <div className="rounded-lg border border-terra/40 bg-terra-soft px-4 py-3 text-sm text-terra-deep">
             Couldn&apos;t mint LiveKit token: {lkError}
           </div>
         ) : (
@@ -161,21 +159,21 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <header className="mb-2 flex items-baseline justify-between gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-            Live LLM analyses
+        <header className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-2xl tracking-tight text-ink">
+            Live analyses
           </h2>
-          <span className="text-[11px] text-zinc-600">
+          <span className="text-xs text-ink4">
             one column per camera · ~10s tick · provider, people, fall,
             wandering, agitation, medication, speech
           </span>
         </header>
         {enabledLivekitCameras.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
+          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
             No active cameras to show analyses for.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {enabledLivekitCameras.map((cam) => (
               <AnalysesFeed
                 key={cam.id}
@@ -192,11 +190,11 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <header className="mb-2 flex items-baseline justify-between gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        <header className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-serif text-2xl tracking-tight text-ink">
             Promoted events
           </h2>
-          <span className="text-[11px] text-zinc-600">
+          <span className="text-xs text-ink4">
             {events.items.length} recent · only when a detector fires
           </span>
         </header>

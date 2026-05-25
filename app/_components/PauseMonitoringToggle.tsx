@@ -56,8 +56,8 @@ export function PauseMonitoringToggle({
   }
 
   return (
-    <section className="flex flex-wrap items-center gap-3 rounded border border-zinc-800 bg-zinc-950 px-3 py-2">
-      <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+    <section className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-card px-4 py-3">
+      <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
         Monitoring
       </span>
       <button
@@ -70,15 +70,15 @@ export function PauseMonitoringToggle({
             : 'All cameras are being monitored. Click to pause everything.'
         }
         className={cn(
-          'rounded border px-3 py-1 text-xs font-semibold uppercase tracking-wide disabled:opacity-50',
+          'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
           paused
-            ? 'border-zinc-700 bg-zinc-900 text-zinc-400'
-            : 'border-emerald-800 bg-emerald-950/50 text-emerald-300',
+            ? 'border-line bg-paper-dim text-ink3'
+            : 'border-action/30 bg-action text-action-ink',
         )}
       >
         {busy ? '…' : paused ? 'PAUSED' : 'ON'}
       </button>
-      <span className="text-[11px] text-zinc-500">
+      <span className="text-sm text-ink3">
         {paused
           ? `all ${totalCount} cameras hidden`
           : hiddenCount > 0
@@ -86,7 +86,7 @@ export function PauseMonitoringToggle({
             : `${totalCount} of ${totalCount} cameras visible`}
       </span>
       {error && (
-        <span className="text-[11px] text-red-400">err: {error}</span>
+        <span className="text-xs text-terra">err: {error}</span>
       )}
     </section>
   );

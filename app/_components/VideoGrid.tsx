@@ -42,7 +42,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
 
   if (enabledCameras.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
         No cameras. Pair a wall phone from /cameras.
       </div>
     );
@@ -51,20 +51,22 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
   // 2-col grid that wraps. 1 camera → just one cell on the left, half-window-width.
   // 2 → side by side. 3 → 2 on row 1, 1 on row 2. And so on.
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {enabledCameras.map((cam) => {
         const trackRef = trackByIdentity.get(cam.identity);
         return (
           <div
             key={cam.id}
-            className="flex flex-col gap-1"
+            className="flex flex-col gap-2"
             data-camera-identity={cam.identity}
           >
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-mono text-zinc-400">{cam.room}</span>
-              <span className="font-mono text-zinc-600">{cam.identity}</span>
+            <div className="flex items-center justify-between">
+              <span className="font-serif text-base text-ink">{cam.room}</span>
+              <span className="font-mono text-[11px] text-ink4 tracking-wide">
+                {cam.identity}
+              </span>
             </div>
-            <div className="relative aspect-video overflow-hidden rounded border border-zinc-800 bg-zinc-950">
+            <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-paper-dim">
               <CameraTileBody
                 disabled={cam.disabled}
                 desiredState={cam.desired_state}
@@ -101,9 +103,9 @@ function CameraTileBody({
 }) {
   if (desiredState === 'disconnected') {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-1 text-zinc-500">
-        <span className="text-sm">Disconnected</span>
-        <span className="text-[11px] text-zinc-600">
+      <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
+        <span className="font-serif text-base text-ink2">Disconnected</span>
+        <span className="text-xs text-ink4">
           Phone left LiveKit. Click ⋯ → Reconnect.
         </span>
       </div>
@@ -111,9 +113,9 @@ function CameraTileBody({
   }
   if (disabled) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-1 text-zinc-500">
-        <span className="text-sm">Hidden</span>
-        <span className="text-[11px] text-zinc-600">
+      <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
+        <span className="font-serif text-base text-ink2">Hidden</span>
+        <span className="text-xs text-ink4">
           AI paused. Click ⋯ → Show to resume.
         </span>
       </div>
@@ -123,7 +125,7 @@ function CameraTileBody({
     return <ParticipantTile trackRef={trackRef} />;
   }
   return (
-    <div className="flex h-full items-center justify-center text-sm text-zinc-500">
+    <div className="flex h-full items-center justify-center text-sm text-ink4 italic">
       Waiting for camera to join…
     </div>
   );
@@ -244,23 +246,23 @@ function CameraTileMenu({
         disabled={busy}
         aria-label={`Options for ${cameraRoom}`}
         title="Camera options"
-        className="inline-flex h-7 w-7 items-center justify-center rounded border border-zinc-700/80 bg-zinc-950/80 text-zinc-300 backdrop-blur hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line/60 bg-card/90 text-ink backdrop-blur hover:border-line hover:bg-card disabled:opacity-50"
       >
         <span className="text-base leading-none">⋯</span>
       </button>
       {open && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute right-0 top-full mt-1 min-w-[11rem] overflow-hidden rounded border border-zinc-700 bg-zinc-950 shadow-lg"
+          className="absolute right-0 top-full mt-1 min-w-[12rem] overflow-hidden rounded-md border border-line bg-card shadow-lg"
         >
           <button
             type="button"
             onClick={handleToggleHide}
             disabled={busy}
-            className="block w-full px-3 py-2 text-left text-xs text-zinc-100 hover:bg-zinc-800 disabled:opacity-50"
+            className="block w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-paper-dim disabled:opacity-50"
           >
             {hideShowLabel}
-            <div className="mt-0.5 text-[10px] font-normal leading-tight text-zinc-500">
+            <div className="mt-0.5 text-[11px] font-normal leading-tight text-ink3">
               {hideShowSubtitle}
             </div>
           </button>
@@ -270,16 +272,16 @@ function CameraTileMenu({
             disabled={busy}
             className={
               desiredState === 'disconnected'
-                ? 'block w-full border-t border-zinc-800 px-3 py-2 text-left text-xs text-emerald-200 hover:bg-emerald-950/40 disabled:opacity-50'
-                : 'block w-full border-t border-zinc-800 px-3 py-2 text-left text-xs text-red-200 hover:bg-red-950/40 disabled:opacity-50'
+                ? 'block w-full border-t border-line px-3 py-2.5 text-left text-sm text-success hover:bg-card-alt disabled:opacity-50'
+                : 'block w-full border-t border-line px-3 py-2.5 text-left text-sm text-terra hover:bg-terra-soft/60 disabled:opacity-50'
             }
           >
             {dcLabel}
             <div
               className={
                 desiredState === 'disconnected'
-                  ? 'mt-0.5 text-[10px] font-normal leading-tight text-emerald-300/70'
-                  : 'mt-0.5 text-[10px] font-normal leading-tight text-red-300/70'
+                  ? 'mt-0.5 text-[11px] font-normal leading-tight text-success/80'
+                  : 'mt-0.5 text-[11px] font-normal leading-tight text-terra/80'
               }
             >
               {dcSubtitle}
@@ -288,7 +290,7 @@ function CameraTileMenu({
         </div>
       )}
       {err && (
-        <div className="absolute right-0 top-full mt-1 max-w-[14rem] rounded border border-red-800 bg-red-950/90 px-2 py-1 text-[11px] text-red-200">
+        <div className="absolute right-0 top-full mt-1 max-w-[14rem] rounded-md border border-terra/40 bg-terra-soft px-2.5 py-1.5 text-xs text-terra-deep">
           {err}
         </div>
       )}
@@ -307,7 +309,7 @@ export function VideoGrid({
 }) {
   if (!token) {
     return (
-      <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
         No LiveKit token available
       </div>
     );
@@ -320,7 +322,7 @@ export function VideoGrid({
   // GridInner so the user can re-enable from the ⋯ menu.
   if (enabledCameras.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded border border-dashed border-zinc-800 text-sm text-zinc-500">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
         No cameras yet. Pair a wall phone from /cameras.
       </div>
     );

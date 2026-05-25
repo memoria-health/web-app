@@ -16,9 +16,9 @@ function statusFor(cam: Camera): { label: string; tone: 'live' | 'offline' | 'pa
 }
 
 const TONE_CLASSES: Record<'live' | 'offline' | 'pairing', string> = {
-  live: 'border-emerald-800 bg-emerald-950/50 text-emerald-300',
-  offline: 'border-zinc-700 bg-zinc-900 text-zinc-400',
-  pairing: 'border-yellow-800 bg-yellow-950/40 text-yellow-300',
+  live: 'border-success/40 bg-card-alt text-success',
+  offline: 'border-line bg-paper-dim text-ink4',
+  pairing: 'border-warning/40 bg-card-alt text-warning',
 };
 
 export function CameraList({
@@ -116,7 +116,7 @@ export function CameraList({
 
   if (cameras.length === 0) {
     return (
-      <div className="rounded border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+      <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-sm text-ink3">
         No cameras yet. Pair one to start streaming.
       </div>
     );
@@ -125,42 +125,40 @@ export function CameraList({
   return (
     <>
       {error && (
-        <div className="mb-3 rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+        <div className="mb-3 rounded-md border border-terra/40 bg-terra-soft px-3 py-2 text-sm text-terra-deep">
           {error}
         </div>
       )}
-      <ul className="divide-y divide-zinc-800 rounded border border-zinc-800 bg-zinc-950">
+      <ul className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden">
         {cameras.map((cam) => {
           const status = statusFor(cam);
           return (
-            <li key={cam.id} className="flex items-center gap-3 px-3 py-2.5">
+            <li key={cam.id} className="flex items-center gap-3 px-4 py-3">
               <Link
                 href={`/cameras/${cam.id}`}
-                className="flex min-w-0 flex-1 flex-col rounded -mx-1 px-1 hover:bg-zinc-900/60"
+                className="flex min-w-0 flex-1 flex-col rounded -mx-1 px-1 hover:bg-paper-dim/60 transition-colors"
                 title="Configure detectors for this camera"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-medium text-zinc-100">
+                  <span className="font-serif text-base text-ink">
                     {cam.room}
                   </span>
-                  <span className="text-[11px] font-mono text-zinc-600">
+                  <span className="font-mono text-[11px] text-ink4 tracking-wide">
                     CAM {String(cam.display_id).padStart(2, '0')}
                   </span>
                   <span
                     className={cn(
-                      'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                      'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
                       TONE_CLASSES[status.tone],
                     )}
                   >
                     {status.label}
                   </span>
-                  <span className="text-[10px] text-zinc-600 group-hover:text-zinc-400">
-                    ⚙
-                  </span>
+                  <span className="text-xs text-ink4">⚙</span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-zinc-500">
+                <p className="mt-1 font-mono text-[11px] text-ink4 tracking-wide">
                   {cam.livekit_identity ? (
-                    <code className="font-mono">{cam.livekit_identity}</code>
+                    <code>{cam.livekit_identity}</code>
                   ) : (
                     <span>not yet claimed</span>
                   )}
@@ -178,10 +176,10 @@ export function CameraList({
                     : 'Camera is ON. Click to turn OFF (LLM stops; LiveKit stays connected).'
                 }
                 className={cn(
-                  'rounded border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide disabled:opacity-50',
+                  'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
                   cam.disabled
-                    ? 'border-zinc-700 bg-zinc-900 text-zinc-400'
-                    : 'border-emerald-800 bg-emerald-950/50 text-emerald-300',
+                    ? 'border-line bg-paper-dim text-ink3'
+                    : 'border-action/30 bg-action text-action-ink',
                 )}
               >
                 {toggling === cam.id
@@ -193,7 +191,7 @@ export function CameraList({
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}
-                className="rounded border border-zinc-700 px-2.5 py-1 text-xs text-zinc-300 hover:border-red-700 hover:text-red-300 disabled:opacity-50"
+                className="rounded-md border border-line bg-card px-3 py-1.5 text-sm text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
               >
                 {removing === cam.id ? 'Removing…' : 'Remove'}
               </button>

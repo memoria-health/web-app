@@ -57,9 +57,9 @@ export function CameraDetectorsForm({
 
   if (patientDetectors.length === 0) {
     return (
-      <div className="rounded border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+      <div className="rounded border border-dashed border-line px-4 py-8 text-center text-sm text-ink3">
         No detectors configured. Add one from the{' '}
-        <a href="/detectors" className="text-emerald-400 underline">Detectors</a>{' '}
+        <a href="/detectors" className="text-terra underline">Detectors</a>{' '}
         page first.
       </div>
     );
@@ -68,11 +68,11 @@ export function CameraDetectorsForm({
   return (
     <div className="flex flex-col gap-2">
       {error && (
-        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-terra">
           {error}
         </div>
       )}
-      <ul className="divide-y divide-zinc-800 rounded border border-zinc-800 bg-zinc-950">
+      <ul className="divide-y divide-line rounded border border-line bg-card">
         {patientDetectors.map((d) => {
           const isAssigned = assigned.has(d.id);
           const masterOff = !d.is_on;
@@ -87,26 +87,26 @@ export function CameraDetectorsForm({
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-medium text-zinc-100">
+                  <span className="text-[15px] font-medium text-ink">
                     {d.name}
                   </span>
                   <span
                     className={cn(
                       'rounded border px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide',
                       d.category === 'safety'
-                        ? 'border-red-800 bg-red-950/40 text-red-300'
-                        : 'border-sky-800 bg-sky-950/40 text-sky-300',
+                        ? 'border-red-800 bg-red-950/40 text-terra'
+                        : 'border-sky/40 bg-sky-soft text-sky',
                     )}
                   >
                     {d.category}
                   </span>
                   {masterOff && (
-                    <span className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-zinc-400">
+                    <span className="rounded border border-line bg-paper-dim px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-ink3">
                       off globally
                     </span>
                   )}
                 </div>
-                <p className="text-[12px] text-zinc-500">{d.description}</p>
+                <p className="text-[12px] text-ink3">{d.description}</p>
               </div>
               <button
                 type="button"
@@ -118,13 +118,13 @@ export function CameraDetectorsForm({
                 className={cn(
                   'mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors disabled:opacity-50',
                   isAssigned && !masterOff
-                    ? 'border-emerald-600 bg-emerald-600'
-                    : 'border-zinc-700 bg-zinc-800',
+                    ? 'border-action bg-action'
+                    : 'border-line bg-paper-dim',
                 )}
               >
                 <span
                   className={cn(
-                    'inline-block h-4 w-4 rounded-full bg-zinc-100 shadow transition-transform',
+                    'inline-block h-4 w-4 rounded-full bg-paper shadow transition-transform',
                     isAssigned ? 'translate-x-6' : 'translate-x-1',
                   )}
                 />
@@ -133,11 +133,11 @@ export function CameraDetectorsForm({
           );
         })}
       </ul>
-      <p className="text-[11px] text-zinc-500">
+      <p className="text-[11px] text-ink3">
         Toggling here only affects <strong>this</strong> camera. Other
         cameras under the same patient are independent. The global master
         switch lives on the{' '}
-        <a href="/detectors" className="text-emerald-400 underline">
+        <a href="/detectors" className="text-terra underline">
           Detectors
         </a>{' '}
         page.

@@ -10,12 +10,13 @@ export default async function NewCameraPage() {
   const patient = patients[0];
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
+    <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3">
-        <Link href="/cameras" className="text-xs text-zinc-500 hover:text-zinc-300">
+        <Link href="/cameras" className="text-sm text-ink3 hover:text-ink">
           ← Cameras
         </Link>
-        <h1 className="text-sm font-semibold tracking-wide">Add camera</h1>
+        <span className="text-ink4">/</span>
+        <h1 className="font-serif text-3xl tracking-tight text-ink">Add camera</h1>
       </header>
       <AddCameraFlow patientId={patient.id} />
     </div>

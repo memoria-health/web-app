@@ -205,8 +205,8 @@ export function AnalysesFeed({
   void tick;
 
   const debugBar = (
-    <div className="mb-2 rounded border border-amber-700 bg-amber-950/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-amber-200">
-      <strong className="text-amber-400">[DEBUG]</strong>{' '}
+    <div className="mb-2 rounded-md border border-warning/40 bg-card-alt px-3 py-2 font-mono text-[11px] leading-relaxed text-ink2">
+      <strong className="text-warning">[DEBUG]</strong>{' '}
       mounted={String(debug.mounted)} · subStatus={debug.subStatus} ·
       eventsReceived={debug.eventsReceived} ·
       lastEventAt={debug.lastEventAt ?? '—'} · rowsInState={rows.length}
@@ -214,7 +214,7 @@ export function AnalysesFeed({
         <> · cam={cameraId.slice(0, 8)}…</>
       )}
       {debug.error && (
-        <> · <span className="text-red-400">err={debug.error}</span></>
+        <> · <span className="text-terra">err={debug.error}</span></>
       )}
     </div>
   );
@@ -223,9 +223,9 @@ export function AnalysesFeed({
   // is one cell of a per-camera grid — show the room name so the user
   // knows which video tile it pairs with).
   const headerBar = cameraLabel ? (
-    <div className="mb-1 flex items-center justify-between text-[11px]">
-      <span className="font-mono text-zinc-400">{cameraLabel}</span>
-      <span className="font-mono text-zinc-600">
+    <div className="mb-2 flex items-center justify-between">
+      <span className="font-serif text-base text-ink">{cameraLabel}</span>
+      <span className="font-mono text-[11px] text-ink4 tracking-wide">
         {cameraId?.slice(0, 8)}…
       </span>
     </div>
@@ -236,9 +236,9 @@ export function AnalysesFeed({
       <div className="flex flex-col">
         {headerBar}
         {debugBar}
-        <div className="rounded border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+        <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-sm text-ink3">
           Waiting for the detector worker to produce a tick…<br />
-          <span className="text-xs text-zinc-600">
+          <span className="text-xs text-ink4">
             (about every 10 seconds when motion is detected)
           </span>
         </div>
@@ -251,7 +251,7 @@ export function AnalysesFeed({
       {headerBar}
       {debugBar}
       <ul
-        className="divide-y divide-zinc-800 rounded border border-zinc-800 bg-zinc-950"
+        className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden"
         aria-label="detection analyses"
       >
         {rows.map((a) => (
@@ -351,25 +351,25 @@ function AnalysisRow({
   return (
     <li
       className={cn(
-        'flex flex-col gap-1.5 px-3 py-2.5',
-        fallDetected && 'bg-red-950/40',
+        'flex flex-col gap-2 px-4 py-3',
+        fallDetected && 'bg-terra-soft/40',
       )}
     >
       {/* metadata row */}
       <div className="flex flex-wrap items-center gap-2 text-[11px]">
-        <span className="font-mono text-zinc-500">
+        <span className="font-mono text-ink3 tracking-wide">
           {timeAgo(a.created_at)}
         </span>
-        <span className="font-mono text-zinc-600 truncate max-w-[12rem]">
+        <span className="font-mono text-ink4 truncate max-w-[12rem] tracking-wide">
           cam {a.camera_id.slice(0, 8)}
         </span>
         {/* people */}
         <span
           className={cn(
-            'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono',
+            'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono',
             a.people_present
-              ? 'border-emerald-700 bg-emerald-950/60 text-emerald-300'
-              : 'border-zinc-800 bg-zinc-900 text-zinc-500',
+              ? 'border-success/40 bg-card-alt text-success'
+              : 'border-line bg-paper-dim text-ink4',
           )}
         >
           👤 {peopleCount}
@@ -377,10 +377,10 @@ function AnalysisRow({
         {/* motion */}
         <span
           className={cn(
-            'inline-flex items-center rounded border px-1.5 py-0.5 font-mono uppercase tracking-wide',
+            'inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
             a.motion_in_clip
-              ? 'border-amber-700 bg-amber-950/40 text-amber-300'
-              : 'border-zinc-800 bg-zinc-900 text-zinc-500',
+              ? 'border-warning/40 bg-card-alt text-warning'
+              : 'border-line bg-paper-dim text-ink4',
           )}
         >
           {a.motion_in_clip ? 'motion' : 'still'}
@@ -388,10 +388,10 @@ function AnalysisRow({
         {/* state */}
         <span
           className={cn(
-            'inline-flex items-center rounded border px-1.5 py-0.5 font-mono uppercase tracking-wide',
+            'inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
             a.state_after === 'open'
-              ? 'border-emerald-800 bg-emerald-950/40 text-emerald-300'
-              : 'border-zinc-700 bg-zinc-900 text-zinc-400',
+              ? 'border-action/30 bg-action-soft text-ink'
+              : 'border-line bg-paper-dim text-ink4',
           )}
         >
           {a.state_after}
@@ -399,32 +399,32 @@ function AnalysisRow({
         {/* provider */}
         <span
           className={cn(
-            'ml-auto inline-flex items-center rounded border px-1.5 py-0.5 font-mono uppercase tracking-wide',
-            a.provider === 'gemini' && 'border-sky-800 bg-sky-950/50 text-sky-300',
-            a.provider === 'openai' && 'border-purple-800 bg-purple-950/50 text-purple-300',
-            a.provider === 'skipped' && 'border-zinc-800 bg-zinc-900 text-zinc-500',
+            'ml-auto inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
+            a.provider === 'gemini' && 'border-sky/40 bg-sky-soft text-sky',
+            a.provider === 'openai' && 'border-sky/40 bg-sky-soft text-sky',
+            a.provider === 'skipped' && 'border-line bg-paper-dim text-ink4',
           )}
         >
           {a.provider}
         </span>
         {/* fall + wandering + agitation badges (right-aligned cluster) */}
         {fallDetected && (
-          <span className="inline-flex items-center rounded bg-red-600 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-white">
+          <span className="inline-flex items-center rounded-sm bg-terra px-2 py-0.5 font-mono font-semibold uppercase tracking-wider text-terra-ink">
             FALL · {fallConf ?? '?'}
           </span>
         )}
         {wanderingDetected && (
-          <span className="inline-flex items-center rounded border border-yellow-700 bg-yellow-950/40 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-yellow-200">
+          <span className="inline-flex items-center rounded-sm border border-warning/40 bg-card-alt px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wider text-warning">
             WANDERING · {wanderingConf ?? '?'}
           </span>
         )}
         {agitationDetected && (
-          <span className="inline-flex items-center rounded border border-orange-700 bg-orange-950/40 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-orange-200">
+          <span className="inline-flex items-center rounded-sm border border-terra/40 bg-terra-soft px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wider text-terra-deep">
             AGITATION · {agitationConf ?? '?'}
           </span>
         )}
         {medicationTaken && (
-          <span className="inline-flex items-center rounded border border-emerald-800 bg-emerald-950/40 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-emerald-300">
+          <span className="inline-flex items-center rounded-sm border border-success/40 bg-card-alt px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wider text-success">
             MEDICATION · {medicationConf ?? '?'}
           </span>
         )}
@@ -435,7 +435,7 @@ function AnalysisRow({
           .map((d) => (
             <span
               key={`chip-${d.identifier}`}
-              className="inline-flex items-center rounded border border-sky-700 bg-sky-950/50 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-sky-300"
+              className="inline-flex items-center rounded-sm border border-sky/40 bg-sky-soft px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wider text-sky"
             >
               {d.name.toUpperCase()} · {d.confidence ?? '?'}
             </span>
@@ -443,9 +443,9 @@ function AnalysisRow({
       </div>
 
       {/* description */}
-      <p className="text-[14px] leading-relaxed text-zinc-100">
+      <p className="text-sm leading-relaxed text-ink">
         {skippedReason ? (
-          <span className="italic text-zinc-500">
+          <span className="italic text-ink4">
             tick skipped — {skippedReason.replace(/_/g, ' ')}
           </span>
         ) : (
@@ -455,26 +455,26 @@ function AnalysisRow({
 
       {/* reasonings */}
       {fallReason && (
-        <p className="text-[12px] leading-relaxed text-amber-200/80">
-          <span className="font-semibold text-amber-400">Fall reasoning: </span>
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <span className="font-semibold text-terra">Fall reasoning: </span>
           {fallReason}
         </p>
       )}
       {wanderingReason && (
-        <p className="text-[12px] leading-relaxed text-yellow-200/80">
-          <span className="font-semibold text-yellow-400">Wandering reasoning: </span>
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <span className="font-semibold text-warning">Wandering reasoning: </span>
           {wanderingReason}
         </p>
       )}
       {agitationReason && (
-        <p className="text-[12px] leading-relaxed text-orange-200/80">
-          <span className="font-semibold text-orange-400">Agitation reasoning: </span>
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <span className="font-semibold text-terra-deep">Agitation reasoning: </span>
           {agitationReason}
         </p>
       )}
       {medicationReason && (
-        <p className="text-[12px] leading-relaxed text-emerald-200/80">
-          <span className="font-semibold text-emerald-400">Medication reasoning: </span>
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <span className="font-semibold text-success">Medication reasoning: </span>
           {medicationReason}
         </p>
       )}
@@ -484,8 +484,8 @@ function AnalysisRow({
           judgment, useful to see why it said "no" too). */}
       {customDetectorEntries.map((d) =>
         d.reasoning ? (
-          <p key={`reason-${d.identifier}`} className="text-[12px] leading-relaxed text-sky-200/80">
-            <span className="font-semibold text-sky-400">
+          <p key={`reason-${d.identifier}`} className="text-[13px] leading-relaxed text-ink2">
+            <span className="font-semibold text-sky">
               {d.name} reasoning:{' '}
             </span>
             {d.reasoning}
@@ -495,8 +495,8 @@ function AnalysisRow({
 
       {/* speech */}
       {speechHeard && speechTranscript && (
-        <p className="text-[12px] leading-relaxed text-sky-200/90">
-          <span className="font-semibold text-sky-400">Speech: </span>
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <span className="font-semibold text-sky">Speech: </span>
           &ldquo;{speechTranscript}&rdquo;
         </p>
       )}

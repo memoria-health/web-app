@@ -91,14 +91,14 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
 
   if (paired) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded border border-emerald-800 bg-emerald-950/30 p-6 text-center">
-        <h2 className="text-2xl font-semibold text-emerald-400">Paired!</h2>
-        <p className="text-sm text-zinc-400">
-          The wall phone for <strong>{issued?.room}</strong> is now connected.
+      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-lg border border-success/40 bg-card-alt p-8 text-center">
+        <h2 className="font-serif text-3xl tracking-tight text-ink">Paired!</h2>
+        <p className="text-sm text-ink2">
+          The wall phone for <strong className="font-medium">{issued?.room}</strong> is now connected.
         </p>
         <button
           onClick={() => router.replace('/cameras')}
-          className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+          className="rounded-md bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 transition-colors"
         >
           View cameras
         </button>
@@ -109,36 +109,36 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   if (issued) {
     const expired = isExpired(issued.expires_at, Date.now() + tick * 0);
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded border border-zinc-800 bg-zinc-950 p-6 text-center">
-        <span className="text-xs uppercase tracking-wider text-zinc-500">
+      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded border border-line bg-card p-6 text-center">
+        <span className="text-xs uppercase tracking-wider text-ink3">
           Pairing code
         </span>
         <div
-          className="font-mono text-6xl font-semibold tracking-widest tabular-nums text-zinc-100"
+          className="font-mono text-6xl font-semibold tracking-widest tabular-nums text-ink"
           aria-label={`pairing code ${issued.pairing_code}`}
         >
           {formatPairingCode(issued.pairing_code)}
         </div>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-ink3">
           Open the Nemara camera app on your wall phone and enter this code.
         </p>
         {expired ? (
-          <p className="text-xs text-red-400">
+          <p className="text-xs text-terra">
             Code expired. Go back and generate a new one.
           </p>
         ) : (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-ink3">
             Expires in {countdown(issued.expires_at)}. Waiting for phone to
             pair…
           </p>
         )}
-        <span className="inline-flex items-center gap-2 text-xs text-zinc-500">
+        <span className="inline-flex items-center gap-2 text-xs text-ink3">
           <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
           Waiting for pair
         </span>
         <Link
           href="/cameras"
-          className="rounded border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 hover:border-zinc-600"
+          className="rounded border border-line px-3 py-1.5 text-sm text-ink2 hover:border-line"
         >
           Done (return to cameras)
         </Link>
@@ -149,10 +149,10 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   return (
     <form
       onSubmit={onCreate}
-      className="mx-auto flex max-w-md flex-col gap-3 rounded border border-zinc-800 bg-zinc-950 p-6"
+      className="mx-auto flex max-w-md flex-col gap-3 rounded border border-line bg-card p-6"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-zinc-300">Camera name</span>
+        <span className="text-sm font-medium text-ink2">Camera name</span>
         <input
           type="text"
           value={name}
@@ -160,15 +160,15 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
           placeholder="e.g. Living room, Kitchen, Bedroom"
           maxLength={64}
           required
-          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:border-emerald-600 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-zinc-300">Icon</span>
+        <span className="text-sm font-medium text-ink2">Icon</span>
         <select
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
-          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:border-emerald-600 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         >
           <option value="tv">tv</option>
           <option value="fork.knife">fork.knife</option>
@@ -179,21 +179,21 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
         </select>
       </label>
       {error && (
-        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-terra">
           {error}
         </div>
       )}
       <div className="flex items-center justify-end gap-2">
         <Link
           href="/cameras"
-          className="rounded border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300"
+          className="rounded border border-line px-3 py-1.5 text-sm text-ink2"
         >
           Cancel
         </Link>
         <button
           type="submit"
           disabled={busy || !name.trim()}
-          className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+          className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 disabled:opacity-50"
         >
           {busy ? 'Generating…' : 'Generate code'}
         </button>

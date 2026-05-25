@@ -1,30 +1,108 @@
 @import 'tailwindcss';
 
+/* Nemara design system tokens — mirrored from the iOS app's asset
+ * catalog (NemaraCaregiver/Resources/Assets.xcassets/Colors). Single
+ * source of truth lives in that catalog; the hex values here are
+ * literal copies. Keep them in sync if the iOS palette changes.
+ *
+ * The token names match the SwiftUI side (NemaraColor.swift) so the
+ * mental model carries between platforms.
+ */
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  /* Surfaces */
+  --color-paper: #efe6da;
+  --color-paper-dim: #e6ddc8;
+  --color-card: #fbf8f0;
+  --color-card-alt: #f0e8d6;
+
+  /* Ink — text hierarchy */
+  --color-ink: #1c1a14;
+  --color-ink2: #2e2a20;
+  --color-ink3: #4a4539;
+  --color-ink4: #8a8373;
+  --color-line: #c9c0ab;
+
+  /* Brand — terra rust */
+  --color-terra: #a04331;
+  --color-terra-soft: #f2ddd3;
+  --color-terra-deep: #7a2f1f;
+  --color-terra-ink: #fbf8f0;
+
+  /* Action — warm near-black (primary CTA) */
+  --color-action: #1c1a14;
+  --color-action-soft: #e6ddc8;
+  --color-action-ink: #fbf8f0;
+
+  /* Routine — sky blue (informational events) */
+  --color-sky: #6b8aa0;
+  --color-sky-soft: #dde6ee;
+
+  /* Semantic */
+  --color-success: #4a5d3a;
+  --color-warning: #c68a3d;
+  --color-danger: #a04331;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Tailwind v4 reads these here and emits utilities like bg-paper,
+   * text-ink, border-line, etc. */
+  --color-paper: var(--color-paper);
+  --color-paper-dim: var(--color-paper-dim);
+  --color-card: var(--color-card);
+  --color-card-alt: var(--color-card-alt);
+
+  --color-ink: var(--color-ink);
+  --color-ink2: var(--color-ink2);
+  --color-ink3: var(--color-ink3);
+  --color-ink4: var(--color-ink4);
+  --color-line: var(--color-line);
+
+  --color-terra: var(--color-terra);
+  --color-terra-soft: var(--color-terra-soft);
+  --color-terra-deep: var(--color-terra-deep);
+  --color-terra-ink: var(--color-terra-ink);
+
+  --color-action: var(--color-action);
+  --color-action-soft: var(--color-action-soft);
+  --color-action-ink: var(--color-action-ink);
+
+  --color-sky: var(--color-sky);
+  --color-sky-soft: var(--color-sky-soft);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+
+  /* Font-family tokens — populated by next/font CSS variables set on
+   * <html> in app/layout.tsx. Tailwind emits `font-sans`, `font-serif`,
+   * `font-mono` utilities pointing at these. */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, sans-serif;
+  --font-serif: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype',
+    Palatino, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo,
+    monospace;
+
+  /* Radius scale — matches NemaraRadius.swift */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
 }
 
-/* LiveKit overrides for our dark theme */
+/* LiveKit tile background should sit on Paper. The .lk-grid-layout
+ * outer chrome stays neutral so the actual video element fills it. */
 .lk-grid-layout,
 .lk-participant-tile {
-  background: #18181b;
-  border-radius: 0.5rem;
+  background: var(--color-paper-dim);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 

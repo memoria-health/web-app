@@ -29,10 +29,10 @@ export function HiddenCamerasBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
       {hiddenCameras.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-zinc-500">
+          <span className="text-ink3">
             Hidden ({hiddenCameras.length}):
           </span>
           {hiddenCameras.map((cam) => (
@@ -46,7 +46,7 @@ export function HiddenCamerasBar({
       )}
       {disconnectedCameras.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-zinc-500">
+          <span className="text-ink3">
             Disconnected ({disconnectedCameras.length}):
           </span>
           {disconnectedCameras.map((cam) => (
@@ -112,8 +112,8 @@ function CameraActionPill({
 
   const hoverClasses =
     variant === 'hidden'
-      ? 'hover:border-emerald-700 hover:bg-emerald-950/40 hover:text-emerald-300'
-      : 'hover:border-amber-700 hover:bg-amber-950/40 hover:text-amber-300';
+      ? 'hover:border-success/40 hover:bg-card-alt hover:text-success'
+      : 'hover:border-warning/40 hover:bg-card-alt hover:text-warning';
 
   return (
     <button
@@ -127,11 +127,11 @@ function CameraActionPill({
             ? `Show ${camera.room} again`
             : `Reconnect ${camera.room} — phone will rejoin LiveKit (~1-2s)`
       }
-      className={`inline-flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-900 px-2 py-0.5 font-mono text-[11px] text-zinc-300 disabled:opacity-50 ${hoverClasses}`}
+      className={`inline-flex items-center gap-1.5 rounded-md border border-line bg-card px-2.5 py-1 font-mono text-xs text-ink2 disabled:opacity-50 transition-colors ${hoverClasses}`}
     >
       <span>{camera.room}</span>
-      <span className="text-zinc-500">·</span>
-      <span className="font-semibold uppercase tracking-wide">{label}</span>
+      <span className="text-ink4">·</span>
+      <span className="font-semibold uppercase tracking-wider">{label}</span>
     </button>
   );
 }

@@ -32,51 +32,51 @@ export default async function CameraDetailPage({
       ? { text: 'LIVE', tone: 'live' as const }
       : { text: 'OFFLINE', tone: 'offline' as const };
   const toneClass: Record<typeof statusLabel.tone, string> = {
-    live: 'border-emerald-800 bg-emerald-950/50 text-emerald-300',
-    offline: 'border-zinc-700 bg-zinc-900 text-zinc-400',
-    pairing: 'border-yellow-800 bg-yellow-950/40 text-yellow-300',
+    live: 'border-action/30 bg-action text-action-ink',
+    offline: 'border-line bg-paper-dim text-ink3',
+    pairing: 'border-warning/40 bg-card-alt text-warning',
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <header className="flex items-center gap-3">
-        <Link href="/cameras" className="text-xs text-zinc-500 hover:text-zinc-300">
+    <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
+      <header className="flex items-center gap-3 flex-wrap">
+        <Link href="/cameras" className="text-sm text-ink3 hover:text-ink">
           ← Cameras
         </Link>
-        <span className="text-zinc-700">/</span>
-        <h1 className="text-sm font-semibold tracking-wide">{camera.room}</h1>
+        <span className="text-ink4">/</span>
+        <h1 className="font-serif text-3xl tracking-tight text-ink">{camera.room}</h1>
         <span
-          className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${toneClass[statusLabel.tone]}`}
+          className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${toneClass[statusLabel.tone]}`}
         >
           {statusLabel.text}
         </span>
         {camera.disabled && (
-          <span className="inline-flex items-center rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+          <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink3">
             OFF
           </span>
         )}
       </header>
 
-      <section className="rounded border border-zinc-800 bg-zinc-950 px-3 py-3">
-        <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+      <section className="rounded-lg border border-line bg-card px-4 py-4">
+        <h2 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
           Camera info
         </h2>
-        <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-[12px]">
-          <dt className="text-zinc-500">Display ID</dt>
-          <dd className="font-mono text-zinc-300">
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
+          <dt className="text-ink3">Display ID</dt>
+          <dd className="font-mono text-ink2">
             CAM {String(camera.display_id).padStart(2, '0')}
           </dd>
-          <dt className="text-zinc-500">LiveKit identity</dt>
-          <dd className="font-mono text-zinc-300">
+          <dt className="text-ink3">LiveKit identity</dt>
+          <dd className="font-mono text-ink2">
             {camera.livekit_identity ?? '— not yet claimed —'}
           </dd>
-          <dt className="text-zinc-500">Last seen</dt>
-          <dd className="text-zinc-300">{timeAgo(camera.last_seen_at)}</dd>
+          <dt className="text-ink3">Last seen</dt>
+          <dd className="text-ink2">{timeAgo(camera.last_seen_at)}</dd>
         </dl>
       </section>
 
       <section>
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+        <h2 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
           Detectors running on this camera
         </h2>
         <CameraDetectorsForm

@@ -169,16 +169,16 @@ export function DetectorForm(props: Props) {
   return (
     <form
       onSubmit={onSubmit}
-      className="mx-auto flex max-w-xl flex-col gap-4 rounded border border-zinc-800 bg-zinc-950 p-6"
+      className="mx-auto flex max-w-xl flex-col gap-4 rounded border border-line bg-card p-6"
     >
       {isEditingBuiltin && (
-        <div className="rounded border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-400">
+        <div className="rounded border border-line bg-paper-dim px-3 py-2 text-xs text-ink3">
           This is a built-in detector — editable but be careful.
         </div>
       )}
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-wide text-zinc-400">
+        <span className="text-xs uppercase tracking-wide text-ink3">
           Name
         </span>
         <input
@@ -187,12 +187,12 @@ export function DetectorForm(props: Props) {
           onChange={(e) => update('name', e.target.value)}
           required
           maxLength={80}
-          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-wide text-zinc-400">
+        <span className="text-xs uppercase tracking-wide text-ink3">
           Description
         </span>
         <input
@@ -201,13 +201,13 @@ export function DetectorForm(props: Props) {
           onChange={(e) => update('description', e.target.value)}
           required
           maxLength={240}
-          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             Category
           </span>
           <select
@@ -215,7 +215,7 @@ export function DetectorForm(props: Props) {
             onChange={(e) =>
               update('category', e.target.value as DetectorCategory)
             }
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+            className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
             <option value="safety">safety</option>
             <option value="routine">routine</option>
@@ -223,13 +223,13 @@ export function DetectorForm(props: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             Shape
           </span>
           <select
             value={form.shape}
             onChange={(e) => update('shape', e.target.value as DetectorShape)}
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+            className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
             <option value="point_in_time">point_in_time</option>
             <option value="state">state</option>
@@ -237,13 +237,13 @@ export function DetectorForm(props: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             Icon
           </span>
           <select
             value={form.icon_name}
             onChange={(e) => update('icon_name', e.target.value)}
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+            className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
             {ICONS.map((i) => (
               <option key={i} value={i}>
@@ -254,7 +254,7 @@ export function DetectorForm(props: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             Sensitivity
           </span>
           <select
@@ -262,7 +262,7 @@ export function DetectorForm(props: Props) {
             onChange={(e) =>
               update('sensitivity', e.target.value as DetectorSensitivity)
             }
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+            className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
             <option value="low">low</option>
             <option value="standard">standard</option>
@@ -272,14 +272,14 @@ export function DetectorForm(props: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             Where
           </span>
           <select
             value={form.where_scope}
             onChange={(e) => update('where_scope', e.target.value)}
             required
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
+            className="rounded border border-line bg-paper-dim px-3 py-2 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
             {roomOptions.map((r) => (
               <option key={r} value={r}>
@@ -290,7 +290,7 @@ export function DetectorForm(props: Props) {
         </label>
 
         <div className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-zinc-400">
+          <span className="text-xs uppercase tracking-wide text-ink3">
             When
           </span>
           <div className="flex items-center gap-2">
@@ -300,8 +300,8 @@ export function DetectorForm(props: Props) {
               className={cn(
                 'rounded border px-2.5 py-1 text-xs uppercase tracking-wide',
                 whenMode === 'always'
-                  ? 'border-emerald-700 bg-emerald-950/50 text-emerald-300'
-                  : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-100',
+                  ? 'border-action/30 bg-action text-action-ink'
+                  : 'border-line bg-paper-dim text-ink3 hover:text-ink',
               )}
             >
               Always
@@ -312,21 +312,21 @@ export function DetectorForm(props: Props) {
               className={cn(
                 'rounded border px-2.5 py-1 text-xs uppercase tracking-wide',
                 whenMode === 'specific'
-                  ? 'border-emerald-700 bg-emerald-950/50 text-emerald-300'
-                  : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-100',
+                  ? 'border-action/30 bg-action text-action-ink'
+                  : 'border-line bg-paper-dim text-ink3 hover:text-ink',
               )}
             >
               Specific time
             </button>
           </div>
           {whenMode === 'specific' && (
-            <div className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+            <div className="mt-1 flex items-center gap-2 text-xs text-ink3">
               <input
                 type="time"
                 value={whenStart}
                 onChange={(e) => setWhenStart(e.target.value)}
                 aria-label="start time"
-                className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm focus:border-emerald-600 focus:outline-none"
+                className="rounded border border-line bg-paper-dim px-2 py-1 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
               />
               <span>to</span>
               <input
@@ -334,7 +334,7 @@ export function DetectorForm(props: Props) {
                 value={whenEnd}
                 onChange={(e) => setWhenEnd(e.target.value)}
                 aria-label="end time"
-                className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm focus:border-emerald-600 focus:outline-none"
+                className="rounded border border-line bg-paper-dim px-2 py-1 text-sm focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
               />
             </div>
           )}
@@ -342,7 +342,7 @@ export function DetectorForm(props: Props) {
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-wide text-zinc-400">
+        <span className="text-xs uppercase tracking-wide text-ink3">
           Detection prompt
         </span>
         <textarea
@@ -352,15 +352,15 @@ export function DetectorForm(props: Props) {
           required
           maxLength={2000}
           placeholder="In plain English: what should the model watch for, and when should it flag it?"
-          className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-mono leading-relaxed focus:border-emerald-600 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm font-mono leading-relaxed focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
-        <span className="text-[11px] text-zinc-600">
+        <span className="text-[11px] text-ink4">
           {form.custom_prompt.length} / 2000
         </span>
       </label>
 
       {error && (
-        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-terra">
           {error}
         </div>
       )}
@@ -368,7 +368,7 @@ export function DetectorForm(props: Props) {
       <div className="flex items-center justify-between gap-2">
         <Link
           href="/detectors"
-          className="rounded border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300"
+          className="rounded border border-line px-3 py-1.5 text-sm text-ink2"
         >
           Cancel
         </Link>
@@ -378,7 +378,7 @@ export function DetectorForm(props: Props) {
               type="button"
               onClick={onDelete}
               disabled={deleting}
-              className="rounded border border-red-800 bg-red-950/30 px-3 py-1.5 text-sm text-red-300 hover:bg-red-950/60 disabled:opacity-50"
+              className="rounded border border-red-800 bg-red-950/30 px-3 py-1.5 text-sm text-terra hover:bg-red-950/60 disabled:opacity-50"
             >
               {deleting ? 'Deleting…' : 'Delete'}
             </button>
@@ -386,7 +386,7 @@ export function DetectorForm(props: Props) {
           <button
             type="submit"
             disabled={busy}
-            className="rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+            className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 disabled:opacity-50"
           >
             {busy ? 'Saving…' : props.mode === 'create' ? 'Create' : 'Save'}
           </button>
