@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type {
+  RealtimePostgresDeletePayload,
   RealtimePostgresInsertPayload,
   RealtimePostgresUpdatePayload,
 } from '@supabase/supabase-js';
@@ -80,6 +81,25 @@ export function DetectorList({
             );
           },
         )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'detectors',
+            // No filter on DELETE: Postgres only carries the
+            // REPLICA IDENTITY columns in the old_record payload,
+            // and filters reference column values from the new row
+            // (which is empty here). We catch every detector
+            // DELETE in the project, then drop it client-side if
+            // we don't have it in state.
+          },
+          (payload: RealtimePostgresDeletePayload<Detector>) => {
+            const oldId = (payload.old as { id?: string } | undefined)?.id;
+            if (!oldId) return;
+            setDetectors((prev) => prev.filter((d) => d.id !== oldId));
+          },
+        )
         .subscribe();
       cleanup = () => {
         void supa.removeChannel(channel);
@@ -97,6 +117,27 @@ export function DetectorList({
     try {
       const updated = await getBrowserNemara().updateDetector(id, body);
       setDetectors((prev) => prev.map((d) => (d.id === id ? updated : d)));
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPending((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  }
+
+  async function remove(id: string, name: string) {
+    if (!confirm(`Delete detector "${name}"?`)) return;
+    setPending((prev) => new Set(prev).add(id));
+    setError(null);
+    try {
+      await getBrowserNemara().deleteDetector(id);
+      // Drop optimistically — Realtime DELETE will fire too, but
+      // the filter above is a no-op for an already-absent row.
+      setDetectors((prev) => prev.filter((d) => d.id !== id));
       startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -132,6 +173,7 @@ export function DetectorList({
         detectors={presets}
         pending={pending}
         patch={patch}
+        remove={remove}
         totalCameras={totalCameras}
         cameraCount={cameraCount}
       />
@@ -140,6 +182,7 @@ export function DetectorList({
         detectors={customs}
         pending={pending}
         patch={patch}
+        remove={remove}
         totalCameras={totalCameras}
         cameraCount={cameraCount}
         emptyHint={
@@ -160,6 +203,7 @@ function Section({
   detectors,
   pending,
   patch,
+  remove,
   emptyHint,
   totalCameras,
   cameraCount,
@@ -168,6 +212,7 @@ function Section({
   detectors: Detector[];
   pending: Set<string>;
   patch: (id: string, body: { is_on?: boolean; sensitivity?: DetectorSensitivity }) => void;
+  remove: (id: string, name: string) => void;
   emptyHint?: React.ReactNode;
   totalCameras: number;
   cameraCount: Record<string, number>;
@@ -261,6 +306,14 @@ function Section({
                       )}
                     >
                       {d.is_on ? 'ON' : 'OFF'}
+                    </button>
+                    <button
+                      onClick={() => remove(d.id, d.name)}
+                      disabled={busy}
+                      title="Delete detector"
+                      className="rounded border border-red-900/60 bg-red-950/30 px-2 py-1 text-[11px] uppercase tracking-wide text-red-300 hover:bg-red-950/60 disabled:opacity-50"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

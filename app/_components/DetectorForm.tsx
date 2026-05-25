@@ -373,7 +373,7 @@ export function DetectorForm(props: Props) {
           Cancel
         </Link>
         <div className="flex items-center gap-2">
-          {props.mode === 'edit' && props.detector.source === 'custom' && (
+          {props.mode === 'edit' && (
             <button
               type="button"
               onClick={onDelete}
