@@ -13,7 +13,7 @@ export default async function CamerasPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="font-serif text-3xl tracking-tight text-ink">Cameras</h1>
+        <h1 className="font-serif text-4xl tracking-tight text-ink">Cameras</h1>
         <Link
           href="/cameras/new"
           className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink transition-colors hover:bg-ink2"

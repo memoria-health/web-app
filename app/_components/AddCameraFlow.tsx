@@ -92,8 +92,8 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   if (paired) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-lg border border-success/40 bg-card-alt p-8 text-center">
-        <h2 className="font-serif text-3xl tracking-tight text-ink">Paired!</h2>
-        <p className="text-sm text-ink2">
+        <h2 className="font-serif text-4xl tracking-tight text-ink">Paired!</h2>
+        <p className="text-base text-ink2">
           The wall phone for <strong className="font-medium">{issued?.room}</strong> is now connected.
         </p>
         <button
@@ -119,7 +119,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
         >
           {formatPairingCode(issued.pairing_code)}
         </div>
-        <p className="text-sm text-ink3">
+        <p className="text-base text-ink3">
           Open the Nemara camera app on your wall phone and enter this code.
         </p>
         {expired ? (
@@ -138,7 +138,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
         </span>
         <Link
           href="/cameras"
-          className="rounded border border-line px-3 py-1.5 text-sm text-ink2 hover:border-line"
+          className="rounded border border-line px-3 py-1.5 text-base text-ink2 hover:border-line"
         >
           Done (return to cameras)
         </Link>
@@ -152,7 +152,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
       className="mx-auto flex max-w-md flex-col gap-3 rounded border border-line bg-card p-6"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-ink2">Camera name</span>
+        <span className="text-base font-medium text-ink2">Camera name</span>
         <input
           type="text"
           value={name}
@@ -160,15 +160,15 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
           placeholder="e.g. Living room, Kitchen, Bedroom"
           maxLength={64}
           required
-          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-ink2">Icon</span>
+        <span className="text-base font-medium text-ink2">Icon</span>
         <select
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
-          className="rounded border border-line bg-paper-dim px-3 py-2 text-sm text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         >
           <option value="tv">tv</option>
           <option value="fork.knife">fork.knife</option>
@@ -186,7 +186,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
       <div className="flex items-center justify-end gap-2">
         <Link
           href="/cameras"
-          className="rounded border border-line px-3 py-1.5 text-sm text-ink2"
+          className="rounded border border-line px-3 py-1.5 text-base text-ink2"
         >
           Cancel
         </Link>

@@ -152,7 +152,7 @@ export function DetectorList({
 
   if (detectors.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-sm text-ink3">
+      <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
         No detectors. Built-ins should auto-seed when you add a patient.
       </div>
     );
@@ -219,11 +219,11 @@ function Section({
 }) {
   return (
     <section className="mt-6 first:mt-0">
-      <h2 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
+      <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
         {title}
       </h2>
       {detectors.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-line bg-card px-4 py-3 text-sm text-ink3">
+        <p className="rounded-lg border border-dashed border-line bg-card px-4 py-3 text-base text-ink3">
           {emptyHint ?? 'None.'}
         </p>
       ) : (
@@ -235,12 +235,12 @@ function Section({
                 <div className="flex items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-serif text-base text-ink">
+                      <span className="font-serif text-xl text-ink">
                         {d.name}
                       </span>
                       <span
                         className={cn(
-                          'rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+                          'rounded-sm border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider',
                           d.category === 'safety'
                             ? 'border-terra/40 bg-terra-soft text-terra-deep'
                             : 'border-sky/40 bg-sky-soft text-sky',
@@ -249,7 +249,7 @@ function Section({
                         {d.category}
                       </span>
                       {d.source === 'custom' && (
-                        <span className="rounded-sm border border-action/30 bg-action-soft px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-ink2">
+                        <span className="rounded-sm border border-action/30 bg-action-soft px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-ink2">
                           custom
                         </span>
                       )}
@@ -259,7 +259,7 @@ function Section({
                         // until the UPDATE arrives via Realtime and
                         // identifier becomes non-null.
                         <span
-                          className="inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-warning"
+                          className="inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-warning"
                           title="Generating the LLM prompt for this detector. Usually takes 3–5 seconds. Until compile finishes, this detector won't run on any camera ticks."
                         >
                           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning" />
@@ -268,7 +268,7 @@ function Section({
                       )}
                       <span
                         className={cn(
-                          'rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+                          'rounded-sm border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider',
                           (cameraCount[d.id] ?? 0) === 0
                             ? 'border-line bg-paper-dim text-ink4'
                             : 'border-line bg-paper-dim text-ink2',
@@ -278,10 +278,10 @@ function Section({
                         {cameraCount[d.id] ?? 0} / {totalCameras} cameras
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-ink2">
+                    <p className="mt-1 text-base text-ink2">
                       {d.description}
                     </p>
-                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink4">
+                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink4">
                       {d.shape} · {d.where_scope} · {d.when_scope}
                     </p>
                   </div>
@@ -289,7 +289,7 @@ function Section({
                     {d.source === 'custom' && (
                       <Link
                         href={`/detectors/${d.id}`}
-                        className="text-sm text-ink3 hover:text-ink underline-offset-2 hover:underline"
+                        className="text-base text-ink3 hover:text-ink underline-offset-2 hover:underline"
                       >
                         Edit
                       </Link>
@@ -319,7 +319,7 @@ function Section({
                 </div>
                 {d.is_on && (
                   <div className="flex items-center gap-2 pl-1">
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-ink3">
+                    <span className="font-mono text-xs uppercase tracking-wider text-ink3">
                       sensitivity
                     </span>
                     {SENSITIVITY.map((s) => (
@@ -328,7 +328,7 @@ function Section({
                         onClick={() => patch(d.id, { sensitivity: s })}
                         disabled={busy || d.sensitivity === s}
                         className={cn(
-                          'rounded-sm px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                          'rounded-sm px-2 py-0.5 font-mono text-xs uppercase tracking-wider transition-colors',
                           d.sensitivity === s
                             ? 'bg-ink text-paper'
                             : 'border border-line bg-card text-ink3 hover:text-ink',

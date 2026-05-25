@@ -19,11 +19,11 @@ export default async function NewDetectorPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3">
-        <Link href="/detectors" className="text-sm text-ink3 hover:text-ink">
+        <Link href="/detectors" className="text-base text-ink3 hover:text-ink">
           ← Detectors
         </Link>
         <span className="text-ink4">/</span>
-        <h1 className="font-serif text-3xl tracking-tight text-ink">
+        <h1 className="font-serif text-4xl tracking-tight text-ink">
           New custom detector
         </h1>
       </header>

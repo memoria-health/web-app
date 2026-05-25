@@ -90,6 +90,23 @@
   --radius-xl: 20px;
 }
 
+/* Bump the root font-size so every Tailwind size scales up
+ * proportionally. Default is 16px; 18px feels right for caregivers
+ * who are middle-aged or older and want to read at a glance.
+ * Effective scale:
+ *   text-xs   → ~13.5px (was 12px)
+ *   text-sm   → ~15.75px (was 14px)
+ *   text-base → 18px (was 16px)
+ *   text-lg   → 20.25px
+ *   text-xl   → 22.5px
+ *   text-2xl  → 27px
+ *   text-3xl  → 33.75px
+ *   text-4xl  → 40.5px
+ */
+html {
+  font-size: 18px;
+}
+
 html,
 body {
   background: var(--color-paper);

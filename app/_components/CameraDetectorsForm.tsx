@@ -57,7 +57,7 @@ export function CameraDetectorsForm({
 
   if (patientDetectors.length === 0) {
     return (
-      <div className="rounded border border-dashed border-line px-4 py-8 text-center text-sm text-ink3">
+      <div className="rounded border border-dashed border-line px-4 py-8 text-center text-base text-ink3">
         No detectors configured. Add one from the{' '}
         <a href="/detectors" className="text-terra underline">Detectors</a>{' '}
         page first.
@@ -87,12 +87,12 @@ export function CameraDetectorsForm({
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-medium text-ink">
+                  <span className="text-lg font-medium text-ink">
                     {d.name}
                   </span>
                   <span
                     className={cn(
-                      'rounded border px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide',
+                      'rounded border px-1.5 py-0.5 text-xs font-mono uppercase tracking-wide',
                       d.category === 'safety'
                         ? 'border-red-800 bg-red-950/40 text-terra'
                         : 'border-sky/40 bg-sky-soft text-sky',
@@ -101,12 +101,12 @@ export function CameraDetectorsForm({
                     {d.category}
                   </span>
                   {masterOff && (
-                    <span className="rounded border border-line bg-paper-dim px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide text-ink3">
+                    <span className="rounded border border-line bg-paper-dim px-1.5 py-0.5 text-xs font-mono uppercase tracking-wide text-ink3">
                       off globally
                     </span>
                   )}
                 </div>
-                <p className="text-[12px] text-ink3">{d.description}</p>
+                <p className="text-base text-ink3">{d.description}</p>
               </div>
               <button
                 type="button"
@@ -133,7 +133,7 @@ export function CameraDetectorsForm({
           );
         })}
       </ul>
-      <p className="text-[11px] text-ink3">
+      <p className="text-xs text-ink3">
         Toggling here only affects <strong>this</strong> camera. Other
         cameras under the same patient are independent. The global master
         switch lives on the{' '}

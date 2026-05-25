@@ -42,7 +42,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
 
   if (enabledCameras.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
         No cameras. Pair a wall phone from /cameras.
       </div>
     );
@@ -61,8 +61,8 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
             data-camera-identity={cam.identity}
           >
             <div className="flex items-center justify-between">
-              <span className="font-serif text-base text-ink">{cam.room}</span>
-              <span className="font-mono text-[11px] text-ink4 tracking-wide">
+              <span className="font-serif text-xl text-ink">{cam.room}</span>
+              <span className="font-mono text-xs text-ink4 tracking-wide">
                 {cam.identity}
               </span>
             </div>
@@ -104,7 +104,7 @@ function CameraTileBody({
   if (desiredState === 'disconnected') {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
-        <span className="font-serif text-base text-ink2">Disconnected</span>
+        <span className="font-serif text-xl text-ink2">Disconnected</span>
         <span className="text-xs text-ink4">
           Phone left LiveKit. Click ⋯ → Reconnect.
         </span>
@@ -114,7 +114,7 @@ function CameraTileBody({
   if (disabled) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
-        <span className="font-serif text-base text-ink2">Hidden</span>
+        <span className="font-serif text-xl text-ink2">Hidden</span>
         <span className="text-xs text-ink4">
           AI paused. Click ⋯ → Show to resume.
         </span>
@@ -125,7 +125,7 @@ function CameraTileBody({
     return <ParticipantTile trackRef={trackRef} />;
   }
   return (
-    <div className="flex h-full items-center justify-center text-sm text-ink4 italic">
+    <div className="flex h-full items-center justify-center text-base text-ink4 italic">
       Waiting for camera to join…
     </div>
   );
@@ -259,10 +259,10 @@ function CameraTileMenu({
             type="button"
             onClick={handleToggleHide}
             disabled={busy}
-            className="block w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-paper-dim disabled:opacity-50"
+            className="block w-full px-3 py-2.5 text-left text-base text-ink hover:bg-paper-dim disabled:opacity-50"
           >
             {hideShowLabel}
-            <div className="mt-0.5 text-[11px] font-normal leading-tight text-ink3">
+            <div className="mt-0.5 text-xs font-normal leading-tight text-ink3">
               {hideShowSubtitle}
             </div>
           </button>
@@ -280,8 +280,8 @@ function CameraTileMenu({
             <div
               className={
                 desiredState === 'disconnected'
-                  ? 'mt-0.5 text-[11px] font-normal leading-tight text-success/80'
-                  : 'mt-0.5 text-[11px] font-normal leading-tight text-terra/80'
+                  ? 'mt-0.5 text-xs font-normal leading-tight text-success/80'
+                  : 'mt-0.5 text-xs font-normal leading-tight text-terra/80'
               }
             >
               {dcSubtitle}
@@ -309,7 +309,7 @@ export function VideoGrid({
 }) {
   if (!token) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
         No LiveKit token available
       </div>
     );
@@ -322,7 +322,7 @@ export function VideoGrid({
   // GridInner so the user can re-enable from the ⋯ menu.
   if (enabledCameras.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
+      <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
         No cameras yet. Pair a wall phone from /cameras.
       </div>
     );

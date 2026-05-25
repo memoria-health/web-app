@@ -16,7 +16,7 @@ export function TopNav({ email }: { email: string | null }) {
   return (
     <nav className="flex items-center justify-between gap-4 border-b border-line bg-card px-5 py-3">
       <div className="flex items-center gap-4">
-        <span className="font-serif text-xl tracking-tight text-ink">
+        <span className="font-serif text-2xl tracking-tight text-ink">
           Nemara
         </span>
         <ul className="flex items-center gap-1">
@@ -30,7 +30,7 @@ export function TopNav({ email }: { email: string | null }) {
                 <Link
                   href={link.href}
                   className={cn(
-                    'rounded-md px-3 py-1.5 text-sm transition-colors',
+                    'rounded-md px-4 py-2 text-base transition-colors',
                     active
                       ? 'bg-action text-action-ink'
                       : 'text-ink3 hover:bg-paper-dim hover:text-ink',
@@ -46,7 +46,7 @@ export function TopNav({ email }: { email: string | null }) {
       <div className="flex items-center gap-3">
         {email && (
           <span
-            className="text-sm text-ink3 max-w-[14rem] truncate"
+            className="text-base text-ink3 max-w-[14rem] truncate"
             title={email}
           >
             {email}

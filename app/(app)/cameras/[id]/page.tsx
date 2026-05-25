@@ -40,25 +40,25 @@ export default async function CameraDetailPage({
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3 flex-wrap">
-        <Link href="/cameras" className="text-sm text-ink3 hover:text-ink">
+        <Link href="/cameras" className="text-base text-ink3 hover:text-ink">
           ← Cameras
         </Link>
         <span className="text-ink4">/</span>
-        <h1 className="font-serif text-3xl tracking-tight text-ink">{camera.room}</h1>
+        <h1 className="font-serif text-4xl tracking-tight text-ink">{camera.room}</h1>
         <span
-          className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${toneClass[statusLabel.tone]}`}
+          className={`inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider ${toneClass[statusLabel.tone]}`}
         >
           {statusLabel.text}
         </span>
         {camera.disabled && (
-          <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink3">
+          <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
             OFF
           </span>
         )}
       </header>
 
       <section className="rounded-lg border border-line bg-card px-4 py-4">
-        <h2 className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
+        <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
           Camera info
         </h2>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
@@ -76,7 +76,7 @@ export default async function CameraDetailPage({
       </section>
 
       <section>
-        <h2 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
+        <h2 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
           Detectors running on this camera
         </h2>
         <CameraDetectorsForm

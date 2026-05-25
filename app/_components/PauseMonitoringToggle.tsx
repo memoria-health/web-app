@@ -57,7 +57,7 @@ export function PauseMonitoringToggle({
 
   return (
     <section className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-card px-4 py-3">
-      <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink3">
+      <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
         Monitoring
       </span>
       <button
@@ -78,7 +78,7 @@ export function PauseMonitoringToggle({
       >
         {busy ? '…' : paused ? 'PAUSED' : 'ON'}
       </button>
-      <span className="text-sm text-ink3">
+      <span className="text-base text-ink3">
         {paused
           ? `all ${totalCount} cameras hidden`
           : hiddenCount > 0

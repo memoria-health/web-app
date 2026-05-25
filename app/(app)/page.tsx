@@ -140,7 +140,7 @@ export default async function HomePage() {
 
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-2xl tracking-tight text-ink">
+          <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live grid
           </h2>
           <span className="text-xs font-mono text-ink4">room: {room}</span>
@@ -160,7 +160,7 @@ export default async function HomePage() {
 
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-2xl tracking-tight text-ink">
+          <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live analyses
           </h2>
           <span className="text-xs text-ink4">
@@ -169,7 +169,7 @@ export default async function HomePage() {
           </span>
         </header>
         {enabledLivekitCameras.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-sm text-ink3">
+          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
             No active cameras to show analyses for.
           </div>
         ) : (
@@ -191,7 +191,7 @@ export default async function HomePage() {
 
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-serif text-2xl tracking-tight text-ink">
+          <h2 className="font-serif text-3xl tracking-tight text-ink">
             Promoted events
           </h2>
           <span className="text-xs text-ink4">

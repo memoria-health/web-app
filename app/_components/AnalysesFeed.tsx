@@ -205,7 +205,7 @@ export function AnalysesFeed({
   void tick;
 
   const debugBar = (
-    <div className="mb-2 rounded-md border border-warning/40 bg-card-alt px-3 py-2 font-mono text-[11px] leading-relaxed text-ink2">
+    <div className="mb-2 rounded-md border border-warning/40 bg-card-alt px-3 py-2 font-mono text-xs leading-relaxed text-ink2">
       <strong className="text-warning">[DEBUG]</strong>{' '}
       mounted={String(debug.mounted)} · subStatus={debug.subStatus} ·
       eventsReceived={debug.eventsReceived} ·
@@ -224,8 +224,8 @@ export function AnalysesFeed({
   // knows which video tile it pairs with).
   const headerBar = cameraLabel ? (
     <div className="mb-2 flex items-center justify-between">
-      <span className="font-serif text-base text-ink">{cameraLabel}</span>
-      <span className="font-mono text-[11px] text-ink4 tracking-wide">
+      <span className="font-serif text-xl text-ink">{cameraLabel}</span>
+      <span className="font-mono text-xs text-ink4 tracking-wide">
         {cameraId?.slice(0, 8)}…
       </span>
     </div>
@@ -236,7 +236,7 @@ export function AnalysesFeed({
       <div className="flex flex-col">
         {headerBar}
         {debugBar}
-        <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-sm text-ink3">
+        <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
           Waiting for the detector worker to produce a tick…<br />
           <span className="text-xs text-ink4">
             (about every 10 seconds when motion is detected)
@@ -356,7 +356,7 @@ function AnalysisRow({
       )}
     >
       {/* metadata row */}
-      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-mono text-ink3 tracking-wide">
           {timeAgo(a.created_at)}
         </span>
@@ -443,7 +443,7 @@ function AnalysisRow({
       </div>
 
       {/* description */}
-      <p className="text-sm leading-relaxed text-ink">
+      <p className="text-base leading-relaxed text-ink">
         {skippedReason ? (
           <span className="italic text-ink4">
             tick skipped — {skippedReason.replace(/_/g, ' ')}
@@ -455,25 +455,25 @@ function AnalysisRow({
 
       {/* reasonings */}
       {fallReason && (
-        <p className="text-[13px] leading-relaxed text-ink2">
+        <p className="text-base leading-relaxed text-ink2">
           <span className="font-semibold text-terra">Fall reasoning: </span>
           {fallReason}
         </p>
       )}
       {wanderingReason && (
-        <p className="text-[13px] leading-relaxed text-ink2">
+        <p className="text-base leading-relaxed text-ink2">
           <span className="font-semibold text-warning">Wandering reasoning: </span>
           {wanderingReason}
         </p>
       )}
       {agitationReason && (
-        <p className="text-[13px] leading-relaxed text-ink2">
+        <p className="text-base leading-relaxed text-ink2">
           <span className="font-semibold text-terra-deep">Agitation reasoning: </span>
           {agitationReason}
         </p>
       )}
       {medicationReason && (
-        <p className="text-[13px] leading-relaxed text-ink2">
+        <p className="text-base leading-relaxed text-ink2">
           <span className="font-semibold text-success">Medication reasoning: </span>
           {medicationReason}
         </p>
@@ -484,7 +484,7 @@ function AnalysisRow({
           judgment, useful to see why it said "no" too). */}
       {customDetectorEntries.map((d) =>
         d.reasoning ? (
-          <p key={`reason-${d.identifier}`} className="text-[13px] leading-relaxed text-ink2">
+          <p key={`reason-${d.identifier}`} className="text-base leading-relaxed text-ink2">
             <span className="font-semibold text-sky">
               {d.name} reasoning:{' '}
             </span>
@@ -495,7 +495,7 @@ function AnalysisRow({
 
       {/* speech */}
       {speechHeard && speechTranscript && (
-        <p className="text-[13px] leading-relaxed text-ink2">
+        <p className="text-base leading-relaxed text-ink2">
           <span className="font-semibold text-sky">Speech: </span>
           &ldquo;{speechTranscript}&rdquo;
         </p>

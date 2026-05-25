@@ -116,7 +116,7 @@ export function CameraList({
 
   if (cameras.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-sm text-ink3">
+      <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
         No cameras yet. Pair one to start streaming.
       </div>
     );
@@ -140,15 +140,15 @@ export function CameraList({
                 title="Configure detectors for this camera"
               >
                 <div className="flex items-center gap-2">
-                  <span className="font-serif text-base text-ink">
+                  <span className="font-serif text-xl text-ink">
                     {cam.room}
                   </span>
-                  <span className="font-mono text-[11px] text-ink4 tracking-wide">
+                  <span className="font-mono text-xs text-ink4 tracking-wide">
                     CAM {String(cam.display_id).padStart(2, '0')}
                   </span>
                   <span
                     className={cn(
-                      'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+                      'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider',
                       TONE_CLASSES[status.tone],
                     )}
                   >
@@ -156,7 +156,7 @@ export function CameraList({
                   </span>
                   <span className="text-xs text-ink4">⚙</span>
                 </div>
-                <p className="mt-1 font-mono text-[11px] text-ink4 tracking-wide">
+                <p className="mt-1 font-mono text-xs text-ink4 tracking-wide">
                   {cam.livekit_identity ? (
                     <code>{cam.livekit_identity}</code>
                   ) : (
@@ -191,7 +191,7 @@ export function CameraList({
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}
-                className="rounded-md border border-line bg-card px-3 py-1.5 text-sm text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
+                className="rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
               >
                 {removing === cam.id ? 'Removing…' : 'Remove'}
               </button>

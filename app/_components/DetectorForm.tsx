@@ -354,7 +354,7 @@ export function DetectorForm(props: Props) {
           placeholder="In plain English: what should the model watch for, and when should it flag it?"
           className="rounded border border-line bg-paper-dim px-3 py-2 text-sm font-mono leading-relaxed focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
-        <span className="text-[11px] text-ink4">
+        <span className="text-xs text-ink4">
           {form.custom_prompt.length} / 2000
         </span>
       </label>
@@ -368,7 +368,7 @@ export function DetectorForm(props: Props) {
       <div className="flex items-center justify-between gap-2">
         <Link
           href="/detectors"
-          className="rounded border border-line px-3 py-1.5 text-sm text-ink2"
+          className="rounded border border-line px-3 py-1.5 text-base text-ink2"
         >
           Cancel
         </Link>

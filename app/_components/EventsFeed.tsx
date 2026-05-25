@@ -91,7 +91,7 @@ export function EventsFeed({
 
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-ink3 italic">
+      <p className="text-base text-ink3 italic">
         No detections yet. Pair a wall phone and let it publish — events will
         stream in here.
       </p>
@@ -113,7 +113,7 @@ export function EventsFeed({
         >
           <span
             className={cn(
-              'mt-1 inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+              'mt-1 inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider',
               e.category === 'safety'
                 ? 'border-terra/40 bg-terra-soft text-terra-deep'
                 : 'border-sky/40 bg-sky-soft text-sky',
@@ -122,13 +122,13 @@ export function EventsFeed({
             {e.category}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-serif text-base text-ink">{e.title}</p>
+            <p className="font-serif text-xl text-ink">{e.title}</p>
             {e.narrative && (
-              <p className="mt-1 text-sm leading-relaxed text-ink2">
+              <p className="mt-1 text-base leading-relaxed text-ink2">
                 {e.narrative}
               </p>
             )}
-            <p className="mt-1.5 font-mono text-[11px] text-ink4 tracking-wide">
+            <p className="mt-1.5 font-mono text-xs text-ink4 tracking-wide">
               {e.location} · {timeAgo(e.occurred_at)} ·{' '}
               <code>{e.occurred_at.slice(11, 19)}</code>
               {e.has_clip && (
