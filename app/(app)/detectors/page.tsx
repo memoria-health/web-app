@@ -8,7 +8,28 @@ export default async function DetectorsPage() {
   const api = await getServerNemara();
   const patients = await api.listPatients();
   const patient = patients[0];
-  const detectors = await api.listDetectors(patient.id);
+
+  // Parallel: load detectors + every camera's assignment set so we can
+  // tell the caregiver "this detector runs on N cameras right now."
+  // Custom detectors default to 0 (opt-in) so this chip is the user's
+  // cue to go to /cameras/[id] and enable it where they want it.
+  const [detectors, cameras] = await Promise.all([
+    api.listDetectors(patient.id),
+    api.listCameras(patient.id),
+  ]);
+
+  const assignmentsByCamera = await Promise.all(
+    cameras.map((c) =>
+      api.getCameraDetectors(c.id).catch(() => ({ detector_ids: [] as string[] })),
+    ),
+  );
+
+  const cameraCount: Record<string, number> = {};
+  for (const a of assignmentsByCamera) {
+    for (const did of a.detector_ids) {
+      cameraCount[did] = (cameraCount[did] ?? 0) + 1;
+    }
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -21,7 +42,12 @@ export default async function DetectorsPage() {
           + New custom detector
         </Link>
       </header>
-      <DetectorList initial={detectors} />
+      <DetectorList
+        initial={detectors}
+        patientId={patient.id}
+        totalCameras={cameras.length}
+        cameraCount={cameraCount}
+      />
     </div>
   );
 }

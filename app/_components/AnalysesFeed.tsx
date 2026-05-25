@@ -2,10 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
-import { getBrowserSupabase } from '@/lib/supabase/client';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
-import type { Analysis } from '@/lib/api/types';
+import type { Analysis, Detector } from '@/lib/api/types';
+
+// Identifiers handled by the hardcoded chip/reasoning rendering paths
+// below. Custom detectors fall through to the generic renderer.
+const HARDCODED_IDENTIFIERS = new Set([
+  'fall', 'wandering', 'agitation', 'medication',
+]);
 
 const MAX_ROWS = 50;
 
@@ -29,7 +35,10 @@ function asNumber(v: unknown): number | null {
 export function AnalysesFeed({
   patientId,
   enabledCameraIds,
+  cameraId,
+  cameraLabel,
   initial = [],
+  detectors = [],
 }: {
   patientId: string;
   // Whitelist of camera IDs to show analyses for. Analyses from
@@ -38,9 +47,27 @@ export function AnalysesFeed({
   // Realtime. The backend writes synthetic "skipped" rows for them
   // anyway — this filter just keeps the UI clean from the user's POV.
   enabledCameraIds: string[];
+  // Optional: pin this feed to a SINGLE camera. When set, only that
+  // camera's rows are shown. Used by the dashboard's 2-col grid where
+  // each cell is a per-camera feed. When omitted, the feed shows
+  // every enabled camera's rows interleaved (legacy single-feed shape).
+  cameraId?: string;
+  // Optional label shown above the feed when cameraId is set — usually
+  // the camera's room name, so the user knows which tile this feed
+  // belongs to.
+  cameraLabel?: string;
   initial?: Analysis[];
+  // Patient's detector list. Used to resolve custom-detector
+  // identifiers (e.g. `custom_b05b58a7`) to human-readable names
+  // (e.g. "Drinking water") when rendering reasoning lines.
+  detectors?: Detector[];
 }) {
-  const enabledSet = new Set(enabledCameraIds);
+  // If `cameraId` is set, narrow the enabled set to JUST that camera.
+  // This lets the same single Realtime subscription filter rows for N
+  // side-by-side feeds without N duplicate channels.
+  const enabledSet = new Set(
+    cameraId ? [cameraId] : enabledCameraIds,
+  );
   const [rows, setRows] = useState<Analysis[]>(
     initial.filter((r) => enabledSet.has(r.camera_id)),
   );
@@ -60,66 +87,115 @@ export function AnalysesFeed({
   });
 
   useEffect(() => {
-    console.log('[ANALYSES-FEED] mount, patientId=', patientId);
-    setDebug((d) => ({ ...d, mounted: true, subStatus: 'subscribing' }));
+    console.log('[ANALYSES-FEED] mount, patientId=', patientId, 'time=', new Date().toISOString());
+    setDebug((d) => ({ ...d, mounted: true, subStatus: 'awaiting-auth' }));
 
     let receivedCount = 0;
-    const supa = getBrowserSupabase();
-    const channel = supa
-      .channel(`analyses-debug-${patientId}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'analyses',
-          filter: `patient_id=eq.${patientId}`,
-        },
-        (payload: RealtimePostgresInsertPayload<Analysis>) => {
-          receivedCount += 1;
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+
+    // CRITICAL: await the authed client before subscribing. If we subscribe
+    // synchronously with the un-authed client, the subscription registers
+    // on the realtime server with claims.role="anon" and claims.sub="" —
+    // and the RLS policy `caregiver_id = auth.uid()` on analyses then
+    // evaluates auth.uid() as NULL, silently dropping every broadcast.
+    // The channel will still say SUBSCRIBED. We've been bitten by this.
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+
+      // Channel name MUST include cameraId when set. Without it, two
+      // panels mounted in the same render tick get identical Date.now()
+      // values → identical channel names → Supabase shares one channel
+      // between them → only one panel actually receives events. The
+      // other stays silently empty even though the backend is writing
+      // rows for that camera. Including cameraId guarantees uniqueness
+      // per panel.
+      const channelName = cameraId
+        ? `analyses-${patientId}-${cameraId}-${Date.now()}`
+        : `analyses-${patientId}-all-${Date.now()}`;
+      console.log('[ANALYSES-FEED] creating channel (auth ready):', channelName);
+      setDebug((d) => ({ ...d, subStatus: 'subscribing' }));
+
+      const channel = supa
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'analyses',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresInsertPayload<Analysis>) => {
+            receivedCount += 1;
+            console.log(
+              '[ANALYSES-FEED] postgres_changes received:',
+              payload.new.id,
+              payload.new.provider,
+              payload.new.created_at,
+              'camera_in_enabled_set:',
+              enabledSet.has(payload.new.camera_id),
+            );
+            setDebug((d) => ({
+              ...d,
+              eventsReceived: receivedCount,
+              lastEventAt: new Date().toISOString(),
+            }));
+            // Drop analyses from disabled cameras silently — the backend
+            // wrote them (as `skipped` rows) but the user has chosen not
+            // to see them. Decision happens here, not on the server,
+            // because the user can toggle cameras on/off live and we
+            // don't want to re-subscribe.
+            if (!enabledSet.has(payload.new.camera_id)) return;
+            setRows((prev) => {
+              const next = payload.new;
+              if (prev.some((r) => r.id === next.id)) return prev;
+              return [next, ...prev].slice(0, MAX_ROWS);
+            });
+          },
+        )
+        .subscribe((status: string, err?: Error) => {
           console.log(
-            '[ANALYSES-FEED] postgres_changes received:',
-            payload.new.id,
-            payload.new.provider,
-            payload.new.created_at,
-            'camera_in_enabled_set:',
-            enabledSet.has(payload.new.camera_id),
+            '[ANALYSES-FEED] subscribe status:',
+            status,
+            err ? `err=${err}` : '',
+            'time=', new Date().toISOString(),
+            'channelName=', channelName,
           );
           setDebug((d) => ({
             ...d,
-            eventsReceived: receivedCount,
-            lastEventAt: new Date().toISOString(),
+            subStatus: status,
+            error: err ? String(err) : null,
           }));
-          // Drop analyses from disabled cameras silently — the backend
-          // wrote them (as `skipped` rows) but the user has chosen not
-          // to see them. Decision happens here, not on the server,
-          // because the user can toggle cameras on/off live and we
-          // don't want to re-subscribe.
-          if (!enabledSet.has(payload.new.camera_id)) return;
-          setRows((prev) => {
-            const next = payload.new;
-            if (prev.some((r) => r.id === next.id)) return prev;
-            return [next, ...prev].slice(0, MAX_ROWS);
-          });
-        },
-      )
-      .subscribe((status: string, err?: Error) => {
-        console.log('[ANALYSES-FEED] subscribe status:', status, err);
-        setDebug((d) => ({
-          ...d,
-          subStatus: status,
-          error: err ? String(err) : null,
-        }));
-      });
+        });
+
+      // Heartbeat every 30s so we can SEE the channel is still alive
+      // (or notice it went silent).
+      const heartbeat = setInterval(() => {
+        console.log(
+          '[ANALYSES-FEED] heartbeat — events received so far:',
+          receivedCount,
+          'time=', new Date().toISOString(),
+        );
+      }, 30000);
+
+      cleanup = () => {
+        console.log('[ANALYSES-FEED] unmount, removing channel');
+        clearInterval(heartbeat);
+        void supa.removeChannel(channel);
+      };
+    })();
+
     return () => {
-      console.log('[ANALYSES-FEED] unmount, removing channel');
-      void supa.removeChannel(channel);
+      cancelled = true;
+      cleanup?.();
     };
     // Re-subscribe (effectively just re-bind the enabledSet closure)
     // whenever the enabled camera list changes — so toggling a camera
     // off from /cameras takes effect on this feed immediately.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patientId, enabledCameraIds.join(',')]);
+  }, [patientId, cameraId, enabledCameraIds.join(',')]);
 
   // Re-render every 5s so relative timestamps stay fresh.
   useEffect(() => {
@@ -133,16 +209,32 @@ export function AnalysesFeed({
       <strong className="text-amber-400">[DEBUG]</strong>{' '}
       mounted={String(debug.mounted)} · subStatus={debug.subStatus} ·
       eventsReceived={debug.eventsReceived} ·
-      lastEventAt={debug.lastEventAt ?? '—'} · rowsInState={rows.length} ·
-      patientId={patientId.slice(0, 8)}…{debug.error && (
+      lastEventAt={debug.lastEventAt ?? '—'} · rowsInState={rows.length}
+      {cameraId && (
+        <> · cam={cameraId.slice(0, 8)}…</>
+      )}
+      {debug.error && (
         <> · <span className="text-red-400">err={debug.error}</span></>
       )}
     </div>
   );
 
+  // Optional per-camera label header (when cameraId is set, this feed
+  // is one cell of a per-camera grid — show the room name so the user
+  // knows which video tile it pairs with).
+  const headerBar = cameraLabel ? (
+    <div className="mb-1 flex items-center justify-between text-[11px]">
+      <span className="font-mono text-zinc-400">{cameraLabel}</span>
+      <span className="font-mono text-zinc-600">
+        {cameraId?.slice(0, 8)}…
+      </span>
+    </div>
+  ) : null;
+
   if (rows.length === 0) {
     return (
-      <>
+      <div className="flex flex-col">
+        {headerBar}
         {debugBar}
         <div className="rounded border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
           Waiting for the detector worker to produce a tick…<br />
@@ -150,27 +242,88 @@ export function AnalysesFeed({
             (about every 10 seconds when motion is detected)
           </span>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="flex flex-col">
+      {headerBar}
       {debugBar}
       <ul
         className="divide-y divide-zinc-800 rounded border border-zinc-800 bg-zinc-950"
         aria-label="detection analyses"
       >
         {rows.map((a) => (
-          <AnalysisRow key={a.id} a={a} />
+          <AnalysisRow key={a.id} a={a} detectors={detectors} />
         ))}
       </ul>
-    </>
+    </div>
   );
 }
 
-function AnalysisRow({ a }: { a: Analysis }) {
+function AnalysisRow({
+  a,
+  detectors,
+}: {
+  a: Analysis;
+  detectors: Detector[];
+}) {
   const f = a.detector_fields ?? {};
+
+  // identifier → human-readable name. Used for custom detector labels.
+  // Built once per row from the patient's detector list.
+  const nameByIdentifier = new Map<string, string>();
+  for (const d of detectors) {
+    if ((d as Detector & { identifier?: string | null }).identifier) {
+      nameByIdentifier.set(
+        (d as Detector & { identifier?: string }).identifier!,
+        d.name,
+      );
+    }
+  }
+
+  // Find every `*_detected` and `*_reasoning` key in detector_fields
+  // that doesn't belong to one of the hardcoded presets (fall,
+  // wandering, agitation, medication) or to a non-detector key
+  // (people_*, speech_*, motion_*, skipped_*). What remains are the
+  // custom detectors compiled via the detector_compiler — render them
+  // generically below.
+  const customDetectorEntries: Array<{
+    identifier: string;
+    name: string;
+    detected: boolean;
+    confidence: string | null;
+    reasoning: string | null;
+  }> = [];
+  const seenIdentifiers = new Set<string>();
+  for (const key of Object.keys(f)) {
+    // Pull the identifier out of `<id>_detected` / `<id>_reasoning`
+    // / `<id>_confidence`. The shared prefix is the identifier.
+    let identifier: string | null = null;
+    if (key.endsWith('_detected')) identifier = key.slice(0, -'_detected'.length);
+    else if (key.endsWith('_reasoning')) identifier = key.slice(0, -'_reasoning'.length);
+    else if (key.endsWith('_confidence')) identifier = key.slice(0, -'_confidence'.length);
+    if (identifier === null) continue;
+    if (seenIdentifiers.has(identifier)) continue;
+    if (HARDCODED_IDENTIFIERS.has(identifier)) continue;
+    // Filter out non-detector field families that happen to use a
+    // similar suffix pattern (speech_*, people_*, etc.).
+    if (
+      identifier === 'speech' ||
+      identifier === 'people' ||
+      identifier === 'motion' ||
+      identifier === 'skipped'
+    ) continue;
+    seenIdentifiers.add(identifier);
+    customDetectorEntries.push({
+      identifier,
+      name: nameByIdentifier.get(identifier) ?? identifier,
+      detected: asBool(f[`${identifier}_detected`]),
+      confidence: pct(f[`${identifier}_confidence`]),
+      reasoning: asString(f[`${identifier}_reasoning`]),
+    });
+  }
 
   const peopleCount = asNumber(f.people_count) ?? (a.people_present ? 1 : 0);
 
@@ -275,6 +428,18 @@ function AnalysisRow({ a }: { a: Analysis }) {
             MEDICATION · {medicationConf ?? '?'}
           </span>
         )}
+        {/* Custom detector chips — only shown when the detector
+            actually fired this tick (detected=true). */}
+        {customDetectorEntries
+          .filter((d) => d.detected)
+          .map((d) => (
+            <span
+              key={`chip-${d.identifier}`}
+              className="inline-flex items-center rounded border border-sky-700 bg-sky-950/50 px-1.5 py-0.5 font-mono font-semibold uppercase tracking-wide text-sky-300"
+            >
+              {d.name.toUpperCase()} · {d.confidence ?? '?'}
+            </span>
+          ))}
       </div>
 
       {/* description */}
@@ -312,6 +477,20 @@ function AnalysisRow({ a }: { a: Analysis }) {
           <span className="font-semibold text-emerald-400">Medication reasoning: </span>
           {medicationReason}
         </p>
+      )}
+
+      {/* Custom detector reasonings — shown whether detected was true
+          or not (the LLM always returns a reasoning explaining its
+          judgment, useful to see why it said "no" too). */}
+      {customDetectorEntries.map((d) =>
+        d.reasoning ? (
+          <p key={`reason-${d.identifier}`} className="text-[12px] leading-relaxed text-sky-200/80">
+            <span className="font-semibold text-sky-400">
+              {d.name} reasoning:{' '}
+            </span>
+            {d.reasoning}
+          </p>
+        ) : null,
       )}
 
       {/* speech */}

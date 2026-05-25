@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBrowserNemara } from '@/lib/api/client';
+import { cn } from '@/lib/utils/cn';
 import type {
+  Camera,
   CreateDetectorRequest,
   Detector,
   DetectorCategory,
@@ -16,14 +18,34 @@ import type {
 interface CreateMode {
   mode: 'create';
   patientId: string;
+  cameras: Camera[];
 }
 
 interface EditMode {
   mode: 'edit';
   detector: Detector;
+  cameras: Camera[];
 }
 
 type Props = CreateMode | EditMode;
+
+// ── When-scope parsing ──────────────────────────────────────────────
+// Stored as free text on `detectors.when_scope`. The form lets the user
+// pick between two modes:
+//   - "Always" → stored as the string "ALWAYS"
+//   - "Specific time" → stored as "HH:MM-HH:MM" (24h, e.g. "08:00-20:00")
+// The backend / LLM don't actually parse these — they're hint strings
+// shown back to the model in the prompt. The standardized "HH:MM-HH:MM"
+// shape is just easier to read on the /detectors list.
+function parseWhenScope(raw: string): {
+  mode: 'always' | 'specific';
+  start: string;
+  end: string;
+} {
+  const m = raw.match(/^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/);
+  if (m) return { mode: 'specific', start: `${m[1]}:${m[2]}`, end: `${m[3]}:${m[4]}` };
+  return { mode: 'always', start: '08:00', end: '20:00' };
+}
 
 const ICONS = [
   'eye',
@@ -70,8 +92,29 @@ export function DetectorForm(props: Props) {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // When-mode is derived from the existing `when_scope` so editing an
+  // existing detector picks the right radio + time inputs.
+  const initialWhen = parseWhenScope(initial.when_scope);
+  const [whenMode, setWhenMode] = useState<'always' | 'specific'>(initialWhen.mode);
+  const [whenStart, setWhenStart] = useState(initialWhen.start);
+  const [whenEnd, setWhenEnd] = useState(initialWhen.end);
+
   const isEditingBuiltin =
     props.mode === 'edit' && props.detector.source === 'preset';
+
+  // Where dropdown options: an "ALL ROOMS" sentinel plus each camera's
+  // room name. Deduped because two cameras can share a room name (e.g.
+  // both "Kitchen" — different display IDs). Free-text fallback for
+  // legacy values that don't match any current camera room.
+  const roomOptions = Array.from(
+    new Set(['ALL ROOMS', ...props.cameras.map((c) => c.room)]),
+  );
+  // If the existing where_scope doesn't match any room (e.g. an old
+  // value like "HALLWAY" before per-camera scoping), surface it as
+  // its own option so we don't silently lose it on save.
+  if (!roomOptions.includes(form.where_scope)) {
+    roomOptions.push(form.where_scope);
+  }
 
   function update<K extends keyof CreateDetectorRequest>(
     key: K,
@@ -84,11 +127,20 @@ export function DetectorForm(props: Props) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    // Project the when-mode + time pickers down into the free-text
+    // when_scope shape the backend stores. "ALWAYS" or "HH:MM-HH:MM".
+    const whenScope =
+      whenMode === 'always' ? 'ALWAYS' : `${whenStart}-${whenEnd}`;
+    const finalForm: CreateDetectorRequest = { ...form, when_scope: whenScope };
     try {
       if (props.mode === 'create') {
-        await getBrowserNemara().createDetector(props.patientId, form);
+        // POST returns ~50ms with NULL identifier. Background compile
+        // runs server-side and broadcasts the UPDATE via Realtime.
+        // The /detectors list shows a "compiling…" badge in the
+        // meantime, so navigating away immediately is fine.
+        await getBrowserNemara().createDetector(props.patientId, finalForm);
       } else {
-        const patch: UpdateDetectorRequest = { ...form };
+        const patch: UpdateDetectorRequest = { ...finalForm };
         await getBrowserNemara().updateDetector(props.detector.id, patch);
       }
       router.replace('/detectors');
@@ -223,29 +275,70 @@ export function DetectorForm(props: Props) {
           <span className="text-xs uppercase tracking-wide text-zinc-400">
             Where
           </span>
-          <input
-            type="text"
+          <select
             value={form.where_scope}
             onChange={(e) => update('where_scope', e.target.value)}
-            maxLength={60}
             required
             className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
-          />
+          >
+            {roomOptions.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
         </label>
 
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-zinc-400">
             When
           </span>
-          <input
-            type="text"
-            value={form.when_scope}
-            onChange={(e) => update('when_scope', e.target.value)}
-            maxLength={60}
-            required
-            className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm focus:border-emerald-600 focus:outline-none"
-          />
-        </label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setWhenMode('always')}
+              className={cn(
+                'rounded border px-2.5 py-1 text-xs uppercase tracking-wide',
+                whenMode === 'always'
+                  ? 'border-emerald-700 bg-emerald-950/50 text-emerald-300'
+                  : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-100',
+              )}
+            >
+              Always
+            </button>
+            <button
+              type="button"
+              onClick={() => setWhenMode('specific')}
+              className={cn(
+                'rounded border px-2.5 py-1 text-xs uppercase tracking-wide',
+                whenMode === 'specific'
+                  ? 'border-emerald-700 bg-emerald-950/50 text-emerald-300'
+                  : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-100',
+              )}
+            >
+              Specific time
+            </button>
+          </div>
+          {whenMode === 'specific' && (
+            <div className="mt-1 flex items-center gap-2 text-xs text-zinc-400">
+              <input
+                type="time"
+                value={whenStart}
+                onChange={(e) => setWhenStart(e.target.value)}
+                aria-label="start time"
+                className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm focus:border-emerald-600 focus:outline-none"
+              />
+              <span>to</span>
+              <input
+                type="time"
+                value={whenEnd}
+                onChange={(e) => setWhenEnd(e.target.value)}
+                aria-label="end time"
+                className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm focus:border-emerald-600 focus:outline-none"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <label className="flex flex-col gap-1">

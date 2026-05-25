@@ -5,7 +5,7 @@ import type { RealtimePostgresUpdatePayload } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBrowserNemara } from '@/lib/api/client';
-import { getBrowserSupabase } from '@/lib/supabase/client';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { formatPairingCode } from '@/lib/utils/pairing';
 import { countdown, isExpired } from '@/lib/utils/time';
 
@@ -34,30 +34,41 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   }, [issued]);
 
   // Subscribe to camera UPDATE; when livekit_identity appears, it's paired.
+  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
+  // the anon-role race that drops every broadcast otherwise.
   useEffect(() => {
     if (!issued) return;
-    const supa = getBrowserSupabase();
-    const channel = supa
-      .channel(`pair:${issued.camera_id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'cameras',
-          filter: `id=eq.${issued.camera_id}`,
-        },
-        (
-          payload: RealtimePostgresUpdatePayload<{
-            livekit_identity: string | null;
-          }>,
-        ) => {
-          if (payload.new.livekit_identity) setPaired(true);
-        },
-      )
-      .subscribe();
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+      const channel = supa
+        .channel(`pair:${issued.camera_id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'cameras',
+            filter: `id=eq.${issued.camera_id}`,
+          },
+          (
+            payload: RealtimePostgresUpdatePayload<{
+              livekit_identity: string | null;
+            }>,
+          ) => {
+            if (payload.new.livekit_identity) setPaired(true);
+          },
+        )
+        .subscribe();
+      cleanup = () => {
+        void supa.removeChannel(channel);
+      };
+    })();
     return () => {
-      void supa.removeChannel(channel);
+      cancelled = true;
+      cleanup?.();
     };
   }, [issued]);
 

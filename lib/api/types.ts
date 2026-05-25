@@ -56,6 +56,12 @@ export interface Camera {
   // this camera from the live grid + analyses feed. LiveKit
   // connection stays alive in case the user re-enables.
   disabled: boolean;
+  // Stronger than `disabled`. When 'disconnected', the wall phone
+  // leaves the LiveKit room entirely. Reconnect takes ~1-2s after
+  // the caregiver flips this back to 'connected' via the dashboard
+  // 3-dot menu (which calls PATCH /v1/cameras/{id} with
+  // desired_state).
+  desired_state: 'connected' | 'disconnected';
   livekit_identity: string | null;
   last_seen_at: string | null;
   created_at: string;
@@ -75,6 +81,11 @@ export interface Detector {
   sensitivity: DetectorSensitivity;
   is_on: boolean;
   custom_prompt: string | null;
+  // Runtime-contract fields. For preset detectors `identifier` is one
+  // of {fall, wandering, agitation, medication}. For custom detectors
+  // it's `custom_<8hex>` and may be null while the backend is still
+  // compiling the prompt fragment (see /detectors/new flow).
+  identifier: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -173,9 +184,24 @@ export interface UpdatePatientRequest {
 }
 
 export interface UpdateCameraRequest {
-  // The only user-facing field exposed by PATCH /v1/cameras/{id}.
-  // Backend uses extra='forbid'; any other field will 422.
+  // User-facing fields exposed by PATCH /v1/cameras/{id}. Backend
+  // uses extra='forbid'; any other field will 422.
   disabled?: boolean;
+  desired_state?: 'connected' | 'disconnected';
+}
+
+export interface CameraDetectorsResponse {
+  // Detector IDs currently assigned to this camera. Cross-reference
+  // against the patient's full detector list to render per-camera
+  // on/off toggles.
+  detector_ids: string[];
+}
+
+export interface SetCameraDetectorsRequest {
+  // The complete new assignment set — backend replaces the camera's
+  // assignments to exactly these IDs. Empty array is valid (camera
+  // runs no per-tick detectors; people_present is still always on).
+  detector_ids: string[];
 }
 
 export interface CreatePairingCodeRequest {

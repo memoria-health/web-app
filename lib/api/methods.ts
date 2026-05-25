@@ -2,6 +2,7 @@ import { NemaraAPI } from './core';
 import type {
   Caregiver,
   Camera,
+  CameraDetectorsResponse,
   CreateCaregiverRequest,
   CreateDetectorRequest,
   CreatePairingCodeRequest,
@@ -14,6 +15,7 @@ import type {
   MintTokenRequest,
   PairingCodeResponse,
   Patient,
+  SetCameraDetectorsRequest,
   UpdateCameraRequest,
   UpdateDetectorRequest,
   UpdatePatientRequest,
@@ -55,6 +57,15 @@ export class NemaraClient {
     });
   deleteCamera = (id: string) =>
     this.api.request<void>(`/v1/cameras/${id}`, { method: 'DELETE' });
+
+  // Per-camera detector assignment.
+  getCameraDetectors = (id: string) =>
+    this.api.request<CameraDetectorsResponse>(`/v1/cameras/${id}/detectors`);
+  setCameraDetectors = (id: string, body: SetCameraDetectorsRequest) =>
+    this.api.request<CameraDetectorsResponse>(`/v1/cameras/${id}/detectors`, {
+      method: 'PUT',
+      body,
+    });
 
   // Detectors
   listDetectors = (patientId: string) =>

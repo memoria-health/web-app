@@ -27,3 +27,18 @@ body {
   border-radius: 0.5rem;
   overflow: hidden;
 }
+
+/* LiveKit ships a `.lk-focus-toggle-button` inside every ParticipantTile
+ * (top-right corner) for entering "focus mode" — a single-tile-large-view
+ * feature we don't use. Default styling keeps it `opacity: 0` until hover,
+ * but it's still in the DOM and INTERCEPTS POINTER EVENTS at exactly the
+ * spot where our own per-tile ⋯ menu lives. Display:none takes it out of
+ * hit testing entirely so our menu button receives the click.
+ *
+ * Same treatment for `.lk-connection-quality` — LK paints a tiny mic /
+ * signal icon at bottom-left on hover; we don't surface that anywhere so
+ * the visual noise just confuses the user. */
+.lk-focus-toggle-button,
+.lk-connection-quality {
+  display: none !important;
+}

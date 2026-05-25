@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { getBrowserSupabase } from '@/lib/supabase/client';
+import Link from 'next/link';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
 import { timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
@@ -35,26 +36,37 @@ export function CameraList({
   const [, startTransition] = useTransition();
 
   // Subscribe to realtime camera changes so online/offline pills flip live.
+  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
+  // the anon-role race that drops every broadcast otherwise.
   useEffect(() => {
-    const supa = getBrowserSupabase();
-    const channel = supa
-      .channel(`cameras:${patientId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cameras',
-          filter: `patient_id=eq.${patientId}`,
-        },
-        () => {
-          // Refetch through server — keeps SSR shape canonical.
-          startTransition(() => router.refresh());
-        },
-      )
-      .subscribe();
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+      const channel = supa
+        .channel(`cameras:${patientId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          () => {
+            // Refetch through server — keeps SSR shape canonical.
+            startTransition(() => router.refresh());
+          },
+        )
+        .subscribe();
+      cleanup = () => {
+        void supa.removeChannel(channel);
+      };
+    })();
     return () => {
-      void supa.removeChannel(channel);
+      cancelled = true;
+      cleanup?.();
     };
   }, [patientId, router]);
 
@@ -122,7 +134,11 @@ export function CameraList({
           const status = statusFor(cam);
           return (
             <li key={cam.id} className="flex items-center gap-3 px-3 py-2.5">
-              <div className="flex min-w-0 flex-1 flex-col">
+              <Link
+                href={`/cameras/${cam.id}`}
+                className="flex min-w-0 flex-1 flex-col rounded -mx-1 px-1 hover:bg-zinc-900/60"
+                title="Configure detectors for this camera"
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-medium text-zinc-100">
                     {cam.room}
@@ -138,6 +154,9 @@ export function CameraList({
                   >
                     {status.label}
                   </span>
+                  <span className="text-[10px] text-zinc-600 group-hover:text-zinc-400">
+                    ⚙
+                  </span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-zinc-500">
                   {cam.livekit_identity ? (
@@ -148,7 +167,7 @@ export function CameraList({
                   {' · '}
                   Last seen {timeAgo(cam.last_seen_at)}
                 </p>
-              </div>
+              </Link>
               <button
                 onClick={() => toggleDisabled(cam.id, !cam.disabled)}
                 disabled={toggling === cam.id}

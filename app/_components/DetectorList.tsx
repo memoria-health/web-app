@@ -1,20 +1,95 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type {
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from '@supabase/supabase-js';
 import { getBrowserNemara } from '@/lib/api/client';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector, DetectorSensitivity } from '@/lib/api/types';
 
 const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high', 'off'];
 
-export function DetectorList({ initial }: { initial: Detector[] }) {
+export function DetectorList({
+  initial,
+  patientId,
+  totalCameras,
+  cameraCount,
+}: {
+  initial: Detector[];
+  patientId: string;
+  // Total cameras for this patient — used to render the "N / total" chip.
+  totalCameras: number;
+  // detector_id → number of cameras currently assigned. Computed
+  // server-side. Missing key = 0 cameras (custom detectors default
+  // to this until the caregiver opts them in per camera).
+  cameraCount: Record<string, number>;
+}) {
   const router = useRouter();
   const [detectors, setDetectors] = useState(initial);
   const [pending, setPending] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  // Realtime: pick up INSERTs (the user just created a custom detector
+  // in another tab — or in this one, optimistically) and UPDATEs
+  // (background compile just finished populating `identifier` and
+  // `prompt_fragment`). Without this, the user would have to refresh
+  // to see compile completion. See lib/supabase/client.ts for why we
+  // await getAuthedBrowserSupabase — race with setAuth otherwise.
+  useEffect(() => {
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+      const channel = supa
+        .channel(`detectors-${patientId}-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'detectors',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresInsertPayload<Detector>) => {
+            const next = payload.new;
+            setDetectors((prev) => {
+              if (prev.some((d) => d.id === next.id)) return prev;
+              return [...prev, next];
+            });
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'detectors',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresUpdatePayload<Detector>) => {
+            const updated = payload.new;
+            setDetectors((prev) =>
+              prev.map((d) => (d.id === updated.id ? updated : d)),
+            );
+          },
+        )
+        .subscribe();
+      cleanup = () => {
+        void supa.removeChannel(channel);
+      };
+    })();
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [patientId]);
 
   async function patch(id: string, body: Parameters<ReturnType<typeof getBrowserNemara>['updateDetector']>[1]) {
     setPending((prev) => new Set(prev).add(id));
@@ -52,12 +127,21 @@ export function DetectorList({ initial }: { initial: Detector[] }) {
           {error}
         </div>
       )}
-      <Section title="BUILT-IN" detectors={presets} pending={pending} patch={patch} />
+      <Section
+        title="BUILT-IN"
+        detectors={presets}
+        pending={pending}
+        patch={patch}
+        totalCameras={totalCameras}
+        cameraCount={cameraCount}
+      />
       <Section
         title="CUSTOM"
         detectors={customs}
         pending={pending}
         patch={patch}
+        totalCameras={totalCameras}
+        cameraCount={cameraCount}
         emptyHint={
           <>
             None yet.{' '}
@@ -77,12 +161,16 @@ function Section({
   pending,
   patch,
   emptyHint,
+  totalCameras,
+  cameraCount,
 }: {
   title: string;
   detectors: Detector[];
   pending: Set<string>;
   patch: (id: string, body: { is_on?: boolean; sensitivity?: DetectorSensitivity }) => void;
   emptyHint?: React.ReactNode;
+  totalCameras: number;
+  cameraCount: Record<string, number>;
 }) {
   return (
     <section className="mt-6 first:mt-0">
@@ -120,6 +208,30 @@ function Section({
                           custom
                         </span>
                       )}
+                      {d.source === 'custom' && d.identifier === null && (
+                        // Background compile still in progress — the
+                        // tick pipeline silently skips this detector
+                        // until the UPDATE arrives via Realtime and
+                        // identifier becomes non-null.
+                        <span
+                          className="inline-flex items-center gap-1 rounded border border-amber-800 bg-amber-950/40 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-amber-300"
+                          title="Generating the LLM prompt for this detector. Usually takes 3–5 seconds. Until compile finishes, this detector won't run on any camera ticks."
+                        >
+                          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+                          compiling…
+                        </span>
+                      )}
+                      <span
+                        className={cn(
+                          'rounded border px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wide',
+                          (cameraCount[d.id] ?? 0) === 0
+                            ? 'border-zinc-700 bg-zinc-900 text-zinc-500'
+                            : 'border-zinc-700 bg-zinc-900 text-zinc-300',
+                        )}
+                        title="Cameras this detector is currently assigned to"
+                      >
+                        {cameraCount[d.id] ?? 0} / {totalCameras} cameras
+                      </span>
                     </div>
                     <p className="mt-0.5 text-[12px] text-zinc-400">
                       {d.description}

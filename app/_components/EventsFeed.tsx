@@ -5,7 +5,7 @@ import type {
   RealtimePostgresInsertPayload,
   RealtimePostgresUpdatePayload,
 } from '@supabase/supabase-js';
-import { getBrowserSupabase } from '@/lib/supabase/client';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
 import type { DetectionEvent } from '@/lib/api/types';
@@ -20,44 +20,55 @@ export function EventsFeed({
   const [events, setEvents] = useState<DetectionEvent[]>(initial);
   const [tick, setTick] = useState(0);
 
+  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
+  // the anon-role race that drops every broadcast otherwise.
   useEffect(() => {
-    const supa = getBrowserSupabase();
-    const channel = supa
-      .channel(`events:${patientId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'events',
-          filter: `patient_id=eq.${patientId}`,
-        },
-        (payload: RealtimePostgresInsertPayload<DetectionEvent>) => {
-          setEvents((prev) => {
-            const next = payload.new;
-            if (prev.some((e) => e.id === next.id)) return prev;
-            return [next, ...prev].slice(0, 50);
-          });
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'events',
-          filter: `patient_id=eq.${patientId}`,
-        },
-        (payload: RealtimePostgresUpdatePayload<DetectionEvent>) => {
-          const updated = payload.new;
-          setEvents((prev) =>
-            prev.map((e) => (e.id === updated.id ? updated : e)),
-          );
-        },
-      )
-      .subscribe();
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+      const channel = supa
+        .channel(`events:${patientId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'events',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresInsertPayload<DetectionEvent>) => {
+            setEvents((prev) => {
+              const next = payload.new;
+              if (prev.some((e) => e.id === next.id)) return prev;
+              return [next, ...prev].slice(0, 50);
+            });
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'events',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresUpdatePayload<DetectionEvent>) => {
+            const updated = payload.new;
+            setEvents((prev) =>
+              prev.map((e) => (e.id === updated.id ? updated : e)),
+            );
+          },
+        )
+        .subscribe();
+      cleanup = () => {
+        void supa.removeChannel(channel);
+      };
+    })();
     return () => {
-      void supa.removeChannel(channel);
+      cancelled = true;
+      cleanup?.();
     };
   }, [patientId]);
 

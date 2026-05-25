@@ -14,7 +14,10 @@ export default async function EditDetectorPage({
   const api = await getServerNemara();
   const patients = await api.listPatients();
   const patient = patients[0];
-  const detectors = await api.listDetectors(patient.id);
+  const [detectors, cameras] = await Promise.all([
+    api.listDetectors(patient.id),
+    api.listCameras(patient.id),
+  ]);
   const detector = detectors.find((d) => d.id === id);
   if (!detector) notFound();
 
@@ -32,7 +35,7 @@ export default async function EditDetectorPage({
           {detector.source}
         </span>
       </header>
-      <DetectorForm mode="edit" detector={detector} />
+      <DetectorForm mode="edit" detector={detector} cameras={cameras} />
     </div>
   );
 }
