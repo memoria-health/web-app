@@ -75,7 +75,15 @@ export default async function HomePage() {
   // Mint a viewer LiveKit token for this patient's room.
   // Token TTL is 1h on the backend; user refreshes to renew.
   const room = `patient_${patient.id}`;
-  const identity = `caregiver_${user!.id}`;
+  // LiveKit treats `identity` as a unique participant key per room.
+  // The iOS caregiver app uses `caregiver_<uuid>_ios`; web uses
+  // `caregiver_<uuid>_web` — keeping them distinct lets the SAME
+  // caregiver subscribe to a patient's cameras from BOTH devices
+  // simultaneously. Without the suffix, LiveKit kicks the older
+  // session whenever the second client connects with the same
+  // identity (= "either web OR iOS, never both" — a real bug we
+  // shipped before noticing).
+  const identity = `caregiver_${user!.id}_web`;
 
   let token: string | null = null;
   let lkError: string | null = null;
