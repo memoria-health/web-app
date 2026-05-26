@@ -9,7 +9,13 @@ import {
   RoomAudioRenderer,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import type {
+  RealtimePostgresUpdatePayload,
+  RealtimePostgresInsertPayload,
+  RealtimePostgresDeletePayload,
+} from '@supabase/supabase-js';
 import { getBrowserNemara } from '@/lib/api/client';
+import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 
 interface EnabledCamera {
   id: string;        // backend cameras.id — needed for the menu API calls
@@ -299,14 +305,131 @@ function CameraTileMenu({
 }
 
 export function VideoGrid({
+  patientId,
   token,
   serverUrl,
   enabledCameras,
 }: {
+  patientId: string;
   token: string;
   serverUrl: string;
   enabledCameras: EnabledCamera[];
 }) {
+  // Own the camera list as client state so realtime updates from
+  // OTHER surfaces (iOS PATCH of `disabled`, wall-phone PATCH of
+  // `desired_state`, dashboard removes, fresh pairings) reflect
+  // immediately. The server-rendered `enabledCameras` prop is just
+  // the initial snapshot — after first paint every mutation flows
+  // through this subscription, not through a page refresh.
+  const [cameras, setCameras] = useState<EnabledCamera[]>(enabledCameras);
+
+  // Mirror prop changes back into state (covers an SSR re-render
+  // landing while the user is on the page, e.g. after a hard nav).
+  useEffect(() => {
+    setCameras(enabledCameras);
+  }, [enabledCameras]);
+
+  // Realtime: cameras table, scoped to this patient. Same auth-aware
+  // client + payload-driven mutation pattern as CameraList /
+  // EventsFeed / AnalysesFeed.
+  useEffect(() => {
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
+    void (async () => {
+      const supa = await getAuthedBrowserSupabase();
+      if (cancelled) return;
+      const channel = supa
+        .channel(`videogrid-cameras:${patientId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresUpdatePayload<{
+            id: string;
+            livekit_identity: string | null;
+            room: string;
+            disabled: boolean;
+            desired_state: 'connected' | 'disconnected';
+          }>) => {
+            const next = payload.new;
+            setCameras((prev) =>
+              prev.map((c) =>
+                c.id === next.id
+                  ? {
+                      ...c,
+                      identity: next.livekit_identity ?? c.identity,
+                      room: next.room,
+                      disabled: next.disabled,
+                      desired_state: next.desired_state,
+                    }
+                  : c,
+              ),
+            );
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresInsertPayload<{
+            id: string;
+            livekit_identity: string | null;
+            room: string;
+            disabled: boolean;
+            desired_state: 'connected' | 'disconnected';
+          }>) => {
+            const fresh = payload.new;
+            // Unpaired cameras have no livekit_identity — skip until
+            // pairing completes (the next UPDATE will carry it).
+            if (!fresh.livekit_identity) return;
+            setCameras((prev) => {
+              if (prev.some((c) => c.id === fresh.id)) return prev;
+              return [
+                ...prev,
+                {
+                  id: fresh.id,
+                  identity: fresh.livekit_identity!,
+                  room: fresh.room,
+                  disabled: fresh.disabled,
+                  desired_state: fresh.desired_state,
+                },
+              ];
+            });
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresDeletePayload<{ id: string }>) => {
+            const removedId = payload.old.id;
+            if (!removedId) return;
+            setCameras((prev) => prev.filter((c) => c.id !== removedId));
+          },
+        )
+        .subscribe();
+      cleanup = () => {
+        void supa.removeChannel(channel);
+      };
+    })();
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [patientId]);
+
   if (!token) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
@@ -320,7 +443,7 @@ export function VideoGrid({
   // paired cameras now (including hidden + disconnected), not just
   // visible ones — tiles for hidden/disconnected still render inside
   // GridInner so the user can re-enable from the ⋯ menu.
-  if (enabledCameras.length === 0) {
+  if (cameras.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
         No cameras yet. Pair a wall phone from /cameras.
@@ -336,7 +459,7 @@ export function VideoGrid({
       video={false}
       data-lk-theme="default"
     >
-      <GridInner enabledCameras={enabledCameras} />
+      <GridInner enabledCameras={cameras} />
       <RoomAudioRenderer />
     </LiveKitRoom>
   );

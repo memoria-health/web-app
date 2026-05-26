@@ -151,6 +151,7 @@ export default async function HomePage() {
           </div>
         ) : (
           <VideoGrid
+            patientId={patient.id}
             token={token!}
             serverUrl={env.LIVEKIT_URL}
             enabledCameras={gridCameras}
