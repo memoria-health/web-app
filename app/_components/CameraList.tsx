@@ -3,6 +3,11 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type {
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+  RealtimePostgresDeletePayload,
+} from '@supabase/supabase-js';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
 import { timeAgo } from '@/lib/utils/time';
@@ -35,9 +40,17 @@ export function CameraList({
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
-  // Subscribe to realtime camera changes so online/offline pills flip live.
-  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
-  // the anon-role race that drops every broadcast otherwise.
+  // Subscribe to realtime camera changes so the tile list mirrors every
+  // mutation across surfaces (iOS PATCH of `disabled`, wall-phone PATCH
+  // of `desired_state`, dashboard removes, fresh pairings) without a
+  // page refresh. We update local `cameras` state directly from each
+  // payload — `router.refresh()` was unreliable in Next.js 16 because
+  // the server-component re-render didn't always invalidate the
+  // cached fetch, so the tiles kept showing stale `disabled` values.
+  // The events/analyses feeds use this same direct-mutation pattern.
+  //
+  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts
+  // for the anon-role race that drops every broadcast otherwise.
   useEffect(() => {
     let cancelled = false;
     let cleanup: (() => void) | null = null;
@@ -49,14 +62,48 @@ export function CameraList({
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'UPDATE',
             schema: 'public',
             table: 'cameras',
             filter: `patient_id=eq.${patientId}`,
           },
-          () => {
-            // Refetch through server — keeps SSR shape canonical.
-            startTransition(() => router.refresh());
+          (payload: RealtimePostgresUpdatePayload<Camera>) => {
+            const updated = payload.new;
+            setCameras((prev) =>
+              prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
+            );
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresInsertPayload<Camera>) => {
+            const fresh = payload.new;
+            setCameras((prev) => {
+              if (prev.some((c) => c.id === fresh.id)) return prev;
+              return [...prev, fresh].sort(
+                (a, b) => a.display_id - b.display_id,
+              );
+            });
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'cameras',
+            filter: `patient_id=eq.${patientId}`,
+          },
+          (payload: RealtimePostgresDeletePayload<Camera>) => {
+            const removedId = payload.old.id;
+            if (!removedId) return;
+            setCameras((prev) => prev.filter((c) => c.id !== removedId));
           },
         )
         .subscribe();
@@ -68,7 +115,7 @@ export function CameraList({
       cancelled = true;
       cleanup?.();
     };
-  }, [patientId, router]);
+  }, [patientId]);
 
   useEffect(() => setCameras(initial), [initial]);
 
