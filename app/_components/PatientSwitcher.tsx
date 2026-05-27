@@ -61,21 +61,21 @@ export function PatientSwitcher() {
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'patients' },
-          (_p: RealtimePostgresInsertPayload<unknown>) => {
+          (_p: RealtimePostgresInsertPayload<{ id: string }>) => {
             startTransition(() => router.refresh());
           },
         )
         .on(
           'postgres_changes',
           { event: 'UPDATE', schema: 'public', table: 'patients' },
-          (_p: RealtimePostgresUpdatePayload<unknown>) => {
+          (_p: RealtimePostgresUpdatePayload<{ id: string }>) => {
             startTransition(() => router.refresh());
           },
         )
         .on(
           'postgres_changes',
           { event: 'DELETE', schema: 'public', table: 'patients' },
-          (_p: RealtimePostgresDeletePayload<unknown>) => {
+          (_p: RealtimePostgresDeletePayload<{ id: string }>) => {
             startTransition(() => router.refresh());
           },
         )

@@ -35,8 +35,10 @@ export const patientSession = cache(async (): Promise<PatientSession> => {
 
   const jar = await cookies();
   const stored = jar.get(SELECTED_PATIENT_COOKIE)?.value;
-  const selected =
-    (stored && patients.find((p) => p.id === stored)) ?? patients[0];
+  const fromCookie = stored
+    ? patients.find((p) => p.id === stored)
+    : undefined;
+  const selected: Patient = fromCookie ?? patients[0];
 
   return { patients, selected };
 });
