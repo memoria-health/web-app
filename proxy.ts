@@ -5,7 +5,15 @@ import { createServerClient } from '@supabase/ssr';
 // Runs on every request to refresh the Supabase session cookie and
 // gate authenticated routes.
 
-const PUBLIC_PATHS = ['/login', '/signup', '/auth/callback'];
+const PUBLIC_PATHS = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/callback',
+  '/privacy',
+  '/terms',
+];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
