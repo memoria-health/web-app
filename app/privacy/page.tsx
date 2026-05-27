@@ -46,9 +46,10 @@ export default function PrivacyPage() {
       <h2 className="mt-10 font-serif text-2xl">1. Introduction and Scope</h2>
       <p className="mt-3 text-ink2">
         This Privacy Notice (this &ldquo;<strong>Notice</strong>&rdquo;)
-        describes how Nemara, Inc., a Delaware corporation (together
-        with its affiliates, &ldquo;<strong>Nemara</strong>,&rdquo;
-        &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
+        describes how Darda and Cui, Inc., a Delaware corporation
+        doing business as &ldquo;Nemara&rdquo; (together with its
+        affiliates, &ldquo;<strong>Nemara</strong>,&rdquo; &ldquo;
+        <strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
         or &ldquo;<strong>our</strong>&rdquo;), collects, uses,
         discloses, and otherwise processes Personal Information in
         connection with the Service. This Notice forms part of, and is

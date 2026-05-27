@@ -26,9 +26,10 @@ export default function TermsPage() {
         These Wellness Terms of Use (these &ldquo;<strong>Terms</strong>&rdquo;)
         constitute a binding legal agreement between you (&ldquo;
         <strong>you</strong>&rdquo; or &ldquo;<strong>User</strong>&rdquo;)
-        and Nemara, Inc., a Delaware corporation (&ldquo;
-        <strong>Nemara</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo;
-        &ldquo;<strong>us</strong>,&rdquo; or &ldquo;<strong>our</strong>&rdquo;).
+        and Darda and Cui, Inc., a Delaware corporation doing business
+        as &ldquo;Nemara&rdquo; (&ldquo;<strong>Nemara</strong>,&rdquo;
+        &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
+        or &ldquo;<strong>our</strong>&rdquo;).
         These Terms govern your access to and use of the Service
         described below. Please read these Terms carefully. They
         contain important provisions concerning the nature of the
@@ -620,7 +621,7 @@ export default function TermsPage() {
         below:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Nemara, Inc.</li>
+        <li>Darda and Cui, Inc. (d/b/a Nemara)</li>
         <li>Attn: Legal &mdash; Sunny Cui</li>
         <li>
           Email:{' '}
