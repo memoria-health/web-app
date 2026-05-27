@@ -168,8 +168,8 @@ export default function PrivacyPage() {
       </ul>
       <p className="mt-3 text-ink2">
         To exercise any of these rights, email{' '}
-        <a className="text-terra underline" href="mailto:sunny.work.2002@gmail.com">
-          sunny.work.2002@gmail.com
+        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
+          sunnycui@stanford.edu
         </a>{' '}
         from the address on file. We respond within 30 days.
       </p>
@@ -201,8 +201,8 @@ export default function PrivacyPage() {
       <p className="mt-3 text-ink2">
         No system is perfectly secure. If you discover a security issue,
         please report it to{' '}
-        <a className="text-terra underline" href="mailto:sunny.work.2002@gmail.com">
-          sunny.work.2002@gmail.com
+        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
+          sunnycui@stanford.edu
         </a>{' '}
         before disclosing it publicly.
       </p>
@@ -217,8 +217,8 @@ export default function PrivacyPage() {
       <h2 className="mt-10 font-serif text-2xl">12. Contact</h2>
       <p className="mt-3 text-ink2">
         Questions, requests, or complaints:{' '}
-        <a className="text-terra underline" href="mailto:sunny.work.2002@gmail.com">
-          sunny.work.2002@gmail.com
+        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
+          sunnycui@stanford.edu
         </a>
         .
       </p>

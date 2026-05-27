@@ -192,8 +192,8 @@ export default function TermsPage() {
       <h2 className="mt-10 font-serif text-2xl">14. Contact</h2>
       <p className="mt-3 text-ink2">
         Questions about these terms:{' '}
-        <a className="text-terra underline" href="mailto:sunny.work.2002@gmail.com">
-          sunny.work.2002@gmail.com
+        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
+          sunnycui@stanford.edu
         </a>
         .
       </p>
