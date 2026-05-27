@@ -9,12 +9,15 @@ import type {
   CreatePatientRequest,
   Detector,
   DetectionEvent,
+  DiscoveredCamerasResponse,
   EventFilter,
   EventListResponse,
   LiveKitTokenResponse,
   MintTokenRequest,
   PairingCodeResponse,
   Patient,
+  ProvisionSensorCameraRequest,
+  ProvisionSensorCameraResponse,
   SetCameraDetectorsRequest,
   UpdateCameraRequest,
   UpdateDetectorRequest,
@@ -57,6 +60,21 @@ export class NemaraClient {
     });
   deleteCamera = (id: string) =>
     this.api.request<void>(`/v1/cameras/${id}`, { method: 'DELETE' });
+
+  // Sensor camera discovery + provisioning. Pi devices announce
+  // themselves to the backend every 60 s; the "Sensor Camera" tab of
+  // the Add Camera flow lists unclaimed announcements and POSTs the
+  // chosen discovery_id back to provision the camera.
+  listDiscoveredCameras = () =>
+    this.api.request<DiscoveredCamerasResponse>('/v1/cameras/discovered');
+  provisionSensorCamera = (
+    patientId: string,
+    body: ProvisionSensorCameraRequest,
+  ) =>
+    this.api.request<ProvisionSensorCameraResponse>(
+      `/v1/patients/${patientId}/cameras/pi-provision`,
+      { method: 'POST', body },
+    );
 
   // Per-camera detector assignment.
   getCameraDetectors = (id: string) =>
