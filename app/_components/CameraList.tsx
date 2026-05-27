@@ -161,6 +161,29 @@ export function CameraList({
     }
   }
 
+  async function toggleAiPaused(id: string, nextAiPaused: boolean) {
+    setToggling(id);
+    setError(null);
+    // Optimistic update — flip local state, roll back on failure.
+    setCameras((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ai_paused: nextAiPaused } : c)),
+    );
+    try {
+      const updated = await getBrowserNemara().updateCamera(id, {
+        ai_paused: nextAiPaused,
+      });
+      setCameras((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setCameras((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, ai_paused: !nextAiPaused } : c)),
+      );
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setToggling(null);
+    }
+  }
+
   if (cameras.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
@@ -214,13 +237,35 @@ export function CameraList({
                 </p>
               </Link>
               <button
+                onClick={() => toggleAiPaused(cam.id, !cam.ai_paused)}
+                disabled={toggling === cam.id || cam.disabled}
+                aria-pressed={cam.ai_paused}
+                title={
+                  cam.ai_paused
+                    ? 'AI is paused — video keeps streaming. Click to resume AI.'
+                    : 'AI is running. Click to pause AI (video keeps streaming).'
+                }
+                className={cn(
+                  'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
+                  cam.ai_paused
+                    ? 'border-warning/40 bg-card-alt text-warning'
+                    : 'border-line bg-card text-ink2 hover:border-action/30 hover:bg-action hover:text-action-ink',
+                )}
+              >
+                {toggling === cam.id
+                  ? '…'
+                  : cam.ai_paused
+                    ? 'AI OFF'
+                    : 'AI ON'}
+              </button>
+              <button
                 onClick={() => toggleDisabled(cam.id, !cam.disabled)}
                 disabled={toggling === cam.id}
                 aria-pressed={!cam.disabled}
                 title={
                   cam.disabled
-                    ? 'Camera is OFF — LLM is skipping ticks. Click to turn ON.'
-                    : 'Camera is ON. Click to turn OFF (LLM stops; LiveKit stays connected).'
+                    ? 'Camera is hidden — tile is off the grid AND LLM skips. Click to show.'
+                    : 'Camera is shown. Click to hide (tile leaves grid AND LLM stops).'
                 }
                 className={cn(
                   'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
@@ -232,15 +277,15 @@ export function CameraList({
                 {toggling === cam.id
                   ? '…'
                   : cam.disabled
-                    ? 'OFF'
-                    : 'ON'}
+                    ? 'HIDDEN'
+                    : 'SHOWN'}
               </button>
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}
                 className="rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
               >
-                {removing === cam.id ? 'Removing…' : 'Remove'}
+                {removing === cam.id ? 'Removing…' : 'Delete'}
               </button>
             </li>
           );

@@ -56,6 +56,11 @@ export interface Camera {
   // this camera from the live grid + analyses feed. LiveKit
   // connection stays alive in case the user re-enables.
   disabled: boolean;
+  // LLM-only pause. When true, the backend tick skips the Gemini
+  // call (synthetic skipped row with skipped_reason='ai_paused') but
+  // the tile stays visible in the live grid and video keeps
+  // streaming. Lighter than `disabled`.
+  ai_paused: boolean;
   // Stronger than `disabled`. When 'disconnected', the wall phone
   // leaves the LiveKit room entirely. Reconnect takes ~1-2s after
   // the caregiver flips this back to 'connected' via the dashboard
@@ -187,6 +192,7 @@ export interface UpdateCameraRequest {
   // User-facing fields exposed by PATCH /v1/cameras/{id}. Backend
   // uses extra='forbid'; any other field will 422.
   disabled?: boolean;
+  ai_paused?: boolean;
   desired_state?: 'connected' | 'disconnected';
 }
 

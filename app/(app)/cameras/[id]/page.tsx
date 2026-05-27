@@ -52,7 +52,12 @@ export default async function CameraDetailPage({
         </span>
         {camera.disabled && (
           <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
-            OFF
+            HIDDEN
+          </span>
+        )}
+        {camera.ai_paused && !camera.disabled && (
+          <span className="inline-flex items-center rounded-sm border border-warning/40 bg-card-alt px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning">
+            AI PAUSED
           </span>
         )}
       </header>

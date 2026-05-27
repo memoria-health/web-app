@@ -22,8 +22,9 @@ interface EnabledCamera {
   identity: string;  // matches participant identity once the wall phone joins
   room: string;      // human-readable name shown above each tile
   // Each tile is "reserved" in the grid regardless of state — these
-  // two flags drive the in-tile placeholder + the menu's labels.
+  // three flags drive the in-tile placeholder + the menu's labels.
   disabled: boolean;
+  ai_paused: boolean;
   desired_state: 'connected' | 'disconnected';
 }
 
@@ -75,6 +76,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
             <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-paper-dim">
               <CameraTileBody
                 disabled={cam.disabled}
+                aiPaused={cam.ai_paused}
                 desiredState={cam.desired_state}
                 trackRef={trackRef}
               />
@@ -82,6 +84,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                 cameraId={cam.id}
                 cameraRoom={cam.room}
                 disabled={cam.disabled}
+                aiPaused={cam.ai_paused}
                 desiredState={cam.desired_state}
               />
             </div>
@@ -93,15 +96,20 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
 }
 
 /// What renders inside the tile's aspect-video box, based on the camera's
-/// state. Precedence: disconnected > hidden > video > waiting. We don't
-/// render a ParticipantTile for hidden/disconnected cameras — the
-/// caregiver chose to stop monitoring them, no point loading the video.
+/// state. Precedence: disconnected > hidden > video (with optional AI-paused
+/// overlay) > waiting. We don't render a ParticipantTile for
+/// hidden/disconnected cameras — the caregiver chose to stop monitoring
+/// them, no point loading the video. For `ai_paused` we still show the
+/// live video; only the AI tick is skipped, so the overlay pill hints
+/// at the suspended detection.
 function CameraTileBody({
   disabled,
+  aiPaused,
   desiredState,
   trackRef,
 }: {
   disabled: boolean;
+  aiPaused: boolean;
   desiredState: 'connected' | 'disconnected';
   // The LiveKit track type — kept loose because the GridInner-internal
   // shape isn't exported. Only used as: present → render ParticipantTile.
@@ -122,13 +130,22 @@ function CameraTileBody({
       <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
         <span className="font-serif text-xl text-ink2">Hidden</span>
         <span className="text-xs text-ink4">
-          AI paused. Click ⋯ → Show to resume.
+          Tile hidden + AI paused. Click ⋯ → Show to resume.
         </span>
       </div>
     );
   }
   if (trackRef) {
-    return <ParticipantTile trackRef={trackRef} />;
+    return (
+      <div className="relative h-full w-full">
+        <ParticipantTile trackRef={trackRef} />
+        {aiPaused && (
+          <div className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
+            AI Paused
+          </div>
+        )}
+      </div>
+    );
   }
   return (
     <div className="flex h-full items-center justify-center text-base text-ink4 italic">
@@ -152,11 +169,13 @@ function CameraTileMenu({
   cameraId,
   cameraRoom,
   disabled,
+  aiPaused,
   desiredState,
 }: {
   cameraId: string;
   cameraRoom: string;
   disabled: boolean;
+  aiPaused: boolean;
   desiredState: 'connected' | 'disconnected';
 }) {
   const router = useRouter();
@@ -188,6 +207,25 @@ function CameraTileMenu({
     setErr(null);
     try {
       await getBrowserNemara().updateCamera(cameraId, { disabled: !disabled });
+      router.refresh();
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : String(e2));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /// Toggle `ai_paused`. Video keeps streaming either way; only the
+  /// LLM tick is skipped. Instant + reversible — no confirm dialog.
+  /// Disabled while the camera is fully hidden (`disabled=true`)
+  /// because in that state the AI is already paused by the stronger
+  /// flag, and the menu item would be ambiguous.
+  async function handleToggleAiPaused(e: React.MouseEvent) {
+    e.stopPropagation();
+    setBusy(true);
+    setErr(null);
+    try {
+      await getBrowserNemara().updateCamera(cameraId, { ai_paused: !aiPaused });
       router.refresh();
     } catch (e2) {
       setErr(e2 instanceof Error ? e2.message : String(e2));
@@ -234,6 +272,13 @@ function CameraTileMenu({
     ? 'Resume AI calls. Instant.'
     : 'Pause AI calls. LiveKit stays connected.';
 
+  const aiLabel = busy
+    ? aiPaused ? 'Resuming AI…' : 'Pausing AI…'
+    : aiPaused ? 'Resume AI' : 'Pause AI';
+  const aiSubtitle = aiPaused
+    ? 'Resume AI tick. Video keeps streaming either way.'
+    : 'Pause AI tick. Video keeps streaming.';
+
   const dcLabel = busy
     ? desiredState === 'disconnected' ? 'Reconnecting…' : 'Disconnecting…'
     : desiredState === 'disconnected' ? 'Reconnect' : 'Disconnect (privacy)';
@@ -263,9 +308,20 @@ function CameraTileMenu({
         >
           <button
             type="button"
+            onClick={handleToggleAiPaused}
+            disabled={busy || disabled || desiredState === 'disconnected'}
+            className="block w-full px-3 py-2.5 text-left text-base text-ink hover:bg-paper-dim disabled:opacity-50"
+          >
+            {aiLabel}
+            <div className="mt-0.5 text-xs font-normal leading-tight text-ink3">
+              {aiSubtitle}
+            </div>
+          </button>
+          <button
+            type="button"
             onClick={handleToggleHide}
             disabled={busy}
-            className="block w-full px-3 py-2.5 text-left text-base text-ink hover:bg-paper-dim disabled:opacity-50"
+            className="block w-full border-t border-line px-3 py-2.5 text-left text-base text-ink hover:bg-paper-dim disabled:opacity-50"
           >
             {hideShowLabel}
             <div className="mt-0.5 text-xs font-normal leading-tight text-ink3">
@@ -353,6 +409,7 @@ export function VideoGrid({
             livekit_identity: string | null;
             room: string;
             disabled: boolean;
+            ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
           }>) => {
             const next = payload.new;
@@ -364,6 +421,7 @@ export function VideoGrid({
                       identity: next.livekit_identity ?? c.identity,
                       room: next.room,
                       disabled: next.disabled,
+                      ai_paused: next.ai_paused,
                       desired_state: next.desired_state,
                     }
                   : c,
@@ -384,6 +442,7 @@ export function VideoGrid({
             livekit_identity: string | null;
             room: string;
             disabled: boolean;
+            ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
           }>) => {
             const fresh = payload.new;
@@ -399,6 +458,7 @@ export function VideoGrid({
                   identity: fresh.livekit_identity!,
                   room: fresh.room,
                   disabled: fresh.disabled,
+                  ai_paused: fresh.ai_paused,
                   desired_state: fresh.desired_state,
                 },
               ];

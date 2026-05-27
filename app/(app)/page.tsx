@@ -52,6 +52,7 @@ export default async function HomePage() {
     identity: c.livekit_identity,
     room: c.room,
     disabled: c.disabled,
+    ai_paused: c.ai_paused,
     desired_state: c.desired_state,
   }));
   // Analyses feeds + the prefetch query still only target cameras that
