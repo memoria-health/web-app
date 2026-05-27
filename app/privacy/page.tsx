@@ -64,10 +64,11 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p className="mt-3 text-ink2">
-        Once a stream has passed through processing it is discarded.
-        Nothing is saved to disk, archived, or made available for later
-        replay. There is no historical video or audio library to access
-        or to be breached.
+        Once a stream has passed through processing the live video and
+        audio is discarded. When the AI flags a possible event, a short
+        clip covering that event is briefly retained for processing and
+        then automatically deleted. We do not maintain a library of
+        stored video or audio for later replay.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">What we do store</h2>
@@ -97,7 +98,8 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p className="mt-3 text-ink2">
-        We do not store images, audio clips, or any media content.
+        We do not maintain a library of stored clips or media content
+        for later replay.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">Where data is processed</h2>
@@ -195,7 +197,7 @@ export default function PrivacyPage() {
       <h2 className="mt-10 font-serif text-2xl">Limitations on use</h2>
       <p className="mt-3 text-ink2">We will not:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Record, save, or archive any video or audio.</li>
+        <li>Maintain a video or audio archive accessible for later replay.</li>
         <li>Sell your data to anyone.</li>
         <li>Use stored information for advertising.</li>
         <li>

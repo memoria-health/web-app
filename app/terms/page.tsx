@@ -258,11 +258,11 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-serif text-2xl">12. Governing Law</h2>
       <p className="mt-3 text-ink2">
-        These Terms are governed by the laws of the State of
-        California, United States, without regard to its conflict of
-        laws principles. The parties agree to the exclusive
-        jurisdiction of the courts located in Santa Clara County,
-        California for any matters not subject to arbitration.
+        These Terms are governed by the laws of the State of Delaware,
+        United States, without regard to its conflict of laws
+        principles. The parties agree to the exclusive jurisdiction of
+        the state and federal courts located in Delaware for any
+        matters not subject to arbitration.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">13. Severability</h2>
