@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Policy — Nemara',
+  title: 'Privacy Notice — Nemara',
   description:
-    'How Nemara collects, uses, stores, and shares personal data, plus your rights as a user.',
+    'How Nemara handles in-home sensor data, what we do and do not store, and your rights.',
 };
 
 export default function PrivacyPage() {
@@ -15,175 +15,207 @@ export default function PrivacyPage() {
         </Link>
       </nav>
 
-      <h1 className="font-serif text-4xl tracking-tight">Privacy Policy</h1>
+      <h1 className="font-serif text-4xl tracking-tight">Privacy Notice</h1>
       <p className="mt-2 text-sm text-ink3">
-        Effective date: May 26, 2026
+        In-home monitoring · Effective May 26, 2026
       </p>
 
       <section className="mt-8 rounded-lg border border-line bg-card-alt p-5">
-        <h2 className="font-serif text-xl">Short version</h2>
+        <h2 className="font-serif text-xl">The short version</h2>
         <p className="mt-2 text-sm text-ink2">
-          Nemara helps families monitor an aging or vulnerable loved one
-          through wall-mounted cameras paired to a caregiver phone or web
-          dashboard. To do that, we collect the audio and video from those
-          cameras, the events our AI detects from that footage (possible
-          falls, wandering, agitation), your account info (email, name),
-          and the device token we need to send you notifications. We use
-          third-party services to host, stream, analyze, and notify. We do
-          not sell your data. You can delete your account and everything
-          tied to it at any time.
+          The Nemara sensor streams live video and audio while it is
+          active so a household-activity AI can flag possible events
+          and so authorized family members can look in through the app.
+          <strong> We do not record or store any of that video or audio.</strong>{' '}
+          Streams pass through processing and are immediately discarded.
+          What we keep are short text descriptions of activity, your
+          account details, and configuration — nothing visual or audible
+          is retained. We never sell your data and we do not allow our
+          AI provider to retain or train on it.
         </p>
       </section>
 
-      <h2 className="mt-10 font-serif text-2xl">1. Who we are</h2>
+      <h2 className="mt-10 font-serif text-2xl">What the sensor captures</h2>
       <p className="mt-3 text-ink2">
-        Nemara is software for caregiver-driven monitoring. The service
-        consists of an iOS application for caregivers, an iOS application
-        for wall-mounted cameras (NemaraCam), and a companion web
-        dashboard. This policy covers all three.
+        Each Nemara sensor is an iPhone mounted in a household room you
+        choose. While the sensor is active, it captures live video and
+        audio from that room and streams it in real time to our service.
+        Sensors can be paused or fully disconnected at any time from the
+        app or web dashboard; when paused or disconnected, no video or
+        audio leaves the room.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">2. Information we collect</h2>
-
-      <h3 className="mt-5 font-serif text-lg">Account information</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>Email address (used as your login).</li>
-        <li>Display name (chosen by you).</li>
-        <li>
-          Phone number (optional, only if you choose to add one to your
-          profile).
-        </li>
-        <li>Password (stored only as a hash by our auth provider).</li>
-      </ul>
-
-      <h3 className="mt-5 font-serif text-lg">Camera audio and video</h3>
-      <p className="mt-2 text-ink2">
-        Once you pair a wall-mounted camera, it continuously streams audio
-        and video to our infrastructure for as long as the camera is in
-        the &ldquo;connected&rdquo; state. Live frames flow through
-        LiveKit Cloud and are processed in short clips (~15 seconds) by AI
-        models to detect possible events. We retain a short clip and a
-        text description for each event our system fires, plus a synthetic
-        record of every analysis tick (whether or not an event was
-        detected) for debugging and timeline display.
-      </p>
-
-      <h3 className="mt-5 font-serif text-lg">Configuration and events</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>The patients, cameras, rooms, and detectors you configure.</li>
-        <li>The events the AI detects, including type, time, and a short narrative.</li>
-        <li>Caregiver reviews and notes you add to those events.</li>
-      </ul>
-
-      <h3 className="mt-5 font-serif text-lg">Device information</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>Apple Push Notification (APNs) device token, so we can deliver lock-screen alerts.</li>
-        <li>The iOS / device version your installed app is running.</li>
-        <li>Authentication tokens for your active session.</li>
-      </ul>
-
-      <h2 className="mt-10 font-serif text-2xl">3. How we use this information</h2>
-      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Provide the service: stream video, run AI detection, deliver alerts, render the dashboard.</li>
-        <li>Authenticate you and keep your sessions valid.</li>
-        <li>Send you operational notifications (event alerts, password resets, account updates).</li>
-        <li>Diagnose problems, improve detection accuracy, and prevent abuse.</li>
-        <li>Comply with legal obligations when required.</li>
-      </ul>
+      <h2 className="mt-10 font-serif text-2xl">How we handle video and audio</h2>
       <p className="mt-3 text-ink2">
-        We do <strong>not</strong> use your audio, video, or detection
-        data to train third-party AI models, sell it to advertisers, or
-        share it with anyone for marketing.
-      </p>
-
-      <h2 className="mt-10 font-serif text-2xl">4. Third-party services we rely on</h2>
-      <p className="mt-3 text-ink2">
-        Nemara is built on infrastructure operated by other companies.
-        Each receives only the data needed to do its job.
+        We do not record or store any of the video or audio captured by
+        the sensor. When the sensor is active, the live stream is sent
+        in real time to:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
         <li>
-          <strong>Supabase</strong> (PostgreSQL database, authentication,
-          realtime, file storage) — stores your account, configuration, events, and event clips. Hosted in the US (AWS).
+          A third-party AI service that analyzes the stream in real time
+          to surface insights about household activity (for example: a
+          possible fall, a person leaving the room, sustained restless
+          motion).
         </li>
         <li>
-          <strong>LiveKit Cloud</strong> — relays the audio/video stream
-          from each wall phone to the caregiver app and to our analysis backend.
+          Authorized users — typically family caregivers — who choose to
+          &ldquo;look in&rdquo; live through our app or web dashboard.
+        </li>
+      </ul>
+      <p className="mt-3 text-ink2">
+        Once a stream has passed through processing it is discarded.
+        Nothing is saved to disk, archived, or made available for later
+        replay. There is no historical video or audio library to access
+        or to be breached.
+      </p>
+
+      <h2 className="mt-10 font-serif text-2xl">What we do store</h2>
+      <p className="mt-3 text-ink2">
+        We store small amounts of information that are necessary for
+        the product to function:
+      </p>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>
+          <strong>Activity records</strong> — timestamps and short text
+          descriptions of observed activity. Example: &ldquo;possible
+          fall in the kitchen at 2:14 pm.&rdquo;
         </li>
         <li>
-          <strong>Railway</strong> — hosts our application backend (API
-          and detection workers). US West.
+          <strong>Aggregated patterns</strong> — derived signals over
+          time such as hours awake, room transitions, or motion
+          frequency. Used to power the dashboard.
+        </li>
+        <li>
+          <strong>Account and device information</strong> — account
+          holder name, contact details, room labels, device
+          configuration, and push notification tokens.
+        </li>
+        <li>
+          <strong>Authentication logs</strong> — when authorized users
+          signed in or opened a live look-in session.
+        </li>
+      </ul>
+      <p className="mt-3 text-ink2">
+        We do not store images, audio clips, or any media content.
+      </p>
+
+      <h2 className="mt-10 font-serif text-2xl">Where data is processed</h2>
+      <p className="mt-3 text-ink2">
+        Streams and stored data are processed in the United States by
+        the following service providers, each receiving only the data
+        needed to do its job:
+      </p>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>
+          <strong>LiveKit Cloud</strong> — the real-time relay that
+          carries the live stream from the sensor to the AI service and
+          to authorized look-in viewers. LiveKit does not retain
+          stream contents.
+        </li>
+        <li>
+          <strong>Google AI (Gemini)</strong> — the AI service that
+          analyzes the live stream. Operates from US data centers.
+        </li>
+        <li>
+          <strong>OpenAI</strong> — a secondary AI service used as a
+          fallback when Gemini is unavailable. Same handling.
+        </li>
+        <li>
+          <strong>Supabase</strong> — stores activity records, account
+          info, and configuration. Hosted in the United States on AWS.
+        </li>
+        <li>
+          <strong>Railway</strong> — hosts our application backend.
         </li>
         <li>
           <strong>Vercel</strong> — hosts the web dashboard.
         </li>
         <li>
-          <strong>Google (Gemini API)</strong> — analyzes camera clips for
-          possible events. Frames are sent transiently; Google does not
-          use them to train its models per its enterprise terms.
+          <strong>Apple (APNs)</strong> — delivers push notifications
+          to your iPhone.
         </li>
+      </ul>
+      <p className="mt-3 text-ink2">
+        Our agreements with the AI providers require that they:
+      </p>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>Not retain any video or audio after processing.</li>
+        <li>Not use any of your data to train their AI models.</li>
+        <li>Protect data in transit with industry-standard security.</li>
+      </ul>
+
+      <h2 className="mt-10 font-serif text-2xl">Live look-in</h2>
+      <p className="mt-3 text-ink2">
+        Authorized users can open the app and watch and listen to the
+        live stream at any time. Look-in sessions are not recorded.
+      </p>
+
+      <h2 className="mt-10 font-serif text-2xl">Who can access the stream</h2>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>You — the account holder.</li>
         <li>
-          <strong>OpenAI</strong> — used as a fallback analyzer when
-          Gemini is unavailable. Same handling as Gemini.
+          Anyone you authorize in the app — for example, other family
+          members or designated caregivers.
         </li>
+      </ul>
+      <p className="mt-3 text-ink2">
+        Nemara staff, including the founders, cannot view the live
+        stream. The AI service automatically processes the stream;
+        their staff do not view it either.
+      </p>
+
+      <h2 className="mt-10 font-serif text-2xl">How we protect your data</h2>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>All streams and stored data are encrypted in transit (TLS) and at rest.</li>
+        <li>Access requires authentication; database rows are gated by row-level security tied to your account.</li>
+        <li>Authentication tokens on iOS are stored in the device Keychain.</li>
         <li>
-          <strong>Apple (APNs)</strong> — delivers push notifications to
-          your iPhone lock screen.
+          We will notify you of any security incident that creates a
+          real risk of significant harm.
         </li>
       </ul>
 
-      <h2 className="mt-10 font-serif text-2xl">5. Where data is stored</h2>
-      <p className="mt-3 text-ink2">
-        Your data is primarily stored in the United States. If you access
-        Nemara from outside the US, your data is transferred to and
-        processed in the US. By using Nemara you consent to that transfer.
-      </p>
-
-      <h2 className="mt-10 font-serif text-2xl">6. How long we keep data</h2>
+      <h2 className="mt-10 font-serif text-2xl">Your rights</h2>
+      <p className="mt-3 text-ink2">You have the right to:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>
-          <strong>Live frames</strong> — held in memory only for the few seconds needed to run analysis. Not persisted.
-        </li>
-        <li>
-          <strong>Event clips</strong> — stored for 30 days, then deleted automatically.
-        </li>
-        <li>
-          <strong>Event records, analyses, and configuration</strong> — retained for as long as your account is active.
-        </li>
-        <li>
-          <strong>Account data</strong> — deleted within 30 days of you closing your account.
-        </li>
-      </ul>
-
-      <h2 className="mt-10 font-serif text-2xl">7. Your rights</h2>
-      <p className="mt-3 text-ink2">
-        You have the right to:
-      </p>
-      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Access the personal data we hold about you.</li>
-        <li>Correct anything inaccurate.</li>
-        <li>Delete your account and all associated data.</li>
+        <li>Know what information we hold about you and your household.</li>
+        <li>Correct any inaccurate information.</li>
+        <li>Withdraw consent and have your sensors deactivated.</li>
+        <li>Request deletion of stored activity records and other data.</li>
         <li>Export your data in a portable format.</li>
-        <li>Withdraw consent at any time by closing your account.</li>
       </ul>
       <p className="mt-3 text-ink2">
-        To exercise any of these rights, email{' '}
-        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
-          sunnycui@stanford.edu
-        </a>{' '}
-        from the address on file. We respond within 30 days.
+        Depending on where you live you may have additional rights
+        under your local privacy law (such as GDPR in Europe, CCPA in
+        California, or PIPEDA in Canada). To exercise any right, email
+        the privacy contact below. We respond within 30 days.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">8. Consent of monitored people</h2>
+      <h2 className="mt-10 font-serif text-2xl">Limitations on use</h2>
+      <p className="mt-3 text-ink2">We will not:</p>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>Record, save, or archive any video or audio.</li>
+        <li>Sell your data to anyone.</li>
+        <li>Use stored information for advertising.</li>
+        <li>
+          Share with insurance companies, employers, or government
+          agencies, except as required by law.
+        </li>
+        <li>Allow the AI provider to retain or train on your data.</li>
+      </ul>
+
+      <h2 className="mt-10 font-serif text-2xl">Consent of monitored people</h2>
       <p className="mt-3 text-ink2">
         Nemara is intended to be used by caregivers monitoring family
         members or others who <strong>have consented to being monitored</strong>.
-        It is your responsibility as the caregiver to obtain that consent.
-        Do not install a Nemara camera in any location where the people
-        being recorded have not agreed to it.
+        It is your responsibility as the caregiver to obtain that
+        consent. Do not install a Nemara sensor in any location where
+        the people present have not agreed to it. Inform visitors and
+        third parties who enter the room that sensors are in use.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">9. Children</h2>
+      <h2 className="mt-10 font-serif text-2xl">Children</h2>
       <p className="mt-3 text-ink2">
         Nemara is not directed to children under 13 and we do not
         knowingly collect personal data from anyone under 13. If you
@@ -191,37 +223,46 @@ export default function PrivacyPage() {
         will delete it.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">10. Security</h2>
+      <h2 className="mt-10 font-serif text-2xl">About the service</h2>
       <p className="mt-3 text-ink2">
-        All connections between the apps and our infrastructure use
-        TLS/HTTPS. Authentication tokens are stored in the iOS Keychain.
-        Video streams are encrypted in transit by LiveKit. Database access
-        is gated by row-level security policies tied to your account.
-      </p>
-      <p className="mt-3 text-ink2">
-        No system is perfectly secure. If you discover a security issue,
-        please report it to{' '}
-        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
-          sunnycui@stanford.edu
-        </a>{' '}
-        before disclosing it publicly.
+        Nemara is a general wellness service intended to provide
+        household activity insights for informational and convenience
+        purposes. Nemara is{' '}
+        <strong>not a medical device</strong> and is not intended to
+        diagnose, treat, cure, prevent, or monitor any disease, medical
+        condition, or symptom. The service is not a substitute for
+        professional medical care, supervision, or emergency response.
+        See our{' '}
+        <Link href="/terms" className="text-terra underline">
+          Terms of Service
+        </Link>{' '}
+        for the scope and limitations of the service.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">11. Changes to this policy</h2>
+      <h2 className="mt-10 font-serif text-2xl">Changes to this notice</h2>
       <p className="mt-3 text-ink2">
-        We may update this policy. If we make material changes we will
+        We may update this notice. If we make material changes we will
         notify active users via the app or by email. Continued use of
-        Nemara after a change means you accept the updated policy.
+        Nemara after a change means you accept the updated notice.
       </p>
 
-      <h2 className="mt-10 font-serif text-2xl">12. Contact</h2>
+      <h2 className="mt-10 font-serif text-2xl">Contact</h2>
       <p className="mt-3 text-ink2">
-        Questions, requests, or complaints:{' '}
-        <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
-          sunnycui@stanford.edu
-        </a>
-        .
+        Privacy questions, requests, or complaints:
       </p>
+      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
+        <li>Sunny Cui</li>
+        <li>
+          <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
+            sunnycui@stanford.edu
+          </a>
+        </li>
+        <li>
+          <a className="text-terra underline" href="tel:+17166021101">
+            716-602-1101
+          </a>
+        </li>
+      </ul>
 
       <p className="mt-12 text-sm text-ink3">
         See also our{' '}
