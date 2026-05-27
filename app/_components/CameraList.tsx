@@ -154,6 +154,14 @@ export function CameraList({
                   >
                     {status.label}
                   </span>
+                  {cam.source_type === 'sensor' && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-sm border border-line bg-paper-dim px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-ink3"
+                      title="Sensor Camera (powered by a Nemara Pi)"
+                    >
+                      SENSOR
+                    </span>
+                  )}
                   <span className="text-xs text-ink4">⚙</span>
                 </div>
                 <p className="mt-1 font-mono text-xs text-ink4 tracking-wide">
