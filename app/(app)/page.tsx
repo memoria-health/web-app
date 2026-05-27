@@ -139,7 +139,10 @@ export default async function HomePage() {
         totalCount={cameras.length}
       />
 
-      <PatientIdentityStatus patientId={patient.id} />
+      <PatientIdentityStatus
+        patientId={patient.id}
+        patientName={patient.preferred_name || patient.full_name}
+      />
 
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">

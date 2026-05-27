@@ -10,13 +10,19 @@ import type { FaceEnrollmentSummary } from '@/lib/api/types';
  * Read-only surface that mirrors the iOS PatientSettings card.
  * Three states, all rendered with byte-identical copy on both
  * surfaces so a caregiver flipping between web and mobile sees the
- * same numbers and language.
+ * same language.
  *
  * Re-enrollment is mobile-only (the iOS app owns the live camera
  * capture flow). The web's only CTA is a hint to open the caregiver
- * app to re-enroll.
+ * app.
  */
-export function PatientIdentityStatus({ patientId }: { patientId: string }) {
+export function PatientIdentityStatus({
+  patientId,
+  patientName,
+}: {
+  patientId: string;
+  patientName: string;
+}) {
   const [summary, setSummary] = useState<FaceEnrollmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,69 +45,134 @@ export function PatientIdentityStatus({ patientId }: { patientId: string }) {
     };
   }, [patientId]);
 
-  if (loading) {
+  if (loading || error || !summary) {
     return (
-      <div className="rounded-md border border-line bg-card px-4 py-3">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink3">
-          PATIENT IDENTITY
-        </p>
-        <p className="text-base text-ink3">Loading…</p>
-      </div>
+      <Card>
+        <Indicator state="loading" />
+        <Text title="Patient identity" subtitle={error ? "Couldn't load enrollment status." : 'Loading…'} />
+      </Card>
     );
   }
 
-  if (error || !summary) {
-    return (
-      <div className="rounded-md border border-line bg-card px-4 py-3">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink3">
-          PATIENT IDENTITY
-        </p>
-        <p className="text-base text-ink3">
-          Couldn&apos;t load enrollment status.
-        </p>
-      </div>
-    );
-  }
-
+  const state = stateOf(summary);
   return (
-    <div className="rounded-md border border-line bg-card px-4 py-3">
-      <p className="font-mono text-xs uppercase tracking-wider text-ink3">
-        PATIENT IDENTITY
-      </p>
-      <p className="text-base text-ink">{titleFor(summary)}</p>
-      <p className="text-sm text-ink3">{subtitleFor(summary)}</p>
+    <Card>
+      <Indicator state={state} />
+      <Text title={titleFor(state, patientName)} subtitle={subtitleFor(state)} />
+    </Card>
+  );
+}
+
+// ── states ──────────────────────────────────────────────────────────
+
+type CardState = 'enrolled' | 'processing' | 'not_enrolled' | 'loading';
+
+function stateOf(s: FaceEnrollmentSummary): CardState {
+  if (s.processing_count > 0) return 'processing';
+  if (s.selfie_count > 0) return 'enrolled';
+  return 'not_enrolled';
+}
+
+// Copy stays byte-identical with iOS PatientSettingsView.identityCardTitle
+// / .identityCardSubtitle. If you change one, change the other.
+
+function titleFor(state: CardState, name: string): string {
+  switch (state) {
+    case 'enrolled':
+      return `${name}'s face enrollment is complete`;
+    case 'processing':
+      return `${name}'s face enrollment is in progress`;
+    case 'not_enrolled':
+      return `${name}'s face enrollment is incomplete`;
+    case 'loading':
+      return 'Patient identity';
+  }
+}
+
+function subtitleFor(state: CardState): string {
+  switch (state) {
+    case 'not_enrolled':
+      return 'Open the caregiver app to enroll.';
+    default:
+      return '';
+  }
+}
+
+// ── presentation ────────────────────────────────────────────────────
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3">
+      {children}
     </div>
   );
 }
 
-// The two copy helpers must stay byte-identical with the iOS
-// PatientSettingsView.identityCardTitle / .identityCardSubtitle.
-// If you change one, change the other.
-
-function titleFor(s: FaceEnrollmentSummary): string {
-  if (s.processing_count > 0) {
-    return `Processing ${s.processing_count} photos…`;
-  }
-  if (s.selfie_count > 0) {
-    return `Enrolled · ${s.selfie_count} selfies · ${s.harvested_count} harvested`;
-  }
-  return 'Not enrolled';
+function Text({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div className="flex flex-col">
+      <p className="text-base text-ink">{title}</p>
+      {subtitle && <p className="text-sm text-ink3">{subtitle}</p>}
+    </div>
+  );
 }
 
-function subtitleFor(s: FaceEnrollmentSummary): string {
-  if (s.processing_count > 0) {
-    return "We're processing the captured photos. This usually takes under a minute.";
+function Indicator({ state }: { state: CardState }) {
+  // Inline SVGs so the card has zero icon-lib dependencies and renders
+  // identically wherever the component is embedded.
+  if (state === 'enrolled') {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-7 w-7 shrink-0 text-success"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" fill="currentColor" />
+        <path
+          d="M7.5 12.5l3 3 6-6"
+          stroke="white"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </svg>
+    );
   }
-  if (s.selfie_count > 0 && s.last_update) {
-    const d = new Date(s.last_update);
-    return `Last update ${d.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })}`;
+  if (state === 'processing') {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-7 w-7 shrink-0 animate-spin text-terra"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="2.4" fill="none" />
+        <path
+          d="M21 12a9 9 0 0 0-9-9"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+    );
   }
-  if (s.selfie_count === 0) {
-    return 'Tap Enroll to set up identity so Nemara can tell your patient apart from others in the household.';
-  }
-  return '';
+  // not_enrolled and loading both render the dashed empty circle.
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-7 w-7 shrink-0 text-ink3"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+    </svg>
+  );
 }
