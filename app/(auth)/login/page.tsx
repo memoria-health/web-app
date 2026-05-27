@@ -82,12 +82,17 @@ function LoginForm() {
       >
         {busy ? 'Signing in…' : 'Sign in'}
       </button>
-      <p className="text-sm text-ink3">
-        No account?{' '}
-        <Link href="/signup" className="text-terra underline">
-          Sign up
+      <div className="flex items-center justify-between gap-3 text-sm text-ink3">
+        <span>
+          No account?{' '}
+          <Link href="/signup" className="text-terra underline">
+            Sign up
+          </Link>
+        </span>
+        <Link href="/forgot-password" className="text-terra underline">
+          Forgot password?
         </Link>
-      </p>
+      </div>
     </form>
   );
 }
