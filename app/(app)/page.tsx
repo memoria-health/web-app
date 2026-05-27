@@ -4,6 +4,7 @@ import { env } from '@/lib/env';
 import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
+import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import type { Analysis } from '@/lib/api/types';
 
@@ -136,6 +137,11 @@ export default async function HomePage() {
         initialPaused={patient.cameras_paused}
         hiddenCount={cameras.filter((c) => c.disabled).length}
         totalCount={cameras.length}
+      />
+
+      <PatientIdentityStatus
+        patientId={patient.id}
+        patientName={patient.preferred_name || patient.full_name}
       />
 
       <section>

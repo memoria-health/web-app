@@ -291,3 +291,29 @@ export interface MintTokenRequest {
   identity: string;
   role: LiveKitRole;
 }
+
+// ── Re-ID face enrollment ───────────────────────────────────────────
+
+export type FaceEmbeddingSource = 'selfie' | 'harvested';
+export type FaceEmbeddingStatus = 'processing' | 'ready' | 'failed';
+
+export interface FaceEmbedding {
+  id: string;
+  patient_id: string;
+  source: FaceEmbeddingSource;
+  status: FaceEmbeddingStatus;
+  det_score: number;
+  failure_reason: string | null;
+  created_at: string;
+}
+
+// Status-card data shared between the web dashboard's
+// PatientIdentityStatus and the iOS PatientSettings card. Numbers
+// and copy stay identical across both surfaces.
+export interface FaceEnrollmentSummary {
+  selfie_count: number;
+  harvested_count: number;
+  processing_count: number;
+  failed_count: number;
+  last_update: string | null;
+}

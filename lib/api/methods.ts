@@ -12,6 +12,8 @@ import type {
   DiscoveredCamerasResponse,
   EventFilter,
   EventListResponse,
+  FaceEmbedding,
+  FaceEnrollmentSummary,
   LiveKitTokenResponse,
   MintTokenRequest,
   PairingCodeResponse,
@@ -119,4 +121,22 @@ export class NemaraClient {
       method: 'POST',
       body,
     });
+
+  // ── Re-ID face enrollment (read-only on web) ────────────────────
+  // The web app is a read-only status surface. The iOS caregiver app
+  // owns the capture flow (live front-camera). Web just displays
+  // counts + dates and exposes a delete affordance.
+  listFaceEmbeddings = (patientId: string) =>
+    this.api.request<FaceEmbedding[]>(
+      `/v1/patients/${patientId}/face-embeddings`,
+    );
+  getFaceEnrollmentSummary = (patientId: string) =>
+    this.api.request<FaceEnrollmentSummary>(
+      `/v1/patients/${patientId}/face-embeddings/summary`,
+    );
+  deleteFaceEmbedding = (embeddingId: string) =>
+    this.api.request<void>(
+      `/v1/face-embeddings/${embeddingId}`,
+      { method: 'DELETE' },
+    );
 }
