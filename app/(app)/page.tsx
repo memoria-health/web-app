@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getServerNemara } from '@/lib/api/server';
 import { getServerSupabase } from '@/lib/supabase/server';
 import { env } from '@/lib/env';
@@ -5,6 +6,7 @@ import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
+import { patientSession } from '@/lib/server/patientSession';
 import type { Analysis } from '@/lib/api/types';
 
 // How many recent rows to pre-fill each per-camera AnalysesFeed with.
@@ -23,8 +25,30 @@ export default async function HomePage() {
     data: { user },
   } = await supa.auth.getUser();
 
-  const patients = await api.listPatients();
-  const patient = patients[0];
+  const { selected: patient } = await patientSession();
+
+  // First-run / no-patient state — render an "add your first patient"
+  // CTA instead of attempting to load cameras/events for an undefined
+  // patient (which would crash on patient.id).
+  if (!patient) {
+    return (
+      <div className="flex min-h-[60vh] flex-1 flex-col items-center justify-center px-6 py-12 text-center">
+        <h1 className="font-serif text-4xl tracking-tight text-ink">
+          Welcome to Nemara
+        </h1>
+        <p className="mt-3 max-w-md text-base text-ink3">
+          To get started, add the person you&apos;ll be caring for. You
+          can pair cameras to them and configure detectors next.
+        </p>
+        <Link
+          href="/patients/new"
+          className="mt-6 rounded-md bg-action px-5 py-2.5 text-sm font-semibold text-action-ink hover:bg-ink2 transition-colors"
+        >
+          Add your first patient
+        </Link>
+      </div>
+    );
+  }
 
   // Fetch cameras. Each tile in the live grid is "reserved" — every
   // paired camera gets a tile regardless of disabled / desired_state,

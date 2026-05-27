@@ -2,14 +2,11 @@ import { redirect } from 'next/navigation';
 import { getServerSupabase } from '@/lib/supabase/server';
 import { getServerNemara } from '@/lib/api/server';
 import { isAPIError } from '@/lib/api/errors';
-import type { Patient } from '@/lib/api/types';
 import { TopNav } from '@/app/_components/TopNav';
 import { PatientProvider } from '@/app/_components/PatientProvider';
+import { patientSession } from '@/lib/server/patientSession';
 
-async function ensureCaregiverAndPatient(): Promise<{
-  email: string | null;
-  patient: Patient;
-}> {
+async function ensureCaregiver(): Promise<{ email: string | null }> {
   const supa = await getServerSupabase();
   const {
     data: { user },
@@ -18,7 +15,10 @@ async function ensureCaregiverAndPatient(): Promise<{
 
   const api = await getServerNemara();
 
-  // Ensure caregiver row exists. /v1/me returns 404 if not provisioned.
+  // Ensure caregiver row exists. /v1/me returns 404 if not provisioned —
+  // happens for users who completed Supabase Auth signup but whose
+  // backend caregiver row never landed (e.g. email-confirmation flow
+  // that bypassed the post-signup provisioning hook).
   try {
     await api.getMe();
   } catch (err) {
@@ -33,17 +33,7 @@ async function ensureCaregiverAndPatient(): Promise<{
     }
   }
 
-  // Ensure at least one patient exists. Single-patient mode for v1.
-  const patients = await api.listPatients();
-  if (patients.length === 0) {
-    const created = await api.createPatient({
-      full_name: 'Default Patient',
-      preferred_name: 'Default',
-      relation: 'other',
-    });
-    return { email: user.email ?? null, patient: created };
-  }
-  return { email: user.email ?? null, patient: patients[0] };
+  return { email: user.email ?? null };
 }
 
 export default async function AppLayout({
@@ -51,12 +41,18 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { email, patient } = await ensureCaregiverAndPatient();
+  const { email } = await ensureCaregiver();
+  // Resolve the caregiver's patient list + current selection from
+  // cookie. Pages downstream consume this via the PatientProvider's
+  // `usePatient()` (throws if no patient — for pages that require
+  // one) or `useMaybePatient()` (returns null — for empty-state
+  // handling on the home page).
+  const { patients, selected } = await patientSession();
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopNav email={email} />
-      <PatientProvider patient={patient}>
+      <PatientProvider patients={patients} selected={selected}>
+        <TopNav email={email} />
         <main className="flex-1 flex flex-col">{children}</main>
       </PatientProvider>
     </div>

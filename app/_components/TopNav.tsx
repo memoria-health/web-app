@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
+import { PatientSwitcher } from './PatientSwitcher';
 
 const LINKS = [
   { href: '/', label: 'Live' },
   { href: '/cameras', label: 'Cameras' },
   { href: '/detectors', label: 'Detectors' },
+  { href: '/patients', label: 'Patients' },
 ];
 
 export function TopNav({ email }: { email: string | null }) {
@@ -44,6 +46,7 @@ export function TopNav({ email }: { email: string | null }) {
         </ul>
       </div>
       <div className="flex items-center gap-3">
+        <PatientSwitcher />
         {email && (
           <span
             className="text-base text-ink3 max-w-[14rem] truncate"
