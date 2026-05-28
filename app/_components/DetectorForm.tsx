@@ -133,17 +133,19 @@ export function DetectorForm(props: Props) {
       whenMode === 'always' ? 'ALWAYS' : `${whenStart}-${whenEnd}`;
     const finalForm: CreateDetectorRequest = { ...form, when_scope: whenScope };
     try {
+      const patientId =
+        props.mode === 'create' ? props.patientId : props.detector.patient_id;
       if (props.mode === 'create') {
         // POST returns ~50ms with NULL identifier. Background compile
         // runs server-side and broadcasts the UPDATE via Realtime.
-        // The /detectors list shows a "compiling…" badge in the
-        // meantime, so navigating away immediately is fine.
+        // The /patients/<id>/detectors list shows a "compiling…" badge
+        // in the meantime, so navigating away immediately is fine.
         await getBrowserNemara().createDetector(props.patientId, finalForm);
       } else {
         const patch: UpdateDetectorRequest = { ...finalForm };
         await getBrowserNemara().updateDetector(props.detector.id, patch);
       }
-      router.replace('/detectors');
+      router.replace(`/patients/${patientId}/detectors`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -157,8 +159,9 @@ export function DetectorForm(props: Props) {
     setDeleting(true);
     setError(null);
     try {
+      const patientId = props.detector.patient_id;
       await getBrowserNemara().deleteDetector(props.detector.id);
-      router.replace('/detectors');
+      router.replace(`/patients/${patientId}/detectors`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -367,7 +370,7 @@ export function DetectorForm(props: Props) {
 
       <div className="flex items-center justify-between gap-2">
         <Link
-          href="/detectors"
+          href={`/patients/${props.mode === 'create' ? props.patientId : props.detector.patient_id}/detectors`}
           className="rounded border border-line px-3 py-1.5 text-base text-ink2"
         >
           Cancel

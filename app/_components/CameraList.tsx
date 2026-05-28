@@ -15,7 +15,11 @@ import { cn } from '@/lib/utils/cn';
 import type { Camera } from '@/lib/api/types';
 
 function statusFor(cam: Camera): { label: string; tone: 'live' | 'offline' | 'pairing' } {
-  if (!cam.livekit_identity) return { label: 'PAIRING', tone: 'pairing' };
+  // `!cam.paired` is the canonical "no wall phone has completed the
+  // handshake" check. The row still has a livekit_identity (assigned
+  // at create-pairing-code time), but until api_key_hash is set
+  // on the backend, no phone can publish under that identity.
+  if (!cam.paired) return { label: 'PAIRING', tone: 'pairing' };
   if (cam.online) return { label: 'LIVE', tone: 'live' };
   return { label: 'OFFLINE', tone: 'offline' };
 }
@@ -67,10 +71,19 @@ export function CameraList({
             table: 'cameras',
             filter: `patient_id=eq.${patientId}`,
           },
-          (payload: RealtimePostgresUpdatePayload<Camera>) => {
+          (payload: RealtimePostgresUpdatePayload<Camera & { api_key_hash: string | null }>) => {
             const updated = payload.new;
+            // Realtime payload is the raw DB row, which lacks the
+            // derived `paired` field but DOES include api_key_hash —
+            // recompute from that so a wall phone completing the
+            // /pair handshake (which sets api_key_hash) flips the
+            // tile from PAIRING to LIVE/OFFLINE without a refresh.
+            const next: Camera = {
+              ...updated,
+              paired: updated.api_key_hash !== null,
+            };
             setCameras((prev) =>
-              prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)),
+              prev.map((c) => (c.id === next.id ? { ...c, ...next } : c)),
             );
           },
         )
@@ -82,8 +95,12 @@ export function CameraList({
             table: 'cameras',
             filter: `patient_id=eq.${patientId}`,
           },
-          (payload: RealtimePostgresInsertPayload<Camera>) => {
-            const fresh = payload.new;
+          (payload: RealtimePostgresInsertPayload<Camera & { api_key_hash: string | null }>) => {
+            const raw = payload.new;
+            const fresh: Camera = {
+              ...raw,
+              paired: raw.api_key_hash !== null,
+            };
             setCameras((prev) => {
               if (prev.some((c) => c.id === fresh.id)) return prev;
               return [...prev, fresh].sort(
@@ -203,12 +220,22 @@ export function CameraList({
         {cameras.map((cam) => {
           const status = statusFor(cam);
           return (
-            <li key={cam.id} className="flex items-center gap-3 px-4 py-3">
+            <li
+              key={cam.id}
+              className="relative flex items-center gap-3 px-4 py-3 hover:bg-paper-dim/40 transition-colors"
+            >
+              {/* Card-link pattern: the Link is absolutely positioned
+                  to fill the entire row (including the empty space
+                  between the text and the action buttons), so clicking
+                  anywhere except the buttons navigates. Buttons sit
+                  above the link via `relative z-10`. */}
               <Link
-                href={`/cameras/${cam.id}`}
-                className="flex min-w-0 flex-1 flex-col rounded -mx-1 px-1 hover:bg-paper-dim/60 transition-colors"
+                href={`/patients/${patientId}/cameras/${cam.id}`}
+                className="absolute inset-0"
                 title="Configure detectors for this camera"
-              >
+                aria-label={`Open ${cam.room}`}
+              />
+              <div className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-serif text-xl text-ink">
                     {cam.room}
@@ -235,7 +262,7 @@ export function CameraList({
                   {' · '}
                   Last seen {timeAgo(cam.last_seen_at)}
                 </p>
-              </Link>
+              </div>
               <button
                 onClick={() => toggleAiPaused(cam.id, !cam.ai_paused)}
                 disabled={toggling === cam.id || cam.disabled}
@@ -246,7 +273,7 @@ export function CameraList({
                     : 'AI is running. Click to pause AI (video keeps streaming).'
                 }
                 className={cn(
-                  'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
+                  'relative z-10 rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
                   cam.ai_paused
                     ? 'border-warning/40 bg-card-alt text-warning'
                     : 'border-line bg-card text-ink2 hover:border-action/30 hover:bg-action hover:text-action-ink',
@@ -268,7 +295,7 @@ export function CameraList({
                     : 'Camera is shown. Click to hide (tile leaves grid AND LLM stops).'
                 }
                 className={cn(
-                  'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
+                  'relative z-10 rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
                   cam.disabled
                     ? 'border-line bg-paper-dim text-ink3'
                     : 'border-action/30 bg-action text-action-ink',
@@ -283,7 +310,7 @@ export function CameraList({
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}
-                className="rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
+                className="relative z-10 rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
               >
                 {removing === cam.id ? 'Removing…' : 'Delete'}
               </button>

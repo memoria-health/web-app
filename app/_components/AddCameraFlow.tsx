@@ -97,7 +97,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
           The wall phone for <strong className="font-medium">{issued?.room}</strong> is now connected.
         </p>
         <button
-          onClick={() => router.replace('/cameras')}
+          onClick={() => router.replace(`/patients/${patientId}/cameras`)}
           className="rounded-md bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 transition-colors"
         >
           View cameras
@@ -137,7 +137,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
           Waiting for pair
         </span>
         <Link
-          href="/cameras"
+          href={`/patients/${patientId}/cameras`}
           className="rounded border border-line px-3 py-1.5 text-base text-ink2 hover:border-line"
         >
           Done (return to cameras)
@@ -185,7 +185,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
       )}
       <div className="flex items-center justify-end gap-2">
         <Link
-          href="/cameras"
+          href={`/patients/${patientId}/cameras`}
           className="rounded border border-line px-3 py-1.5 text-base text-ink2"
         >
           Cancel

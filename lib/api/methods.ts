@@ -57,6 +57,16 @@ export class NemaraClient {
     });
   deleteCamera = (id: string) =>
     this.api.request<void>(`/v1/cameras/${id}`, { method: 'DELETE' });
+  // Re-mint a pairing code for an unpaired camera. Caregivers hit
+  // this from the camera detail page's "Show pairing code" button
+  // when they dismissed the original sheet without entering the
+  // code on a wall phone. Backend returns 409 if the camera is
+  // already paired.
+  regeneratePairingCode = (id: string) =>
+    this.api.request<PairingCodeResponse>(
+      `/v1/cameras/${id}/pairing-code`,
+      { method: 'POST' },
+    );
 
   // Per-camera detector assignment.
   getCameraDetectors = (id: string) =>

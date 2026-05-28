@@ -6,57 +6,92 @@ import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
 import { PatientSwitcher } from './PatientSwitcher';
 
-const LINKS = [
-  { href: '/', label: 'Live' },
-  { href: '/cameras', label: 'Cameras' },
-  { href: '/detectors', label: 'Detectors' },
-  { href: '/patients', label: 'Patients' },
-];
-
+/// Top of every page. Two stacked rows:
+///
+///   Row 1 (always):
+///     - Left: Nemara brand
+///     - Right: "Current patient: <name> ▾" (only when inside a
+///              patient) + email + Sign out
+///
+///   Row 2 (only when inside a patient):
+///     - Centered: Live · Cameras · Detectors · Settings
+///
+/// On non-patient routes (`/`, `/patients/new`) only Row 1 renders.
 export function TopNav({ email }: { email: string | null }) {
   const pathname = usePathname();
+  const patientIdMatch = pathname.match(/^\/patients\/([0-9a-f-]+)/i);
+  const inPatient = patientIdMatch !== null;
+  const base = patientIdMatch ? `/patients/${patientIdMatch[1]}` : '';
+
+  const tabs = inPatient
+    ? [
+        { href: base, label: 'Live', isActive: pathname === base },
+        {
+          href: `${base}/cameras`,
+          label: 'Cameras',
+          isActive: pathname.startsWith(`${base}/cameras`),
+        },
+        {
+          href: `${base}/detectors`,
+          label: 'Detectors',
+          isActive: pathname.startsWith(`${base}/detectors`),
+        },
+        {
+          href: `${base}/settings`,
+          label: 'Settings',
+          isActive: pathname.startsWith(`${base}/settings`),
+        },
+      ]
+    : [];
+
   return (
-    <nav className="flex items-center justify-between gap-4 border-b border-line bg-card px-5 py-3">
-      <div className="flex items-center gap-4">
-        <span className="font-serif text-2xl tracking-tight text-ink">
+    <>
+      <nav className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-line bg-card px-5 py-3">
+        <Link
+          href="/"
+          className="justify-self-start font-serif text-2xl tracking-tight text-ink hover:text-ink2 transition-colors"
+        >
           Nemara
-        </span>
-        <ul className="flex items-center gap-1">
-          {LINKS.map((link) => {
-            const active =
-              link.href === '/'
-                ? pathname === '/'
-                : pathname.startsWith(link.href);
-            return (
-              <li key={link.href}>
+        </Link>
+
+        <div className="justify-self-center">
+          <PatientSwitcher />
+        </div>
+
+        <div className="flex items-center gap-3 justify-self-end">
+          {email && (
+            <span
+              className="text-base text-ink3 max-w-[14rem] truncate"
+              title={email}
+            >
+              {email}
+            </span>
+          )}
+          <SignOutButton />
+        </div>
+      </nav>
+
+      {tabs.length > 0 && (
+        <div className="border-b border-line bg-card-alt px-5 py-3">
+          <ul className="mx-auto flex max-w-7xl items-center justify-center gap-12">
+            {tabs.map((t) => (
+              <li key={t.href}>
                 <Link
-                  href={link.href}
+                  href={t.href}
                   className={cn(
-                    'rounded-md px-4 py-2 text-base transition-colors',
-                    active
+                    'rounded-md px-5 py-2 text-base transition-colors',
+                    t.isActive
                       ? 'bg-action text-action-ink'
                       : 'text-ink3 hover:bg-paper-dim hover:text-ink',
                   )}
                 >
-                  {link.label}
+                  {t.label}
                 </Link>
               </li>
-            );
-          })}
-        </ul>
-      </div>
-      <div className="flex items-center gap-3">
-        <PatientSwitcher />
-        {email && (
-          <span
-            className="text-base text-ink3 max-w-[14rem] truncate"
-            title={email}
-          >
-            {email}
-          </span>
-        )}
-        <SignOutButton />
-      </div>
-    </nav>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
   );
 }

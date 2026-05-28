@@ -70,6 +70,12 @@ export interface Camera {
   livekit_identity: string | null;
   last_seen_at: string | null;
   created_at: string;
+  // True once the wall phone has completed the /v1/cameras/pair
+  // handshake. False = row exists with an open pairing code but no
+  // phone has claimed it yet. Drives the "PAIRING" badge in the
+  // cameras list, the "Show pairing code" button on the detail page,
+  // and the LiveKit tile bypass on the Live grid (no track yet).
+  paired: boolean;
 }
 
 export interface Detector {

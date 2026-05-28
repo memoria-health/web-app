@@ -21,10 +21,12 @@ export function CameraDetectorsForm({
   cameraId,
   patientDetectors,
   initialAssignedIds,
+  patientId,
 }: {
   cameraId: string;
   patientDetectors: Detector[];
   initialAssignedIds: string[];
+  patientId: string;
 }) {
   const [assigned, setAssigned] = useState<Set<string>>(
     new Set(initialAssignedIds),
@@ -59,7 +61,7 @@ export function CameraDetectorsForm({
     return (
       <div className="rounded border border-dashed border-line px-4 py-8 text-center text-base text-ink3">
         No detectors configured. Add one from the{' '}
-        <a href="/detectors" className="text-terra underline">Detectors</a>{' '}
+        <a href={`/patients/${patientId}/detectors`} className="text-terra underline">Detectors</a>{' '}
         page first.
       </div>
     );
@@ -137,7 +139,7 @@ export function CameraDetectorsForm({
         Toggling here only affects <strong>this</strong> camera. Other
         cameras under the same patient are independent. The global master
         switch lives on the{' '}
-        <a href="/detectors" className="text-terra underline">
+        <a href={`/patients/${patientId}/detectors`} className="text-terra underline">
           Detectors
         </a>{' '}
         page.

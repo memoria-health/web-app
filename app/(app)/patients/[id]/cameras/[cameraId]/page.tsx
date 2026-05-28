@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { CameraDetectorsForm } from '@/app/_components/CameraDetectorsForm';
+import { ShowPairingCodeButton } from '@/app/_components/ShowPairingCodeButton';
 import { timeAgo } from '@/lib/utils/time';
 
 export const dynamic = 'force-dynamic';
@@ -9,24 +10,25 @@ export const dynamic = 'force-dynamic';
 export default async function CameraDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; cameraId: string }>;
 }) {
-  const { id } = await params;
+  const { id: patientId, cameraId } = await params;
   const api = await getServerNemara();
   const patients = await api.listPatients();
-  const patient = patients[0];
+  const patient = patients.find((p) => p.id === patientId);
+  if (!patient) notFound();
 
   // Fetch in parallel: camera list (to find this camera + status),
   // patient's full detector list, and this camera's current assignments.
   const [cameras, patientDetectors, assignments] = await Promise.all([
     api.listCameras(patient.id),
     api.listDetectors(patient.id),
-    api.getCameraDetectors(id).catch(() => null),
+    api.getCameraDetectors(cameraId).catch(() => null),
   ]);
-  const camera = cameras.find((c) => c.id === id);
+  const camera = cameras.find((c) => c.id === cameraId);
   if (!camera || !assignments) notFound();
 
-  const statusLabel = !camera.livekit_identity
+  const statusLabel = !camera.paired
     ? { text: 'PAIRING', tone: 'pairing' as const }
     : camera.online
       ? { text: 'LIVE', tone: 'live' as const }
@@ -40,7 +42,7 @@ export default async function CameraDetailPage({
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3 flex-wrap">
-        <Link href="/cameras" className="text-base text-ink3 hover:text-ink">
+        <Link href={`/patients/${patient.id}/cameras`} className="text-base text-ink3 hover:text-ink">
           ← Cameras
         </Link>
         <span className="text-ink4">/</span>
@@ -80,6 +82,20 @@ export default async function CameraDetailPage({
         </dl>
       </section>
 
+      {!camera.paired && (
+        <section className="rounded-lg border border-warning/40 bg-card-alt px-4 py-4">
+          <h2 className="mb-1 font-mono text-xs font-semibold uppercase tracking-wider text-warning">
+            Awaiting pairing
+          </h2>
+          <p className="mb-3 text-sm text-ink2">
+            No wall phone has claimed this camera yet. Tap to view a 6-digit
+            pairing code — enter it on the NemaraCam wall-phone app to
+            complete pairing.
+          </p>
+          <ShowPairingCodeButton cameraId={camera.id} room={camera.room} />
+        </section>
+      )}
+
       <section>
         <h2 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
           Detectors running on this camera
@@ -88,6 +104,7 @@ export default async function CameraDetailPage({
           cameraId={camera.id}
           patientDetectors={patientDetectors}
           initialAssignedIds={assignments.detector_ids}
+          patientId={patient.id}
         />
       </section>
     </div>

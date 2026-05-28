@@ -188,7 +188,7 @@ export function DetectorList({
         emptyHint={
           <>
             None yet.{' '}
-            <Link href="/detectors/new" className="text-terra underline">
+            <Link href={`/patients/${patientId}/detectors/new`} className="text-terra underline">
               Create one →
             </Link>
           </>
@@ -288,7 +288,7 @@ function Section({
                   <div className="flex items-center gap-2">
                     {d.source === 'custom' && (
                       <Link
-                        href={`/detectors/${d.id}`}
+                        href={`/patients/${d.patient_id}/detectors/${d.id}`}
                         className="text-base text-ink3 hover:text-ink underline-offset-2 hover:underline"
                       >
                         Edit

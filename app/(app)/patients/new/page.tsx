@@ -7,7 +7,7 @@ export default function NewPatientPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-3xl w-full mx-auto">
       <header className="flex items-center gap-3 flex-wrap">
-        <Link href="/patients" className="text-base text-ink3 hover:text-ink">
+        <Link href="/" className="text-base text-ink3 hover:text-ink">
           ← Patients
         </Link>
         <span className="text-ink4">/</span>

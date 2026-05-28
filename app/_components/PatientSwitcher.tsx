@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import type {
   RealtimePostgresInsertPayload,
@@ -9,7 +9,7 @@ import type {
   RealtimePostgresDeletePayload,
 } from '@supabase/supabase-js';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
-import { usePatients, useMaybePatient } from './PatientProvider';
+import { usePatients } from './PatientProvider';
 import { cn } from '@/lib/utils/cn';
 
 /// Header dropdown for switching between the caregiver's patients
@@ -28,8 +28,18 @@ import { cn } from '@/lib/utils/cn';
 /// in sync with iOS-side additions and edits.
 export function PatientSwitcher() {
   const router = useRouter();
+  const pathname = usePathname();
   const patients = usePatients();
-  const selected = useMaybePatient();
+  // Derive "current patient" from the URL, not from context. Reading
+  // from context was a footgun: the switcher renders in TopNav, which
+  // sits OUTSIDE the per-patient layout — so the inner layout's
+  // selected override never reached it, and the dropdown would show
+  // whatever the outer (app)/layout decided (cookie default). URL is
+  // the source of truth: /patients/<id>/* → that patient is current.
+  const urlPatientId = pathname.match(/^\/patients\/([0-9a-f-]+)/i)?.[1];
+  const selected = urlPatientId
+    ? patients.find((p) => p.id === urlPatientId) ?? null
+    : null;
   const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -97,36 +107,32 @@ export function PatientSwitcher() {
     }
     setBusyId(id);
     try {
-      const res = await fetch('/api/select-patient', {
+      // Cookie write so the home-page redirect can prefer "last
+      // visited" on the next root-load. Best-effort — if the cookie
+      // write fails we still navigate. The URL is the source of truth
+      // for which patient is currently active.
+      void fetch('/api/select-patient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ patient_id: id }),
       });
-      if (!res.ok) throw new Error(`select failed: ${res.status}`);
       setOpen(false);
-      startTransition(() => router.refresh());
-    } catch (err) {
-      // Surface in console; UI doesn't currently render a fault
-      // toast for this. Real failure is rare (cookie write).
-      console.error(err);
+      router.push(`/patients/${id}`);
     } finally {
       setBusyId(null);
     }
   }
 
-  if (patients.length === 0) {
-    return (
-      <Link
-        href="/patients/new"
-        className="rounded-md border border-action/30 bg-action px-3 py-1.5 text-sm font-semibold text-action-ink hover:bg-ink2 transition-colors"
-      >
-        + Add your first patient
-      </Link>
-    );
+  // No switcher chrome on non-patient routes (`/`, `/patients/new`, etc.).
+  // The roster already shows everything; the switcher there would be
+  // redundant + suggest a "current patient" when there isn't one.
+  if (!selected) {
+    return null;
   }
 
   return (
     <div className="relative" ref={containerRef}>
+      <span className="mr-2 text-sm text-ink3">Current patient:</span>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -175,17 +181,22 @@ export function PatientSwitcher() {
             })}
           </ul>
           <div className="border-t border-line">
-            <Link
-              href="/patients"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm text-ink2 hover:bg-paper-dim transition-colors"
-            >
-              Manage patients →
-            </Link>
+            {patients.length >= 2 && (
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                className="block px-3 py-2 text-sm text-ink2 hover:bg-paper-dim transition-colors"
+              >
+                All patients →
+              </Link>
+            )}
             <Link
               href="/patients/new"
               onClick={() => setOpen(false)}
-              className="block border-t border-line px-3 py-2 text-sm font-semibold text-action hover:bg-paper-dim transition-colors"
+              className={cn(
+                'block px-3 py-2 text-sm font-semibold text-action hover:bg-paper-dim transition-colors',
+                patients.length >= 2 && 'border-t border-line',
+              )}
             >
               + Add a patient
             </Link>

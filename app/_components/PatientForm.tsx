@@ -60,13 +60,16 @@ export function PatientForm({
           gender: gender || undefined,
           home_address: homeAddress.trim() || undefined,
         });
-        // Auto-select the new patient so the next render shows them.
-        await fetch('/api/select-patient', {
+        // Cookie write so the home-page redirect prefers the just-
+        // created patient on subsequent root-loads. The drill-down
+        // navigation below is what actually places the user in the
+        // new patient's view immediately.
+        void fetch('/api/select-patient', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ patient_id: created.id }),
         });
-        router.replace('/');
+        router.replace(`/patients/${created.id}`);
         router.refresh();
       } else if (initial) {
         await api.updatePatient(initial.id, {
@@ -77,7 +80,7 @@ export function PatientForm({
           gender: gender || undefined,
           home_address: homeAddress.trim() || undefined,
         });
-        router.replace('/patients');
+        router.replace(`/patients/${initial.id}/settings`);
         router.refresh();
       }
     } catch (err) {

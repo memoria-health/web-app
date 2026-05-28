@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  LiveKitRoom,
   ParticipantTile,
+  VideoTrack,
   useTracks,
-  RoomAudioRenderer,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import type {
@@ -22,10 +21,14 @@ interface EnabledCamera {
   identity: string;  // matches participant identity once the wall phone joins
   room: string;      // human-readable name shown above each tile
   // Each tile is "reserved" in the grid regardless of state — these
-  // three flags drive the in-tile placeholder + the menu's labels.
+  // flags drive the in-tile placeholder + the menu's labels.
   disabled: boolean;
   ai_paused: boolean;
   desired_state: 'connected' | 'disconnected';
+  // False while no wall phone has completed the handshake. We render
+  // an "Awaiting pairing" placeholder and skip the LiveKit subscription
+  // since there's no published track yet.
+  paired: boolean;
 }
 
 function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
@@ -75,6 +78,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
             </div>
             <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-paper-dim">
               <CameraTileBody
+                paired={cam.paired}
                 disabled={cam.disabled}
                 aiPaused={cam.ai_paused}
                 desiredState={cam.desired_state}
@@ -103,11 +107,13 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
 /// live video; only the AI tick is skipped, so the overlay pill hints
 /// at the suspended detection.
 function CameraTileBody({
+  paired,
   disabled,
   aiPaused,
   desiredState,
   trackRef,
 }: {
+  paired: boolean;
   disabled: boolean;
   aiPaused: boolean;
   desiredState: 'connected' | 'disconnected';
@@ -115,6 +121,18 @@ function CameraTileBody({
   // shape isn't exported. Only used as: present → render ParticipantTile.
   trackRef: Parameters<typeof ParticipantTile>[0]['trackRef'] | undefined;
 }) {
+  // "Awaiting pairing" beats every other state — there literally is no
+  // wall phone publishing yet, so nothing else can be true.
+  if (!paired) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+        <span className="font-serif text-xl text-ink2">Awaiting pairing</span>
+        <span className="text-sm text-ink3">
+          Open this camera in /cameras to view the 6-digit code.
+        </span>
+      </div>
+    );
+  }
   if (desiredState === 'disconnected') {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
@@ -136,9 +154,24 @@ function CameraTileBody({
     );
   }
   if (trackRef) {
+    // `VideoTrack` is the bare-bones renderer — just the <video> tag
+    // bound to the LiveKit track. Switched from `ParticipantTile` so
+    // we don't get LiveKit's default participant-name overlay + audio
+    // indicator bar at the bottom, which was eating ~30px of the
+    // visible frame. The video fills the aspect-video container via
+    // object-cover (cropping minor letterboxing if the camera's
+    // intrinsic ratio differs from 16:9).
+    //
+    // We only enter this branch when trackRef is truthy AND the
+    // subscription is live (`useTracks` was called with
+    // `withPlaceholder: false`), so a cast to VideoTrack's stricter
+    // `TrackReference` (publication required) is safe.
     return (
       <div className="relative h-full w-full">
-        <ParticipantTile trackRef={trackRef} />
+        <VideoTrack
+          trackRef={trackRef as Parameters<typeof VideoTrack>[0]['trackRef']}
+          className="h-full w-full object-cover"
+        />
         {aiPaused && (
           <div className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
             AI Paused
@@ -362,13 +395,15 @@ function CameraTileMenu({
 
 export function VideoGrid({
   patientId,
-  token,
-  serverUrl,
+  hasLivekitToken,
   enabledCameras,
 }: {
   patientId: string;
-  token: string;
-  serverUrl: string;
+  // Whether the patient layout successfully minted a LiveKit token.
+  // If false, no `<LiveKitRoom>` is mounted upstream and useTracks()
+  // here would return empty — show an explicit error instead of an
+  // empty grid so the caregiver knows the upstream mint failed.
+  hasLivekitToken: boolean;
   enabledCameras: EnabledCamera[];
 }) {
   // Own the camera list as client state so realtime updates from
@@ -411,6 +446,10 @@ export function VideoGrid({
             disabled: boolean;
             ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
+            // Raw DB column. Caregiver-scoped RLS ensures we only
+            // receive rows we own; the bcrypt-hashed value here is
+            // used solely to derive `paired` for the tile UI.
+            api_key_hash: string | null;
           }>) => {
             const next = payload.new;
             setCameras((prev) =>
@@ -423,6 +462,7 @@ export function VideoGrid({
                       disabled: next.disabled,
                       ai_paused: next.ai_paused,
                       desired_state: next.desired_state,
+                      paired: next.api_key_hash !== null,
                     }
                   : c,
               ),
@@ -444,10 +484,14 @@ export function VideoGrid({
             disabled: boolean;
             ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
+            api_key_hash: string | null;
           }>) => {
             const fresh = payload.new;
-            // Unpaired cameras have no livekit_identity — skip until
-            // pairing completes (the next UPDATE will carry it).
+            // No livekit_identity yet = backend hasn't reserved one.
+            // (Currently identities are assigned at create_pairing_code,
+            // so this is mostly defensive — if that ever moves to
+            // post-pair, this guard is what keeps us from inserting a
+            // null-identity tile.)
             if (!fresh.livekit_identity) return;
             setCameras((prev) => {
               if (prev.some((c) => c.id === fresh.id)) return prev;
@@ -460,6 +504,7 @@ export function VideoGrid({
                   disabled: fresh.disabled,
                   ai_paused: fresh.ai_paused,
                   desired_state: fresh.desired_state,
+                  paired: fresh.api_key_hash !== null,
                 },
               ];
             });
@@ -490,19 +535,13 @@ export function VideoGrid({
     };
   }, [patientId]);
 
-  if (!token) {
+  if (!hasLivekitToken) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
         No LiveKit token available
       </div>
     );
   }
-  // Short-circuit: if NO paired cameras at all (patient.cameras_paused
-  // or zero paired phones), skip the LiveKit connection. Saves a
-  // WebSocket + token round-trip. Note this is the FULL list of
-  // paired cameras now (including hidden + disconnected), not just
-  // visible ones — tiles for hidden/disconnected still render inside
-  // GridInner so the user can re-enable from the ⋯ menu.
   if (cameras.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
@@ -510,17 +549,10 @@ export function VideoGrid({
       </div>
     );
   }
-  return (
-    <LiveKitRoom
-      serverUrl={serverUrl}
-      token={token}
-      connect
-      audio={false}
-      video={false}
-      data-lk-theme="default"
-    >
-      <GridInner enabledCameras={cameras} />
-      <RoomAudioRenderer />
-    </LiveKitRoom>
-  );
+  // LiveKitRoom is mounted up in the patient layout via
+  // LiveRoomProvider — so this grid just consumes the existing room
+  // context via useTracks(). That preserves the room connection across
+  // sub-tab navigation; previously this component owned the wrapper,
+  // which tore down the room every time the user left the Live tab.
+  return <GridInner enabledCameras={cameras} />;
 }

@@ -111,11 +111,20 @@ export function PatientRosterList({ initial }: { initial: Patient[] }) {
       )}
       <ul className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden">
         {patients.map((p) => (
-          <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+          <li
+            key={p.id}
+            className="relative flex items-center gap-3 px-4 py-3 hover:bg-paper-dim/40 transition-colors"
+          >
+            {/* Card-link pattern: the Link fills the whole row so
+                clicking anywhere except the Edit/Delete buttons
+                navigates to the patient's Live view. Buttons sit
+                above the link via `relative z-10`. */}
             <Link
               href={`/patients/${p.id}`}
-              className="flex min-w-0 flex-1 flex-col rounded -mx-1 px-1 hover:bg-paper-dim/60 transition-colors"
-            >
+              className="absolute inset-0"
+              aria-label={`Open ${p.preferred_name || p.full_name}`}
+            />
+            <div className="flex min-w-0 flex-1 flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-serif text-xl text-ink">
                   {p.preferred_name || p.full_name}
@@ -128,17 +137,17 @@ export function PatientRosterList({ initial }: { initial: Patient[] }) {
                 {p.full_name}
                 {p.home_address ? ` · ${p.home_address}` : ''}
               </p>
-            </Link>
+            </div>
             <Link
-              href={`/patients/${p.id}`}
-              className="rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:bg-paper-dim transition-colors"
+              href={`/patients/${p.id}/settings`}
+              className="relative z-10 rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:bg-paper-dim transition-colors"
             >
               Edit
             </Link>
             <button
               onClick={() => deletePatient(p)}
               disabled={removing === p.id}
-              className="rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
+              className="relative z-10 rounded-md border border-line bg-card px-3 py-1.5 text-base text-ink2 hover:border-terra/40 hover:bg-terra-soft hover:text-terra-deep disabled:opacity-50 transition-colors"
             >
               {removing === p.id ? 'Deleting…' : 'Delete'}
             </button>

@@ -1,13 +1,20 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { CameraList } from '@/app/_components/CameraList';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CamerasPage() {
+export default async function CamerasPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: patientId } = await params;
   const api = await getServerNemara();
   const patients = await api.listPatients();
-  const patient = patients[0];
+  const patient = patients.find((p) => p.id === patientId);
+  if (!patient) notFound();
   const cameras = await api.listCameras(patient.id);
 
   return (
@@ -15,7 +22,7 @@ export default async function CamerasPage() {
       <header className="flex items-center justify-between gap-3">
         <h1 className="font-serif text-4xl tracking-tight text-ink">Cameras</h1>
         <Link
-          href="/cameras/new"
+          href={`/patients/${patient.id}/cameras/new`}
           className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink transition-colors hover:bg-ink2"
         >
           + Add camera
