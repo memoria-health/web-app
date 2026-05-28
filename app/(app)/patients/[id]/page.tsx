@@ -5,6 +5,7 @@ import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
+import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import type { Analysis } from '@/lib/api/types';
 
 // How many recent rows to pre-fill each per-camera AnalysesFeed with.
@@ -125,6 +126,11 @@ export default async function PatientLivePage({
         initialPaused={patient.cameras_paused}
         hiddenCount={cameras.filter((c) => c.disabled).length}
         totalCount={cameras.length}
+      />
+
+      <PatientIdentityStatus
+        patientId={patient.id}
+        patientName={patient.preferred_name || patient.full_name}
       />
 
       <section>

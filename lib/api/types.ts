@@ -44,6 +44,17 @@ export interface Patient {
   updated_at: string;
 }
 
+// Which physical device class a camera row represents. Backend
+// returns both shapes from the same /cameras endpoint; the UI
+// branches on this for the SENSOR chip in CameraList and for which
+// tab is preselected when editing.
+export type CameraSourceType = 'phone' | 'sensor';
+
+// The wire format keeps the historical strings 'iphone' / 'pi' so
+// existing rows do not need a backfill; we normalize at the
+// API-client boundary.
+export type CameraSourceTypeWire = 'iphone' | 'pi';
+
 export interface Camera {
   id: string;
   patient_id: string;
@@ -67,6 +78,11 @@ export interface Camera {
   // 3-dot menu (which calls PATCH /v1/cameras/{id} with
   // desired_state).
   desired_state: 'connected' | 'disconnected';
+  // Discriminator. 'phone' = NemaraCam wall phone (existing path).
+  // 'sensor' = Nemara Sensor Camera (the Pi-based path; backend
+  // stores 'pi'). Defaults to 'phone' if the field is absent (older
+  // backend or pre-migration row).
+  source_type: CameraSourceType;
   livekit_identity: string | null;
   last_seen_at: string | null;
   created_at: string;
@@ -76,6 +92,42 @@ export interface Camera {
   // cameras list, the "Show pairing code" button on the detail page,
   // and the LiveKit tile bypass on the Live grid (no track yet).
   paired: boolean;
+}
+
+// Top-level shape of `GET /v1/cameras/discovered`. Each entry is a
+// Sensor Camera that has phoned home but has not yet been paired to
+// a patient. Surfaces in the "Sensor Camera" tab of the Add Camera
+// flow.
+export interface DiscoveredCamera {
+  discovery_id: string;
+  hardware_id: string;
+  device_label: string;
+  current_url: string;
+  current_audio_url: string | null;
+  first_seen_at: string;
+  last_seen_at: string;
+}
+
+export interface DiscoveredCamerasResponse {
+  pis: DiscoveredCamera[];
+}
+
+// Body for `POST /v1/patients/{id}/cameras/pi-provision` in the
+// discovery-id mode (the only mode the web app uses; the direct-URL
+// mode is for ops scripting via curl).
+export interface ProvisionSensorCameraRequest {
+  room: string;
+  icon_name?: string;
+  discovery_id: string;
+}
+
+export interface ProvisionSensorCameraResponse {
+  camera_id: string;
+  patient_id: string;
+  pi_stream_url: string;
+  pi_audio_url: string | null;
+  livekit_identity: string;
+  livekit_room: string;
 }
 
 export interface Detector {
@@ -250,4 +302,30 @@ export interface MintTokenRequest {
   room: string;
   identity: string;
   role: LiveKitRole;
+}
+
+// ── Re-ID face enrollment ───────────────────────────────────────────
+
+export type FaceEmbeddingSource = 'selfie' | 'harvested';
+export type FaceEmbeddingStatus = 'processing' | 'ready' | 'failed';
+
+export interface FaceEmbedding {
+  id: string;
+  patient_id: string;
+  source: FaceEmbeddingSource;
+  status: FaceEmbeddingStatus;
+  det_score: number;
+  failure_reason: string | null;
+  created_at: string;
+}
+
+// Status-card data shared between the web dashboard's
+// PatientIdentityStatus and the iOS PatientSettings card. Numbers
+// and copy stay identical across both surfaces.
+export interface FaceEnrollmentSummary {
+  selfie_count: number;
+  harvested_count: number;
+  processing_count: number;
+  failed_count: number;
+  last_update: string | null;
 }
