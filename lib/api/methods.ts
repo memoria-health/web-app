@@ -11,6 +11,8 @@ import type {
   DetectionEvent,
   EventFilter,
   EventListResponse,
+  InferDetectorRequest,
+  InferDetectorResponse,
   LiveKitTokenResponse,
   MintTokenRequest,
   PairingCodeResponse,
@@ -29,6 +31,32 @@ export class NemaraClient {
   getMe = () => this.api.request<Caregiver>('/v1/me');
   createMe = (body: CreateCaregiverRequest) =>
     this.api.request<Caregiver>('/v1/me', { method: 'POST', body });
+  markWebOnboarded = () =>
+    this.api.request<Caregiver>('/v1/me', {
+      method: 'PATCH',
+      body: { onboarded_web: true },
+    });
+  updateTimezone = (timezone: string) =>
+    this.api.request<Caregiver>('/v1/me', {
+      method: 'PATCH',
+      body: { timezone },
+    });
+  // Per-patient email alerts (PATCH the patient row).
+  updatePatientEmailAlerts = (
+    patientId: string,
+    body: {
+      email_alerts_enabled?: boolean;
+      email_alert_recipients?: string[];
+    },
+  ) => this.api.request<Patient>(`/v1/patients/${patientId}`, {
+    method: 'PATCH',
+    body,
+  });
+  sendPatientTestEmail = (patientId: string) =>
+    this.api.request<{ status: string }>(
+      `/v1/patients/${patientId}/test-email`,
+      { method: 'POST' },
+    );
 
   // Patients
   listPatients = () => this.api.request<Patient[]>('/v1/patients');
@@ -80,6 +108,14 @@ export class NemaraClient {
   // Detectors
   listDetectors = (patientId: string) =>
     this.api.request<Detector[]>(`/v1/patients/${patientId}/detectors`);
+  // LLM-classify a plain-English detector request for the create review
+  // screen. Returns shape/category/icon/sensitivity + schedule (nulls
+  // where the model was unsure).
+  inferDetector = (body: InferDetectorRequest) =>
+    this.api.request<InferDetectorResponse>('/v1/detectors/infer', {
+      method: 'POST',
+      body,
+    });
   createDetector = (patientId: string, body: CreateDetectorRequest) =>
     this.api.request<Detector>(`/v1/patients/${patientId}/detectors`, {
       method: 'POST',

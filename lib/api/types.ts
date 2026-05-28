@@ -10,8 +10,23 @@ export type Relation =
   | 'other';
 export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
-export type DetectorShape = 'point_in_time' | 'state';
+// 'state' is legacy (agitation preset) — no longer offered in the UI.
+// 'scheduled' = absence detector that fires if a signal is missing
+// from a recurring time window.
+export type DetectorShape = 'point_in_time' | 'state' | 'scheduled';
 export type DetectorSensitivity = 'low' | 'standard' | 'high' | 'off';
+export type ScheduleCadence = 'daily' | 'weekly';
+
+// Evaluation window for a `scheduled` detector. Fields are nullable so
+// the LLM can return a partial inference (blanks the user fills in).
+// Times are local "HH:MM" 24h; days_of_week is 0=Mon..6=Sun (weekly).
+export interface ScheduleConfig {
+  cadence: ScheduleCadence | null;
+  days_of_week: number[] | null;
+  window_start: string | null;
+  window_end: string | null;
+  deadline: string | null;
+}
 export type ReviewChoice = 'correct' | 'wrong' | 'unsure';
 export type EventFilter = 'all' | 'unreviewed' | 'reviewed';
 export type LiveKitRole = 'camera' | 'viewer' | 'broadcaster';
@@ -23,6 +38,13 @@ export interface Caregiver {
   phone: string | null;
   created_at: string;
   updated_at: string;
+  // Web onboarding walkthrough flag. False until the user finishes or
+  // skips the dashboard modal; the client PATCHes it true via
+  // markWebOnboarded(). Per-surface — iOS tracks its own flag.
+  onboarded_web: boolean;
+  // IANA timezone scheduled detectors evaluate in. Auto-set from the
+  // browser on app load (TimezoneSync).
+  timezone: string;
 }
 
 export interface Patient {
@@ -42,6 +64,11 @@ export interface Patient {
   photo_storage_key: string | null;
   created_at: string;
   updated_at: string;
+  // Per-patient email alerts. enabled = master switch; recipients =
+  // ADDITIONAL addresses beyond the owning caregiver's account email
+  // (which always receives this patient's alerts when enabled).
+  email_alerts_enabled: boolean;
+  email_alert_recipients: string[];
 }
 
 export interface Camera {
@@ -97,6 +124,8 @@ export interface Detector {
   // it's `custom_<8hex>` and may be null while the backend is still
   // compiling the prompt fragment (see /detectors/new flow).
   identifier: string | null;
+  // Null for reactive detectors; the evaluation window for `scheduled`.
+  schedule_config: ScheduleConfig | null;
   created_at: string;
   updated_at: string;
 }
@@ -223,14 +252,30 @@ export interface CreatePairingCodeRequest {
 
 export interface CreateDetectorRequest {
   name: string;
-  icon_name: string;
-  description: string;
-  category: DetectorCategory;
-  shape: DetectorShape;
-  where_scope: string;
-  when_scope: string;
   custom_prompt: string;
+  // All optional — backend defaults them. Normally sent from the
+  // inferred + reviewed values on the create flow.
+  description?: string;
+  category?: DetectorCategory;
+  shape?: DetectorShape;
+  icon_name?: string;
+  where_scope?: string;
+  when_scope?: string;
   sensitivity?: DetectorSensitivity;
+  schedule_config?: ScheduleConfig | null;
+}
+
+export interface InferDetectorRequest {
+  name?: string;
+  prompt: string;
+}
+
+export interface InferDetectorResponse {
+  shape: DetectorShape;
+  category: DetectorCategory;
+  icon_name: string;
+  sensitivity: DetectorSensitivity;
+  schedule_config: ScheduleConfig | null;
 }
 
 export interface UpdateDetectorRequest {

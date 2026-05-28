@@ -94,7 +94,7 @@ export function DetectorForm(props: Props) {
 
   // When-mode is derived from the existing `when_scope` so editing an
   // existing detector picks the right radio + time inputs.
-  const initialWhen = parseWhenScope(initial.when_scope);
+  const initialWhen = parseWhenScope(initial.when_scope ?? 'ALWAYS');
   const [whenMode, setWhenMode] = useState<'always' | 'specific'>(initialWhen.mode);
   const [whenStart, setWhenStart] = useState(initialWhen.start);
   const [whenEnd, setWhenEnd] = useState(initialWhen.end);
@@ -112,8 +112,9 @@ export function DetectorForm(props: Props) {
   // If the existing where_scope doesn't match any room (e.g. an old
   // value like "HALLWAY" before per-camera scoping), surface it as
   // its own option so we don't silently lose it on save.
-  if (!roomOptions.includes(form.where_scope)) {
-    roomOptions.push(form.where_scope);
+  const whereScope = form.where_scope ?? 'ALL ROOMS';
+  if (!roomOptions.includes(whereScope)) {
+    roomOptions.push(whereScope);
   }
 
   function update<K extends keyof CreateDetectorRequest>(
