@@ -8,6 +8,9 @@ import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { formatPairingCode } from '@/lib/utils/pairing';
 import { countdown, isExpired } from '@/lib/utils/time';
+import type { DiscoveredCamera } from '@/lib/api/types';
+
+type Tab = 'phone' | 'sensor';
 
 interface Issued {
   pairing_code: string;
@@ -16,7 +19,78 @@ interface Issued {
   room: string;
 }
 
+const ICON_OPTIONS = [
+  'tv',
+  'fork.knife',
+  'bed.double',
+  'bathtub',
+  'door.left.hand.open',
+  'house',
+];
+
+const SENSOR_POLL_INTERVAL_MS = 3000;
+
 export function AddCameraFlow({ patientId }: { patientId: string }) {
+  const [tab, setTab] = useState<Tab>('phone');
+
+  return (
+    <div className="mx-auto flex max-w-md flex-col gap-4">
+      <TabBar tab={tab} onChange={setTab} />
+      {tab === 'phone' ? (
+        <PhoneCameraTab patientId={patientId} />
+      ) : (
+        <SensorCameraTab patientId={patientId} />
+      )}
+    </div>
+  );
+}
+
+function TabBar({
+  tab,
+  onChange,
+}: {
+  tab: Tab;
+  onChange: (t: Tab) => void;
+}) {
+  const cls = (active: boolean) =>
+    `flex-1 rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+      active
+        ? 'bg-action text-action-ink'
+        : 'text-ink2 hover:text-ink'
+    }`;
+  return (
+    <div
+      role="tablist"
+      className="flex gap-1 rounded-md border border-line bg-paper-dim p-1"
+    >
+      <button
+        role="tab"
+        aria-selected={tab === 'phone'}
+        onClick={() => onChange('phone')}
+        className={cls(tab === 'phone')}
+      >
+        Phone Camera
+      </button>
+      <button
+        role="tab"
+        aria-selected={tab === 'sensor'}
+        onClick={() => onChange('sensor')}
+        className={cls(tab === 'sensor')}
+      >
+        Sensor Camera
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Phone Camera tab. Unchanged behavior from the previous flow:
+// caregiver types a room name, picks an icon, gets a 6-digit code,
+// Supabase Realtime flips `paired` to true when the wall phone
+// claims the row.
+// ─────────────────────────────────────────────────────────────
+
+function PhoneCameraTab({ patientId }: { patientId: string }) {
   const router = useRouter();
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('tv');
@@ -24,18 +98,17 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [issued, setIssued] = useState<Issued | null>(null);
   const [paired, setPaired] = useState(false);
-  const [tick, setTick] = useState(0);
+  // Update once per second so the countdown re-renders. Sourcing
+  // "now" from state instead of Date.now() in render keeps the
+  // render function pure (react-hooks/set-state-in-effect).
+  const [now, setNow] = useState(() => Date.now());
 
-  // Tick once per second so the countdown updates.
   useEffect(() => {
     if (!issued) return;
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [issued]);
 
-  // Subscribe to camera UPDATE; when livekit_identity appears, it's paired.
-  // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
-  // the anon-role race that drops every broadcast otherwise.
   useEffect(() => {
     if (!issued) return;
     let cancelled = false;
@@ -91,10 +164,12 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
 
   if (paired) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-lg border border-success/40 bg-card-alt p-8 text-center">
+      <div className="flex flex-col items-center gap-4 rounded-lg border border-success/40 bg-card-alt p-8 text-center">
         <h2 className="font-serif text-4xl tracking-tight text-ink">Paired!</h2>
         <p className="text-base text-ink2">
-          The wall phone for <strong className="font-medium">{issued?.room}</strong> is now connected.
+          The phone camera for{' '}
+          <strong className="font-medium">{issued?.room}</strong> is now
+          connected.
         </p>
         <button
           onClick={() => router.replace(`/patients/${patientId}/cameras`)}
@@ -107,9 +182,9 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   }
 
   if (issued) {
-    const expired = isExpired(issued.expires_at, Date.now() + tick * 0);
+    const expired = isExpired(issued.expires_at, now);
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded border border-line bg-card p-6 text-center">
+      <div className="flex flex-col items-center gap-4 rounded border border-line bg-card p-6 text-center">
         <span className="text-xs uppercase tracking-wider text-ink3">
           Pairing code
         </span>
@@ -149,7 +224,7 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
   return (
     <form
       onSubmit={onCreate}
-      className="mx-auto flex max-w-md flex-col gap-3 rounded border border-line bg-card p-6"
+      className="flex flex-col gap-3 rounded border border-line bg-card p-6"
     >
       <label className="flex flex-col gap-1">
         <span className="text-base font-medium text-ink2">Camera name</span>
@@ -163,26 +238,8 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
           className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-base font-medium text-ink2">Icon</span>
-        <select
-          value={icon}
-          onChange={(e) => setIcon(e.target.value)}
-          className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
-        >
-          <option value="tv">tv</option>
-          <option value="fork.knife">fork.knife</option>
-          <option value="bed.double">bed.double</option>
-          <option value="bathtub">bathtub</option>
-          <option value="door.left.hand.open">door.left.hand.open</option>
-          <option value="house">house</option>
-        </select>
-      </label>
-      {error && (
-        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-terra">
-          {error}
-        </div>
-      )}
+      <IconPicker icon={icon} onChange={setIcon} />
+      {error && <ErrorBanner message={error} />}
       <div className="flex items-center justify-end gap-2">
         <Link
           href={`/patients/${patientId}/cameras`}
@@ -200,4 +257,269 @@ export function AddCameraFlow({ patientId }: { patientId: string }) {
       </div>
     </form>
   );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sensor Camera tab. Polls GET /v1/cameras/discovered every 3 s,
+// shows unclaimed sensor cameras. Tap one to enter a room name +
+// icon, then POST /pi-provision. On success, redirect to /cameras.
+//
+// First-time setup help is rendered inline so a caregiver who has
+// not yet plugged in / connected the camera knows what to do.
+// ─────────────────────────────────────────────────────────────
+
+function SensorCameraTab({ patientId }: { patientId: string }) {
+  const router = useRouter();
+  const [discovered, setDiscovered] = useState<DiscoveredCamera[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<DiscoveredCamera | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function poll() {
+      try {
+        const res = await getBrowserNemara().listDiscoveredCameras();
+        if (!cancelled) {
+          setDiscovered(res.pis);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      }
+    }
+    void poll();
+    const id = setInterval(poll, SENSOR_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  if (selected) {
+    return (
+      <SensorAssignForm
+        patientId={patientId}
+        discovery={selected}
+        onCancel={() => setSelected(null)}
+        onPaired={() => router.replace('/cameras')}
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SensorSetupHelp />
+      <div className="rounded border border-line bg-card p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-medium text-ink2">Available cameras</h3>
+          <span className="inline-flex items-center gap-1.5 text-xs text-ink3">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-action" />
+            Scanning…
+          </span>
+        </div>
+        {error && <ErrorBanner message={error} />}
+        {discovered === null ? (
+          <p className="py-6 text-center text-sm text-ink3">Looking…</p>
+        ) : discovered.length === 0 ? (
+          <p className="py-6 text-center text-sm text-ink3">
+            No cameras found yet. Follow the setup steps above.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {discovered.map((d) => (
+              <li key={d.discovery_id}>
+                <button
+                  onClick={() => setSelected(d)}
+                  className="flex w-full items-center justify-between rounded border border-line bg-paper-dim px-3 py-2.5 text-left hover:border-action"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-base text-ink">{d.device_label}</span>
+                    <span className="text-xs text-ink3">
+                      {hostnameOf(d.current_url)} ·{' '}
+                      {relativeAge(d.last_seen_at)}
+                    </span>
+                  </div>
+                  <span className="text-xs text-ink3">Pair →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <Link
+        href="/cameras"
+        className="self-end rounded border border-line px-3 py-1.5 text-base text-ink2"
+      >
+        Cancel
+      </Link>
+    </div>
+  );
+}
+
+function SensorSetupHelp() {
+  return (
+    <details className="rounded border border-line bg-card-alt p-4 text-sm text-ink2">
+      <summary className="cursor-pointer font-medium text-ink">
+        Setting up a new sensor camera?
+      </summary>
+      <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-ink3">
+        <li>Plug the camera in and wait ~30 seconds for it to boot.</li>
+        <li>
+          On your phone or laptop, open WiFi settings and connect to the
+          network named <strong>Nemara-Setup-XXXXXX</strong> (the X&apos;s
+          are the camera&apos;s ID).
+        </li>
+        <li>
+          Your device should automatically open a setup page. If not, open
+          a browser and visit{' '}
+          <code className="rounded bg-paper-dim px-1 py-0.5 text-xs">
+            192.168.4.1
+          </code>
+          .
+        </li>
+        <li>
+          Pick your home WiFi network and enter its password. The camera
+          will join and disappear from the &quot;Nemara-Setup&quot; list.
+        </li>
+        <li>
+          Reconnect your phone to your home WiFi. The camera will appear
+          below within about a minute.
+        </li>
+      </ol>
+    </details>
+  );
+}
+
+function SensorAssignForm({
+  patientId,
+  discovery,
+  onCancel,
+  onPaired,
+}: {
+  patientId: string;
+  discovery: DiscoveredCamera;
+  onCancel: () => void;
+  onPaired: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [icon, setIcon] = useState('tv');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await getBrowserNemara().provisionSensorCamera(patientId, {
+        room: name,
+        icon_name: icon,
+        discovery_id: discovery.discovery_id,
+      });
+      onPaired();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-3 rounded border border-line bg-card p-6"
+    >
+      <div className="rounded border border-line bg-paper-dim px-3 py-2">
+        <span className="text-xs uppercase tracking-wider text-ink3">
+          Pairing
+        </span>
+        <p className="text-base text-ink">{discovery.device_label}</p>
+        <p className="text-xs text-ink3">{discovery.current_url}</p>
+      </div>
+      <label className="flex flex-col gap-1">
+        <span className="text-base font-medium text-ink2">Camera name</span>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. Living room, Kitchen, Bedroom"
+          maxLength={64}
+          required
+          autoFocus
+          className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+        />
+      </label>
+      <IconPicker icon={icon} onChange={setIcon} />
+      {error && <ErrorBanner message={error} />}
+      <div className="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded border border-line px-3 py-1.5 text-base text-ink2"
+        >
+          Back
+        </button>
+        <button
+          type="submit"
+          disabled={busy || !name.trim()}
+          className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 disabled:opacity-50"
+        >
+          {busy ? 'Pairing…' : 'Pair camera'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ─── Shared bits ────────────────────────────────────────────────
+
+function IconPicker({
+  icon,
+  onChange,
+}: {
+  icon: string;
+  onChange: (s: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-base font-medium text-ink2">Icon</span>
+      <select
+        value={icon}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+      >
+        {ICON_OPTIONS.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-terra">
+      {message}
+    </div>
+  );
+}
+
+function hostnameOf(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+function relativeAge(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return `seen ${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `seen ${m}m ago`;
+  return `seen ${Math.round(m / 60)}h ago`;
 }

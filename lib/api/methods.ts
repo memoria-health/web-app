@@ -9,14 +9,19 @@ import type {
   CreatePatientRequest,
   Detector,
   DetectionEvent,
+  DiscoveredCamerasResponse,
   EventFilter,
   EventListResponse,
+  FaceEmbedding,
+  FaceEnrollmentSummary,
   InferDetectorRequest,
   InferDetectorResponse,
   LiveKitTokenResponse,
   MintTokenRequest,
   PairingCodeResponse,
   Patient,
+  ProvisionSensorCameraRequest,
+  ProvisionSensorCameraResponse,
   SetCameraDetectorsRequest,
   UpdateCameraRequest,
   UpdateDetectorRequest,
@@ -96,6 +101,21 @@ export class NemaraClient {
       { method: 'POST' },
     );
 
+  // Sensor camera discovery + provisioning. Pi devices announce
+  // themselves to the backend every 60 s; the "Sensor Camera" tab of
+  // the Add Camera flow lists unclaimed announcements and POSTs the
+  // chosen discovery_id back to provision the camera.
+  listDiscoveredCameras = () =>
+    this.api.request<DiscoveredCamerasResponse>('/v1/cameras/discovered');
+  provisionSensorCamera = (
+    patientId: string,
+    body: ProvisionSensorCameraRequest,
+  ) =>
+    this.api.request<ProvisionSensorCameraResponse>(
+      `/v1/patients/${patientId}/cameras/pi-provision`,
+      { method: 'POST', body },
+    );
+
   // Per-camera detector assignment.
   getCameraDetectors = (id: string) =>
     this.api.request<CameraDetectorsResponse>(`/v1/cameras/${id}/detectors`);
@@ -147,4 +167,22 @@ export class NemaraClient {
       method: 'POST',
       body,
     });
+
+  // ── Re-ID face enrollment (read-only on web) ────────────────────
+  // The web app is a read-only status surface. The iOS caregiver app
+  // owns the capture flow (live front-camera). Web just displays
+  // counts + dates and exposes a delete affordance.
+  listFaceEmbeddings = (patientId: string) =>
+    this.api.request<FaceEmbedding[]>(
+      `/v1/patients/${patientId}/face-embeddings`,
+    );
+  getFaceEnrollmentSummary = (patientId: string) =>
+    this.api.request<FaceEnrollmentSummary>(
+      `/v1/patients/${patientId}/face-embeddings/summary`,
+    );
+  deleteFaceEmbedding = (embeddingId: string) =>
+    this.api.request<void>(
+      `/v1/face-embeddings/${embeddingId}`,
+      { method: 'DELETE' },
+    );
 }
