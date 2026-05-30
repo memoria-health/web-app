@@ -13,7 +13,7 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector, DetectorSensitivity } from '@/lib/api/types';
 
-const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high', 'off'];
+const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high'];
 
 export function DetectorList({
   initial,

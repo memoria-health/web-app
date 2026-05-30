@@ -19,9 +19,15 @@ import type { FaceEnrollmentSummary } from '@/lib/api/types';
 export function PatientIdentityStatus({
   patientId,
   patientName,
+  surface,
 }: {
   patientId: string;
   patientName: string;
+  // `detail` only renders when enrollment is incomplete, so the patient
+  // page surfaces a nudge to enroll. `settings` always renders so the
+  // settings page can show the enrollment status (complete / in progress
+  // / incomplete) as part of the patient's profile.
+  surface: 'detail' | 'settings';
 }) {
   const [summary, setSummary] = useState<FaceEnrollmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +52,11 @@ export function PatientIdentityStatus({
   }, [patientId]);
 
   if (loading || error || !summary) {
+    // On the patient detail page we only ever want to show the
+    // incomplete-enrollment nudge. Skipping the loading shimmer
+    // avoids flashing a placeholder card on the page for every
+    // already-enrolled patient.
+    if (surface === 'detail') return null;
     return (
       <Card>
         <Indicator state="loading" />
@@ -55,6 +66,7 @@ export function PatientIdentityStatus({
   }
 
   const state = stateOf(summary);
+  if (surface === 'detail' && state !== 'not_enrolled') return null;
   return (
     <Card>
       <Indicator state={state} />

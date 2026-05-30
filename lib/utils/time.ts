@@ -19,6 +19,22 @@ export function timeAgo(input: string | Date | null | undefined, now = Date.now(
   return new Date(ts).toLocaleDateString();
 }
 
+// 24-hour HH:MM:SS in the user's OS timezone. Omitting `timeZone`
+// lets Intl resolve to the browser/system zone, so caregivers in
+// different regions each see times in their own clock without us
+// threading a per-caregiver timezone through every render.
+export function formatLocalTime(input: string | Date | null | undefined): string {
+  if (!input) return '—';
+  const ts = typeof input === 'string' ? Date.parse(input) : input.getTime();
+  if (!Number.isFinite(ts)) return '—';
+  return new Date(ts).toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
 export function countdown(targetIso: string, now = Date.now()): string {
   const target = Date.parse(targetIso);
   if (!Number.isFinite(target)) return '—';

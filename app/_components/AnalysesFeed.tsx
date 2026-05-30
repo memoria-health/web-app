@@ -151,7 +151,13 @@ export function AnalysesFeed({
             setRows((prev) => {
               const next = payload.new;
               if (prev.some((r) => r.id === next.id)) return prev;
-              return [next, ...prev].slice(0, MAX_ROWS);
+              // Sort by captured_at (when the clip was taken), not
+              // arrival order. Gemini calls vary in latency (~3-15s),
+              // so a slow T-tick can land after a fast T+10 tick if
+              // we just prepend by insert order.
+              return [next, ...prev]
+                .sort((a, b) => b.captured_at.localeCompare(a.captured_at))
+                .slice(0, MAX_ROWS);
             });
           },
         )
@@ -325,7 +331,13 @@ function AnalysisRow({
     });
   }
 
-  const peopleCount = asNumber(f.people_count) ?? (a.people_present ? 1 : 0);
+  // Re-ID's per-clip verdict. asBool collapses missing into false, so
+  // keep the raw value around to distinguish "Re-ID ran and said no
+  // patient" from "Re-ID didn't run this tick" (no enrollment, timeout,
+  // skipped reason, etc). We render nothing in the unknown case.
+  const patientInClipRaw = f.identity_patient_in_clip;
+  const patientInClipKnown = typeof patientInClipRaw === 'boolean';
+  const patientInClip = patientInClipRaw === true;
 
   const fallDetected = asBool(f.fall_detected);
   const fallConf = pct(f.fall_confidence);
@@ -358,22 +370,24 @@ function AnalysisRow({
       {/* metadata row */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-mono text-ink3 tracking-wide">
-          {timeAgo(a.created_at)}
+          {timeAgo(a.captured_at)}
         </span>
         <span className="font-mono text-ink4 truncate max-w-[12rem] tracking-wide">
           cam {a.camera_id.slice(0, 8)}
         </span>
-        {/* people */}
-        <span
-          className={cn(
-            'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono',
-            a.people_present
-              ? 'border-success/40 bg-card-alt text-success'
-              : 'border-line bg-paper-dim text-ink4',
-          )}
-        >
-          👤 {peopleCount}
-        </span>
+        {/* patient present (Re-ID verdict) */}
+        {patientInClipKnown && (
+          <span
+            className={cn(
+              'inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
+              patientInClip
+                ? 'border-success/40 bg-card-alt text-success'
+                : 'border-line bg-paper-dim text-ink4',
+            )}
+          >
+            {patientInClip ? 'patient present' : 'no patient'}
+          </span>
+        )}
         {/* motion */}
         <span
           className={cn(
@@ -384,17 +398,6 @@ function AnalysisRow({
           )}
         >
           {a.motion_in_clip ? 'motion' : 'still'}
-        </span>
-        {/* state */}
-        <span
-          className={cn(
-            'inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
-            a.state_after === 'open'
-              ? 'border-action/30 bg-action-soft text-ink'
-              : 'border-line bg-paper-dim text-ink4',
-          )}
-        >
-          {a.state_after}
         </span>
         {/* provider */}
         <span

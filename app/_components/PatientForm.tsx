@@ -90,7 +90,7 @@ export function PatientForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 max-w-xl">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">
           Full name

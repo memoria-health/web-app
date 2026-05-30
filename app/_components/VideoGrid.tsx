@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  AudioTrack,
   ParticipantTile,
   VideoTrack,
   useTracks,
@@ -36,6 +37,14 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
     [{ source: Track.Source.Camera, withPlaceholder: false }],
     { onlySubscribed: true },
   );
+  // Same hook, microphone source. Each wall phone publishes one mic
+  // track; the AudioTrack component renders it iff the caregiver
+  // unmuted that tile via the speaker toggle. Default state below is
+  // "all muted" — caregivers explicitly opt in to listening per camera.
+  const audioTracks = useTracks(
+    [{ source: Track.Source.Microphone, withPlaceholder: false }],
+    { onlySubscribed: true },
+  );
 
   // Index tracks by participant identity so we can render one tile per
   // EXPECTED camera (not per active track). This way each camera always
@@ -49,6 +58,29 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
       trackByIdentity.set(t.participant.identity, t);
     }
   }
+  const audioByIdentity = new Map<string, (typeof audioTracks)[number]>();
+  for (const t of audioTracks) {
+    if (!audioByIdentity.has(t.participant.identity)) {
+      audioByIdentity.set(t.participant.identity, t);
+    }
+  }
+
+  // Per-tile audio unmute state, keyed by participant identity. Default
+  // is muted for every camera ("all rooms silent unless I opt in") —
+  // matches the iOS LiveKit client's `audioEnabledByIdentity` default.
+  // State lives in GridInner (component-local) since it's UI-only and
+  // doesn't need to survive remounts: the audio track stays subscribed
+  // regardless, we're just choosing whether to render the <AudioTrack>
+  // (which produces audible output).
+  const [audioUnmuted, setAudioUnmuted] = useState<Set<string>>(new Set());
+  const toggleAudio = (identity: string) => {
+    setAudioUnmuted((prev) => {
+      const next = new Set(prev);
+      if (next.has(identity)) next.delete(identity);
+      else next.add(identity);
+      return next;
+    });
+  };
 
   if (enabledCameras.length === 0) {
     return (
@@ -64,25 +96,51 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {enabledCameras.map((cam) => {
         const trackRef = trackByIdentity.get(cam.identity);
+        const audioRef = audioByIdentity.get(cam.identity);
+        const isAudible = audioUnmuted.has(cam.identity);
+        // Always mount AudioTrack when an audio track exists; use the
+        // `volume` prop to gate audible output (0 = silent, 1 = audible).
+        // Conditional mount/unmount of `<AudioTrack>` was causing a
+        // "mute once, can't mute back" symptom — the <audio> element
+        // toggling in/out of the DOM seemed to interfere with the next
+        // click's hit detection on the same tile. Volume-gating mirrors
+        // the iOS LiveKitClient pattern (track stays subscribed, volume
+        // toggled) and removes the churn.
         return (
           <div
             key={cam.id}
             className="flex flex-col gap-2"
             data-camera-identity={cam.identity}
           >
-            <div className="flex items-center justify-between">
+            <div>
               <span className="font-serif text-xl text-ink">{cam.room}</span>
-              <span className="font-mono text-xs text-ink4 tracking-wide">
-                {cam.identity}
-              </span>
             </div>
-            <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-paper-dim">
-              <CameraTileBody
-                paired={cam.paired}
-                disabled={cam.disabled}
-                aiPaused={cam.ai_paused}
-                desiredState={cam.desired_state}
-                trackRef={trackRef}
+            {/* Outer wrapper is positioned but NOT overflow-hidden, so
+                the ⋯ dropdown can escape the tile bounds on narrow
+                widths instead of getting clipped. The aspect-video div
+                inside keeps overflow-hidden for the video's rounded
+                corners. */}
+            <div className="relative">
+              <div className="relative aspect-video overflow-hidden rounded-lg border border-line bg-paper-dim">
+                <CameraTileBody
+                  paired={cam.paired}
+                  disabled={cam.disabled}
+                  aiPaused={cam.ai_paused}
+                  desiredState={cam.desired_state}
+                  trackRef={trackRef}
+                />
+                {audioRef && (
+                  <AudioTrack
+                    trackRef={audioRef as Parameters<typeof AudioTrack>[0]['trackRef']}
+                    volume={isAudible ? 1.0 : 0.0}
+                  />
+                )}
+              </div>
+              <CameraTileAudioButton
+                cameraRoom={cam.room}
+                hasAudioTrack={!!audioRef}
+                isAudible={isAudible}
+                onToggle={() => toggleAudio(cam.identity)}
               />
               <CameraTileMenu
                 cameraId={cam.id}
@@ -137,9 +195,7 @@ function CameraTileBody({
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
         <span className="font-serif text-xl text-ink2">Disconnected</span>
-        <span className="text-xs text-ink4">
-          Phone left LiveKit. Click ⋯ → Reconnect.
-        </span>
+        <span className="text-xs text-ink4">Click ⋯ to reconnect</span>
       </div>
     );
   }
@@ -173,7 +229,7 @@ function CameraTileBody({
           className="h-full w-full object-cover"
         />
         {aiPaused && (
-          <div className="pointer-events-none absolute left-2 top-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
+          <div className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
             AI Paused
           </div>
         )}
@@ -186,6 +242,67 @@ function CameraTileBody({
     </div>
   );
 }
+
+/// Per-tile audio mute toggle. Sits in the top-left of the tile so it
+/// doesn't collide with the ⋯ menu in the top-right. Disabled (greyed +
+/// not clickable) when there's no audio track on the publisher yet —
+/// useful state for the caregiver to know "this camera isn't sending
+/// mic data, can't unmute."
+function CameraTileAudioButton({
+  cameraRoom,
+  hasAudioTrack,
+  isAudible,
+  onToggle,
+}: {
+  cameraRoom: string;
+  hasAudioTrack: boolean;
+  isAudible: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!hasAudioTrack) return;
+        onToggle();
+      }}
+      disabled={!hasAudioTrack}
+      aria-pressed={isAudible}
+      aria-label={
+        !hasAudioTrack
+          ? `${cameraRoom} has no audio yet`
+          : isAudible
+            ? `Mute ${cameraRoom} audio`
+            : `Unmute ${cameraRoom} audio`
+      }
+      title={
+        !hasAudioTrack
+          ? 'No audio track yet'
+          : isAudible
+            ? 'Mute'
+            : 'Unmute'
+      }
+      className="absolute left-2 top-2 z-50 inline-flex h-8 w-8 items-center justify-center rounded-md border border-line/60 bg-card/90 text-ink backdrop-blur hover:border-line hover:bg-card disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {/* Pure SVG so we don't drag in another icon dep. Speaker-with-
+          waves for audible, speaker-with-slash for muted. */}
+      {isAudible ? (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+          <path d="M3 6h2.5L8.5 3.5v9L5.5 10H3V6z" />
+          <path d="M11 5.5a3 3 0 0 1 0 5" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d="M12.5 4a5 5 0 0 1 0 8" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+          <path d="M3 6h2.5L8.5 3.5v9L5.5 10H3V6z" />
+          <path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 
 /// Per-tile overflow menu. Always shows two toggles with state-aware
 /// labels:
@@ -446,10 +563,15 @@ export function VideoGrid({
             disabled: boolean;
             ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
-            // Raw DB column. Caregiver-scoped RLS ensures we only
-            // receive rows we own; the bcrypt-hashed value here is
+            // Raw DB columns. Caregiver-scoped RLS ensures we only
+            // receive rows we own; the bcrypt-hashed values here are
             // used solely to derive `paired` for the tile UI.
+            // iPhone cameras carry api_key_hash; Pi cameras carry
+            // ingest_token_hash. Either being non-null means paired —
+            // the previous code only checked api_key_hash, so every
+            // Pi UPDATE caused the tile to flip to "Awaiting pairing".
             api_key_hash: string | null;
+            ingest_token_hash: string | null;
           }>) => {
             const next = payload.new;
             setCameras((prev) =>
@@ -462,7 +584,9 @@ export function VideoGrid({
                       disabled: next.disabled,
                       ai_paused: next.ai_paused,
                       desired_state: next.desired_state,
-                      paired: next.api_key_hash !== null,
+                      paired:
+                        next.api_key_hash !== null
+                        || next.ingest_token_hash !== null,
                     }
                   : c,
               ),
@@ -485,6 +609,7 @@ export function VideoGrid({
             ai_paused: boolean;
             desired_state: 'connected' | 'disconnected';
             api_key_hash: string | null;
+            ingest_token_hash: string | null;
           }>) => {
             const fresh = payload.new;
             // No livekit_identity yet = backend hasn't reserved one.
@@ -504,7 +629,9 @@ export function VideoGrid({
                   disabled: fresh.disabled,
                   ai_paused: fresh.ai_paused,
                   desired_state: fresh.desired_state,
-                  paired: fresh.api_key_hash !== null,
+                  paired:
+                    fresh.api_key_hash !== null
+                    || fresh.ingest_token_hash !== null,
                 },
               ];
             });

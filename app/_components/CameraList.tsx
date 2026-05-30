@@ -12,23 +12,35 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
 import { timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
+import { CameraIcon } from '@/lib/icons/cameraIcons';
 import type { Camera } from '@/lib/api/types';
 
-function statusFor(cam: Camera): { label: string; tone: 'live' | 'offline' | 'pairing' } {
-  // `!cam.paired` is the canonical "no wall phone has completed the
-  // handshake" check. The row still has a livekit_identity (assigned
-  // at create-pairing-code time), but until api_key_hash is set
-  // on the backend, no phone can publish under that identity.
-  if (!cam.paired) return { label: 'PAIRING', tone: 'pairing' };
-  if (cam.online) return { label: 'LIVE', tone: 'live' };
-  return { label: 'OFFLINE', tone: 'offline' };
+// Single connection signal: ONLINE iff the backend has recently
+// observed frames arriving (state_machine writes `online=true`
+// on each detector tick; the stale-online sweeper writes
+// `online=false` when frames stop). Unpaired rows can't get to
+// online=true by construction (online requires a tick which
+// requires CameraIngest which requires credentials), so they
+// always render OFFLINE without us having to check `paired` here.
+function statusFor(cam: Camera): { label: 'ONLINE' | 'OFFLINE'; tone: 'live' | 'offline' } {
+  return cam.online
+    ? { label: 'ONLINE', tone: 'live' }
+    : { label: 'OFFLINE', tone: 'offline' };
 }
 
-const TONE_CLASSES: Record<'live' | 'offline' | 'pairing', string> = {
+const TONE_CLASSES: Record<'live' | 'offline', string> = {
   live: 'border-success/40 bg-card-alt text-success',
   offline: 'border-line bg-paper-dim text-ink4',
-  pairing: 'border-warning/40 bg-card-alt text-warning',
 };
+
+// User-triggered toggle styling. Mirrors iOS's chip palette
+// (terra=destructive for OFF, warning=needs-attention for HIDDEN,
+// neutral for AI PAUSED) so the two surfaces look the same.
+const TOGGLE_CHIP_BASE =
+  'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider';
+const TOGGLE_DISCONNECTED = 'border-terra/40 bg-card-alt text-terra';
+const TOGGLE_HIDDEN = 'border-warning/40 bg-card-alt text-warning';
+const TOGGLE_AI_PAUSED = 'border-line bg-paper-dim text-ink3';
 
 export function CameraList({
   patientId,
@@ -40,7 +52,6 @@ export function CameraList({
   const router = useRouter();
   const [cameras, setCameras] = useState(initial);
   const [removing, setRemoving] = useState<string | null>(null);
-  const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
@@ -71,7 +82,7 @@ export function CameraList({
             table: 'cameras',
             filter: `patient_id=eq.${patientId}`,
           },
-          (payload: RealtimePostgresUpdatePayload<Camera & { api_key_hash: string | null }>) => {
+          (payload: RealtimePostgresUpdatePayload<Camera & { api_key_hash: string | null; ingest_token_hash: string | null }>) => {
             const updated = payload.new;
             // Realtime payload is the raw DB row, which lacks the
             // derived `paired` field but DOES include api_key_hash —
@@ -80,7 +91,9 @@ export function CameraList({
             // tile from PAIRING to LIVE/OFFLINE without a refresh.
             const next: Camera = {
               ...updated,
-              paired: updated.api_key_hash !== null,
+              paired:
+                updated.api_key_hash !== null
+                || updated.ingest_token_hash !== null,
             };
             setCameras((prev) =>
               prev.map((c) => (c.id === next.id ? { ...c, ...next } : c)),
@@ -95,11 +108,13 @@ export function CameraList({
             table: 'cameras',
             filter: `patient_id=eq.${patientId}`,
           },
-          (payload: RealtimePostgresInsertPayload<Camera & { api_key_hash: string | null }>) => {
+          (payload: RealtimePostgresInsertPayload<Camera & { api_key_hash: string | null; ingest_token_hash: string | null }>) => {
             const raw = payload.new;
             const fresh: Camera = {
               ...raw,
-              paired: raw.api_key_hash !== null,
+              paired:
+                raw.api_key_hash !== null
+                || raw.ingest_token_hash !== null,
             };
             setCameras((prev) => {
               if (prev.some((c) => c.id === fresh.id)) return prev;
@@ -154,53 +169,6 @@ export function CameraList({
     }
   }
 
-  async function toggleDisabled(id: string, nextDisabled: boolean) {
-    setToggling(id);
-    setError(null);
-    // Optimistic update — flip local state, roll back on failure.
-    setCameras((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, disabled: nextDisabled } : c)),
-    );
-    try {
-      const updated = await getBrowserNemara().updateCamera(id, {
-        disabled: nextDisabled,
-      });
-      setCameras((prev) => prev.map((c) => (c.id === id ? updated : c)));
-      startTransition(() => router.refresh());
-    } catch (err) {
-      // Roll back the optimistic flip.
-      setCameras((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, disabled: !nextDisabled } : c)),
-      );
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setToggling(null);
-    }
-  }
-
-  async function toggleAiPaused(id: string, nextAiPaused: boolean) {
-    setToggling(id);
-    setError(null);
-    // Optimistic update — flip local state, roll back on failure.
-    setCameras((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ai_paused: nextAiPaused } : c)),
-    );
-    try {
-      const updated = await getBrowserNemara().updateCamera(id, {
-        ai_paused: nextAiPaused,
-      });
-      setCameras((prev) => prev.map((c) => (c.id === id ? updated : c)));
-      startTransition(() => router.refresh());
-    } catch (err) {
-      setCameras((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, ai_paused: !nextAiPaused } : c)),
-      );
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setToggling(null);
-    }
-  }
-
   if (cameras.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
@@ -237,6 +205,10 @@ export function CameraList({
               />
               <div className="flex min-w-0 flex-1 flex-col">
                 <div className="flex items-center gap-2">
+                  <CameraIcon
+                    name={cam.icon_name}
+                    className="h-5 w-5 shrink-0 text-ink2"
+                  />
                   <span className="font-serif text-xl text-ink">
                     {cam.room}
                   </span>
@@ -251,12 +223,21 @@ export function CameraList({
                   >
                     {status.label}
                   </span>
-                  {cam.source_type === 'sensor' && (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-sm border border-line bg-paper-dim px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-ink3"
-                      title="Sensor Camera (powered by a Nemara Pi)"
-                    >
-                      SENSOR
+                  {/* User-triggered toggles. Independent + additive —
+                      render every chip that applies. */}
+                  {cam.desired_state === 'disconnected' && (
+                    <span className={cn(TOGGLE_CHIP_BASE, TOGGLE_DISCONNECTED)}>
+                      DISCONNECTED
+                    </span>
+                  )}
+                  {cam.disabled && (
+                    <span className={cn(TOGGLE_CHIP_BASE, TOGGLE_HIDDEN)}>
+                      HIDDEN
+                    </span>
+                  )}
+                  {cam.ai_paused && (
+                    <span className={cn(TOGGLE_CHIP_BASE, TOGGLE_AI_PAUSED)}>
+                      AI PAUSED
                     </span>
                   )}
                   <span className="text-xs text-ink4">⚙</span>
@@ -271,50 +252,6 @@ export function CameraList({
                   Last seen {timeAgo(cam.last_seen_at)}
                 </p>
               </div>
-              <button
-                onClick={() => toggleAiPaused(cam.id, !cam.ai_paused)}
-                disabled={toggling === cam.id || cam.disabled}
-                aria-pressed={cam.ai_paused}
-                title={
-                  cam.ai_paused
-                    ? 'AI is paused — video keeps streaming. Click to resume AI.'
-                    : 'AI is running. Click to pause AI (video keeps streaming).'
-                }
-                className={cn(
-                  'relative z-10 rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
-                  cam.ai_paused
-                    ? 'border-warning/40 bg-card-alt text-warning'
-                    : 'border-line bg-card text-ink2 hover:border-action/30 hover:bg-action hover:text-action-ink',
-                )}
-              >
-                {toggling === cam.id
-                  ? '…'
-                  : cam.ai_paused
-                    ? 'AI OFF'
-                    : 'AI ON'}
-              </button>
-              <button
-                onClick={() => toggleDisabled(cam.id, !cam.disabled)}
-                disabled={toggling === cam.id}
-                aria-pressed={!cam.disabled}
-                title={
-                  cam.disabled
-                    ? 'Camera is hidden — tile is off the grid AND LLM skips. Click to show.'
-                    : 'Camera is shown. Click to hide (tile leaves grid AND LLM stops).'
-                }
-                className={cn(
-                  'relative z-10 rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
-                  cam.disabled
-                    ? 'border-line bg-paper-dim text-ink3'
-                    : 'border-action/30 bg-action text-action-ink',
-                )}
-              >
-                {toggling === cam.id
-                  ? '…'
-                  : cam.disabled
-                    ? 'HIDDEN'
-                    : 'SHOWN'}
-              </button>
               <button
                 onClick={() => removeCamera(cam.id, cam.room)}
                 disabled={removing === cam.id}

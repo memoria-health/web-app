@@ -14,7 +14,7 @@ export type DetectorSource = 'preset' | 'custom';
 // 'scheduled' = absence detector that fires if a signal is missing
 // from a recurring time window.
 export type DetectorShape = 'point_in_time' | 'state' | 'scheduled';
-export type DetectorSensitivity = 'low' | 'standard' | 'high' | 'off';
+export type DetectorSensitivity = 'low' | 'standard' | 'high';
 export type ScheduleCadence = 'daily' | 'weekly';
 
 // Evaluation window for a `scheduled` detector. Fields are nullable so
@@ -119,6 +119,29 @@ export interface Camera {
   // cameras list, the "Show pairing code" button on the detail page,
   // and the LiveKit tile bypass on the Live grid (no track yet).
   paired: boolean;
+}
+
+// Canonical "this camera is currently producing a live feed the
+// caregiver should see" predicate. Both the Live grid (which
+// cameras to subscribe to, what to count in the "N online" header)
+// and the per-camera status pill in the cameras list must derive
+// from this; any view that reimplements the rule inline will
+// silently disagree the first time only one of them re-renders.
+// We hit that on 2026-05-28 when the bedroom Pi stopped pushing
+// frames: the per-camera pill went OFFLINE but the grid kept the
+// tile because its filter ignored `online`.
+//
+// True iff: paired (has a livekit_identity), not user-hidden, the
+// caregiver intent is connected, AND the backend's liveness flag
+// agrees the participant is streaming. Mirror of the iOS
+// `Camera.isLiveStreaming` computed property; keep the two in sync.
+export function isLiveStreaming(c: Camera): boolean {
+  return (
+    c.livekit_identity !== null
+    && !c.disabled
+    && c.desired_state === 'connected'
+    && c.online
+  );
 }
 
 // Top-level shape of `GET /v1/cameras/discovered`. Each entry is a

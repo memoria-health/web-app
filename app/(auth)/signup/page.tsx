@@ -42,14 +42,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
+      <h1 className="font-serif text-5xl tracking-tight text-ink">Nemara</h1>
       <form
         onSubmit={onSubmit}
         className="max-w-sm w-full rounded-lg border border-line bg-card p-8 flex flex-col gap-4 shadow-sm"
       >
-        <h1 className="font-serif text-3xl tracking-tight text-ink">
+        <h2 className="font-serif text-3xl tracking-tight text-ink">
           Create account
-        </h1>
+        </h2>
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">
             Display name

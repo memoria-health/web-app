@@ -271,7 +271,6 @@ export function DetectorForm(props: Props) {
             <option value="low">low</option>
             <option value="standard">standard</option>
             <option value="high">high</option>
-            <option value="off">off</option>
           </select>
         </label>
 

@@ -131,7 +131,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
   }
 
   return (
-    <div className="max-w-xl rounded-lg border border-line bg-card p-6">
+    <div className="mx-auto w-full max-w-xl rounded-lg border border-line bg-card p-6">
       {error && (
         <div className="mb-4 rounded-md border border-terra/40 bg-terra-soft px-3 py-2 text-sm text-terra-deep">
           {error}
@@ -147,7 +147,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         className="mb-4 w-full rounded-md border border-line bg-card px-3 py-2 text-base text-ink outline-none focus:border-action/50"
       />
 
-      <Label>Note (optional)</Label>
+      <Label>Description (optional)</Label>
       <input
         value={note}
         onChange={(e) => setNote(e.target.value)}
@@ -160,7 +160,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         rows={3}
-        placeholder="e.g. check if my mom takes her medication between 11am and 5pm every day"
+        placeholder="Check if my mom takes her medication between 11am and 5pm every day"
         className="w-full resize-none rounded-md border border-line bg-card px-3 py-2 text-base text-ink outline-none focus:border-action/50"
       />
       <p className="mt-1 mb-4 text-xs text-ink4">

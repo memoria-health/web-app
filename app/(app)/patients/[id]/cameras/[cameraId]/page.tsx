@@ -82,14 +82,14 @@ export default async function CameraDetailPage({
         </dl>
       </section>
 
-      {!camera.paired && (
+      {camera.source_type === 'phone' && !camera.paired && (
         <section className="rounded-lg border border-warning/40 bg-card-alt px-4 py-4">
           <h2 className="mb-1 font-mono text-xs font-semibold uppercase tracking-wider text-warning">
             Awaiting pairing
           </h2>
           <p className="mb-3 text-sm text-ink2">
             No wall phone has claimed this camera yet. Tap to view a 6-digit
-            pairing code — enter it on the NemaraCam wall-phone app to
+            pairing code, then enter it on the NemaraCam wall-phone app to
             complete pairing.
           </p>
           <ShowPairingCodeButton cameraId={camera.id} room={camera.room} />

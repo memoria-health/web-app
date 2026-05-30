@@ -13,6 +13,16 @@ const PUBLIC_PATHS = [
   '/auth/callback',
   '/privacy',
   '/terms',
+  // `/backend/*` is the client-side rewrite to the FastAPI backend.
+  // Those requests carry an Authorization: Bearer header (set by
+  // NemaraAPI.request via getBrowserSupabase().auth.getSession().access_token)
+  // and the backend validates the JWT itself. proxy.ts must NOT
+  // intercept these or it 307-redirects them to /login — the browser
+  // fetch follows the redirect, receives HTML for the login page, and
+  // JSON.parse blows up. Any UI component that fetches via the
+  // browser client (e.g. PatientIdentityStatus) silently degrades to
+  // its error state.
+  '/backend',
 ];
 
 export async function proxy(request: NextRequest) {

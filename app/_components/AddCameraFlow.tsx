@@ -8,6 +8,8 @@ import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { formatPairingCode } from '@/lib/utils/pairing';
 import { countdown, isExpired } from '@/lib/utils/time';
+import { CAMERA_ICON_NAMES, CameraIcon } from '@/lib/icons/cameraIcons';
+import { cn } from '@/lib/utils/cn';
 import type { DiscoveredCamera } from '@/lib/api/types';
 
 type Tab = 'phone' | 'sensor';
@@ -19,22 +21,13 @@ interface Issued {
   room: string;
 }
 
-const ICON_OPTIONS = [
-  'tv',
-  'fork.knife',
-  'bed.double',
-  'bathtub',
-  'door.left.hand.open',
-  'house',
-];
-
 const SENSOR_POLL_INTERVAL_MS = 3000;
 
 export function AddCameraFlow({ patientId }: { patientId: string }) {
   const [tab, setTab] = useState<Tab>('phone');
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
       <TabBar tab={tab} onChange={setTab} />
       {tab === 'phone' ? (
         <PhoneCameraTab patientId={patientId} />
@@ -53,7 +46,7 @@ function TabBar({
   onChange: (t: Tab) => void;
 }) {
   const cls = (active: boolean) =>
-    `flex-1 rounded px-3 py-1.5 text-sm font-medium transition-colors ${
+    `flex-1 whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium transition-colors ${
       active
         ? 'bg-action text-action-ink'
         : 'text-ink2 hover:text-ink'
@@ -303,7 +296,7 @@ function SensorCameraTab({ patientId }: { patientId: string }) {
         patientId={patientId}
         discovery={selected}
         onCancel={() => setSelected(null)}
-        onPaired={() => router.replace('/cameras')}
+        onPaired={() => router.replace(`/patients/${patientId}/cameras`)}
       />
     );
   }
@@ -337,7 +330,6 @@ function SensorCameraTab({ patientId }: { patientId: string }) {
                   <div className="flex flex-col">
                     <span className="text-base text-ink">{d.device_label}</span>
                     <span className="text-xs text-ink3">
-                      {hostnameOf(d.current_url)} ·{' '}
                       {relativeAge(d.last_seen_at)}
                     </span>
                   </div>
@@ -349,7 +341,7 @@ function SensorCameraTab({ patientId }: { patientId: string }) {
         )}
       </div>
       <Link
-        href="/cameras"
+        href={`/patients/${patientId}/cameras`}
         className="self-end rounded border border-line px-3 py-1.5 text-base text-ink2"
       >
         Cancel
@@ -435,7 +427,6 @@ function SensorAssignForm({
           Pairing
         </span>
         <p className="text-base text-ink">{discovery.device_label}</p>
-        <p className="text-xs text-ink3">{discovery.current_url}</p>
       </div>
       <label className="flex flex-col gap-1">
         <span className="text-base font-medium text-ink2">Camera name</span>
@@ -482,20 +473,37 @@ function IconPicker({
   onChange: (s: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <span className="text-base font-medium text-ink2">Icon</span>
-      <select
-        value={icon}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+      <div
+        role="radiogroup"
+        aria-label="Choose an icon"
+        className="grid grid-cols-6 gap-2"
       >
-        {ICON_OPTIONS.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-    </label>
+        {CAMERA_ICON_NAMES.map((name) => {
+          const active = icon === name;
+          return (
+            <button
+              key={name}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              aria-label={name}
+              title={name}
+              onClick={() => onChange(name)}
+              className={cn(
+                'flex aspect-square items-center justify-center rounded border transition-colors',
+                active
+                  ? 'border-action bg-action text-action-ink'
+                  : 'border-line bg-paper-dim text-ink2 hover:border-action/40 hover:text-ink',
+              )}
+            >
+              <CameraIcon name={name} className="h-5 w-5" />
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -505,14 +513,6 @@ function ErrorBanner({ message }: { message: string }) {
       {message}
     </div>
   );
-}
-
-function hostnameOf(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
 }
 
 function relativeAge(iso: string): string {

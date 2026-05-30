@@ -4,9 +4,8 @@ import { getServerSupabase } from '@/lib/supabase/server';
 import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
-import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
-import type { Analysis } from '@/lib/api/types';
+import { isLiveStreaming, type Analysis } from '@/lib/api/types';
 
 // How many recent rows to pre-fill each per-camera AnalysesFeed with.
 // Realtime only delivers events AFTER subscribe — without this prefetch,
@@ -66,9 +65,13 @@ export default async function PatientLivePage({
     desired_state: c.desired_state,
     paired: c.paired,
   }));
+  // `visibleCameras` is the "should we count this as live and
+  // subscribe to its track" list. Uses the shared `isLiveStreaming`
+  // predicate so it can't drift from the camera-list status pill
+  // (which previously diverged when only one re-rendered).
   const visibleCameras = patient.cameras_paused
     ? []
-    : cameras.filter((c) => !c.disabled && c.desired_state === 'connected');
+    : cameras.filter(isLiveStreaming);
   const visibleCamerasPaired = visibleCameras.filter(
     (c): c is typeof c & { livekit_identity: string } =>
       c.livekit_identity !== null,
@@ -121,24 +124,17 @@ export default async function PatientLivePage({
 
   return (
     <div className="flex flex-1 flex-col gap-7 px-6 py-6 max-w-7xl w-full mx-auto">
-      <PauseMonitoringToggle
-        patientId={patient.id}
-        initialPaused={patient.cameras_paused}
-        hiddenCount={cameras.filter((c) => c.disabled).length}
-        totalCount={cameras.length}
-      />
-
       <PatientIdentityStatus
         patientId={patient.id}
         patientName={patient.preferred_name || patient.full_name}
+        surface="detail"
       />
 
       <section>
-        <header className="mb-3 flex items-baseline justify-between gap-3">
+        <header className="mb-3">
           <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live grid
           </h2>
-          <span className="text-xs font-mono text-ink4">room: {room}</span>
         </header>
         {lkError ? (
           <div className="rounded-lg border border-terra/40 bg-terra-soft px-4 py-3 text-sm text-terra-deep">
@@ -154,14 +150,10 @@ export default async function PatientLivePage({
       </section>
 
       <section>
-        <header className="mb-3 flex items-baseline justify-between gap-3">
+        <header className="mb-3">
           <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live analyses
           </h2>
-          <span className="text-xs text-ink4">
-            one column per camera · ~10s tick · provider, people, fall,
-            wandering, agitation, medication, speech
-          </span>
         </header>
         {enabledLivekitCameras.length === 0 ? (
           <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">

@@ -7,16 +7,15 @@ import { cn } from '@/lib/utils/cn';
 
 /**
  * Patient-wide "monitoring on/off" toggle. Calls
- * PATCH /v1/patients/{id} { cameras_paused: bool }.
+ * PATCH /v1/patients/{id} { cameras_paused: bool }. The backend
+ * cascades the flip into every camera's `desired_state` (paused
+ * disconnects, unpaused reconnects), so toggling off frees LiveKit
+ * minutes as well as Gemini spend. Reconnect latency is ~1-2s per
+ * camera on unpause.
  *
- * When paused:
- *  - Backend detector worker skips the LLM call for every camera
- *    (writes synthetic "monitoring paused" rows to analyses)
- *  - Web hides ALL cameras from the live grid + analyses feed
- *  - LiveKit connections stay alive — re-enabling is instant
- *
- * `hiddenCount` shows how many cameras are individually disabled even
- * when monitoring is on (useful context for the user).
+ * `hiddenCount` / `totalCount` are optional context strings — pass
+ * them on surfaces that have the camera list already loaded; omit
+ * elsewhere and the toggle renders without the spell-out span.
  */
 export function PauseMonitoringToggle({
   patientId,
@@ -26,8 +25,8 @@ export function PauseMonitoringToggle({
 }: {
   patientId: string;
   initialPaused: boolean;
-  hiddenCount: number;
-  totalCount: number;
+  hiddenCount?: number;
+  totalCount?: number;
 }) {
   const router = useRouter();
   const [paused, setPaused] = useState(initialPaused);
@@ -78,13 +77,15 @@ export function PauseMonitoringToggle({
       >
         {busy ? '…' : paused ? 'PAUSED' : 'ON'}
       </button>
-      <span className="text-base text-ink3">
-        {paused
-          ? `all ${totalCount} cameras hidden`
-          : hiddenCount > 0
-            ? `${totalCount - hiddenCount} of ${totalCount} cameras visible · ${hiddenCount} individually disabled`
-            : `${totalCount} of ${totalCount} cameras visible`}
-      </span>
+      {totalCount !== undefined && (
+        <span className="text-base text-ink3">
+          {paused
+            ? `all ${totalCount} cameras hidden`
+            : hiddenCount && hiddenCount > 0
+              ? `${totalCount - hiddenCount} of ${totalCount} cameras visible · ${hiddenCount} individually disabled`
+              : `${totalCount} of ${totalCount} cameras visible`}
+        </span>
+      )}
       {error && (
         <span className="text-xs text-terra">err: {error}</span>
       )}

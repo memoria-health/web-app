@@ -6,7 +6,7 @@ import type {
   RealtimePostgresUpdatePayload,
 } from '@supabase/supabase-js';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
-import { timeAgo } from '@/lib/utils/time';
+import { formatLocalTime, timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
 import type { DetectionEvent } from '@/lib/api/types';
 
@@ -130,13 +130,7 @@ export function EventsFeed({
             )}
             <p className="mt-1.5 font-mono text-xs text-ink4 tracking-wide">
               {e.location} · {timeAgo(e.occurred_at)} ·{' '}
-              <code>{e.occurred_at.slice(11, 19)}</code>
-              {e.has_clip && (
-                <>
-                  {' '}
-                  · <span className="text-terra">clip</span>
-                </>
-              )}
+              <code>{formatLocalTime(e.occurred_at)}</code>
               {e.reviewed && <> · reviewed</>}
             </p>
           </div>

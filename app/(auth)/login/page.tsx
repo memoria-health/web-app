@@ -40,7 +40,7 @@ function LoginForm() {
       onSubmit={onSubmit}
       className="max-w-sm w-full rounded-lg border border-line bg-card p-8 flex flex-col gap-4 shadow-sm"
     >
-      <h1 className="font-serif text-3xl tracking-tight text-ink">Sign in</h1>
+      <h2 className="font-serif text-3xl tracking-tight text-ink">Sign in</h2>
       <label className="flex flex-col gap-1.5">
         <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">
           Email
@@ -99,7 +99,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
+      <h1 className="font-serif text-5xl tracking-tight text-ink">Nemara</h1>
       <Suspense fallback={<div className="text-sm text-ink3">Loading…</div>}>
         <LoginForm />
       </Suspense>

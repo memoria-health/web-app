@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { PatientForm } from '@/app/_components/PatientForm';
 import { EmailAlertsSettings } from '@/app/_components/EmailAlertsSettings';
+import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
+import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { patientSession } from '@/lib/server/patientSession';
 import { getServerSupabase } from '@/lib/supabase/server';
 
@@ -22,19 +24,47 @@ export default async function PatientSettingsPage({
     data: { user },
   } = await supa.auth.getUser();
   const accountEmail = user?.email ?? '';
+  const firstName = patient.preferred_name || patient.full_name;
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-3xl w-full mx-auto">
-      <header className="flex items-center gap-3 flex-wrap">
+      <header>
         <h1 className="font-serif text-3xl tracking-tight text-ink">
           Patient settings
         </h1>
-        <span className="font-mono text-xs text-ink4 tracking-wide capitalize">
-          {patient.relation}
-        </span>
       </header>
 
-      <PatientForm mode="edit" initial={patient} />
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-4 font-serif text-2xl text-ink">Profile</h2>
+        <PatientForm mode="edit" initial={patient} />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Monitoring</h2>
+        <p className="mb-4 text-sm text-ink3">
+          Pause to stop watching {firstName}. All cameras turn off and
+          AI alerts stop until you resume. Resume brings everything back
+          in a few seconds.
+        </p>
+        <PauseMonitoringToggle
+          patientId={patient.id}
+          initialPaused={patient.cameras_paused}
+        />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Face enrollment</h2>
+        <p className="mb-4 text-sm text-ink3">
+          A few selfies of {firstName} help the app tell them apart from
+          visitors. Add or update photos from the caregiver app on your
+          phone.
+        </p>
+        <PatientIdentityStatus
+          patientId={patient.id}
+          patientName={firstName}
+          surface="settings"
+        />
+      </section>
 
       <section className="rounded-lg border border-line bg-card px-5 py-5">
         <h2 className="mb-1 font-serif text-2xl text-ink">Email alerts</h2>

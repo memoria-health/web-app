@@ -20,7 +20,17 @@ export class NemaraAPI {
 
   async request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     const token = await this.tokenProvider();
-    const headers = new Headers({ 'Content-Type': 'application/json' });
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      // ngrok free tier shows an HTML "are you sure you want to visit"
+      // interstitial (ERR_NGROK_6024) when it sees a Mozilla-style UA.
+      // The page returns 200 with HTML, JSON.parse blows up, and the UI
+      // silently shows an error. This header is the documented opt-out.
+      // iOS doesn't need it (its UA is already not Mozilla-like).
+      // Production points at a real domain so this is a no-op outside
+      // local dev.
+      'ngrok-skip-browser-warning': 'true',
+    });
     if (token) headers.set('Authorization', `Bearer ${token}`);
 
     let url = `${baseUrl}${path}`;
