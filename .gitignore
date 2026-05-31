@@ -33,6 +33,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .dev-server.log
+.dev-next.log
 .prod-server.log
 
 # env files (default to ignored, but .env.local is checked in
