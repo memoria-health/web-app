@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { timeAgo } from '@/lib/utils/time';
@@ -210,6 +211,12 @@ export function AnalysesFeed({
   }, []);
   void tick;
 
+  // Off by default. Append `?debug=1` to the page URL to surface the
+  // realtime-subscription debug bar AND the camera-identity tag in
+  // the header. Useful for triaging "events stopped arriving" without
+  // shipping the noise to caregivers.
+  const debugEnabled = useSearchParams().get('debug') === '1';
+
   const debugBar = (
     <div className="mb-2 rounded-md border border-warning/40 bg-card-alt px-3 py-2 font-mono text-xs leading-relaxed text-ink2">
       <strong className="text-warning">[DEBUG]</strong>{' '}
@@ -231,9 +238,11 @@ export function AnalysesFeed({
   const headerBar = cameraLabel ? (
     <div className="mb-2 flex items-center justify-between">
       <span className="font-serif text-xl text-ink">{cameraLabel}</span>
-      <span className="font-mono text-xs text-ink4 tracking-wide">
-        {cameraId?.slice(0, 8)}…
-      </span>
+      {debugEnabled && cameraId && (
+        <span className="font-mono text-xs text-ink4 tracking-wide">
+          {cameraId.slice(0, 8)}…
+        </span>
+      )}
     </div>
   ) : null;
 
@@ -241,7 +250,7 @@ export function AnalysesFeed({
     return (
       <div className="flex flex-col">
         {headerBar}
-        {debugBar}
+        {debugEnabled && debugBar}
         <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
           Waiting for the detector worker to produce a tick…<br />
           <span className="text-xs text-ink4">
@@ -255,7 +264,7 @@ export function AnalysesFeed({
   return (
     <div className="flex flex-col">
       {headerBar}
-      {debugBar}
+      {debugEnabled && debugBar}
       <ul
         className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden"
         aria-label="detection analyses"
