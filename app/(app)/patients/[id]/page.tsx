@@ -3,7 +3,7 @@ import { getServerNemara } from '@/lib/api/server';
 import { getServerSupabase } from '@/lib/supabase/server';
 import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
-import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
+import { LiveAnalysesSection } from '@/app/_components/LiveAnalysesSection';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { type Analysis } from '@/lib/api/types';
 
@@ -84,7 +84,6 @@ export default async function PatientLivePage({
           && !c.disabled
           && c.desired_state === 'connected',
       );
-  const analysesFeedCameraIds = analysesFeedCameras.map((c) => c.id);
 
   const room = `patient_${patient.id}`;
 
@@ -158,25 +157,13 @@ export default async function PatientLivePage({
             Live analyses
           </h2>
         </header>
-        {analysesFeedCameras.length === 0 ? (
-          <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
-            No active cameras to show analyses for.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {analysesFeedCameras.map((cam) => (
-              <AnalysesFeed
-                key={cam.id}
-                patientId={patient.id}
-                enabledCameraIds={analysesFeedCameraIds}
-                cameraId={cam.id}
-                cameraLabel={cam.room}
-                initial={initialByCamera.get(cam.id) ?? []}
-                detectors={allDetectors}
-              />
-            ))}
-          </div>
-        )}
+        <LiveAnalysesSection
+          patientId={patient.id}
+          camerasPaused={patient.cameras_paused}
+          initialCameras={cameras}
+          detectors={allDetectors}
+          initialByCamera={Object.fromEntries(initialByCamera)}
+        />
       </section>
 
       <section>
