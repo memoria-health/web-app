@@ -204,9 +204,10 @@ export function AnalysesFeed({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId, cameraId, enabledCameraIds.join(',')]);
 
-  // Re-render every 5s so relative timestamps stay fresh.
+  // Re-render every 1s so relative timestamps stay fresh ("just now" →
+  // "1s ago" → "2s ago" counts up smoothly instead of jumping by 5s).
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 5000);
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
   void tick;
@@ -379,7 +380,7 @@ function AnalysisRow({
       {/* metadata row */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-mono text-ink3 tracking-wide">
-          {timeAgo(a.captured_at)}
+          {timeAgo(a.created_at)}
         </span>
         <span className="font-mono text-ink4 truncate max-w-[12rem] tracking-wide">
           cam {a.camera_id.slice(0, 8)}
