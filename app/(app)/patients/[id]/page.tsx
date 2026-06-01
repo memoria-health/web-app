@@ -5,7 +5,7 @@ import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { AnalysesFeed } from '@/app/_components/AnalysesFeed';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
-import { isLiveStreaming, type Analysis } from '@/lib/api/types';
+import { type Analysis } from '@/lib/api/types';
 
 // How many recent rows to pre-fill each per-camera AnalysesFeed with.
 // Realtime only delivers events AFTER subscribe — without this prefetch,
@@ -65,23 +65,26 @@ export default async function PatientLivePage({
     desired_state: c.desired_state,
     paired: c.paired,
   }));
-  // `visibleCameras` is the "should we count this as live and
-  // subscribe to its track" list. Uses the shared `isLiveStreaming`
-  // predicate so it can't drift from the camera-list status pill
-  // (which previously diverged when only one re-rendered).
-  const visibleCameras = patient.cameras_paused
+  // Analyses feeds mount as soon as a camera is paired + meant-to-be-on
+  // (`desired_state === 'connected'`), WITHOUT requiring `online`. `online`
+  // lags — it's written by the worker's reconciler only after it attaches,
+  // so gating the feed on it means the feed never mounts until a manual
+  // reload/reconnect (the bug). Mounting eagerly is safe: the feed's
+  // analyses realtime subscription is live from the start, so once the
+  // camera actually comes online and ticks are written, they stream into
+  // the already-mounted feed with NO page reload. We mount feeds (and build
+  // the enabled-set the feed filters on) off this stable list.
+  // NOTE: deliberately NOT router.refresh() — it's unreliable in Next 16
+  // here (see CameraList).
+  const analysesFeedCameras = patient.cameras_paused
     ? []
-    : cameras.filter(isLiveStreaming);
-  const visibleCamerasPaired = visibleCameras.filter(
-    (c): c is typeof c & { livekit_identity: string } =>
-      c.livekit_identity !== null,
-  );
-  const enabledLivekitCameras = visibleCamerasPaired.map((c) => ({
-    identity: c.livekit_identity,
-    room: c.room,
-    id: c.id,
-  }));
-  const enabledCameraIds = visibleCameras.map((c) => c.id);
+    : cameras.filter(
+        (c): c is typeof c & { livekit_identity: string } =>
+          c.livekit_identity !== null
+          && !c.disabled
+          && c.desired_state === 'connected',
+      );
+  const analysesFeedCameraIds = analysesFeedCameras.map((c) => c.id);
 
   const room = `patient_${patient.id}`;
 
@@ -105,7 +108,7 @@ export default async function PatientLivePage({
   const events = await api.listEvents(patient.id, { limit: 30 });
   const allDetectors = await api.listDetectors(patient.id);
 
-  const historyLimit = ANALYSES_HISTORY_PER_CAMERA * Math.max(1, enabledLivekitCameras.length);
+  const historyLimit = ANALYSES_HISTORY_PER_CAMERA * Math.max(1, analysesFeedCameras.length);
   const { data: recentAnalyses } = await supa
     .from('analyses')
     .select('*')
@@ -155,17 +158,17 @@ export default async function PatientLivePage({
             Live analyses
           </h2>
         </header>
-        {enabledLivekitCameras.length === 0 ? (
+        {analysesFeedCameras.length === 0 ? (
           <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
             No active cameras to show analyses for.
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {enabledLivekitCameras.map((cam) => (
+            {analysesFeedCameras.map((cam) => (
               <AnalysesFeed
                 key={cam.id}
                 patientId={patient.id}
-                enabledCameraIds={enabledCameraIds}
+                enabledCameraIds={analysesFeedCameraIds}
                 cameraId={cam.id}
                 cameraLabel={cam.room}
                 initial={initialByCamera.get(cam.id) ?? []}

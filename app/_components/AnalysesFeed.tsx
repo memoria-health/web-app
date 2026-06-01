@@ -342,12 +342,28 @@ function AnalysisRow({
   }
 
   // Re-ID's per-clip verdict. asBool collapses missing into false, so
-  // keep the raw value around to distinguish "Re-ID ran and said no
-  // patient" from "Re-ID didn't run this tick" (no enrollment, timeout,
-  // skipped reason, etc). We render nothing in the unknown case.
+  // patient_in_clip is only KNOWN when Re-ID ran (faces enrolled). When
+  // it's unknown — no enrollment, so presence comes from the LLM — a
+  // present person simply reads as "person" (never "no patient").
   const patientInClipRaw = f.identity_patient_in_clip;
-  const patientInClipKnown = typeof patientInClipRaw === 'boolean';
   const patientInClip = patientInClipRaw === true;
+
+  // Honest presence label, shown on any real (non-skipped) analysis.
+  // Three-way so we NEVER say "no patient" just because faces aren't
+  // enrolled: a present-but-unidentified person reads as "person", not
+  // "no patient". "no patient" only made sense when every family enrolled
+  // faceID — they don't.
+  const peoplePresent = a.people_present === true;
+  const presenceLabel = !peoplePresent
+    ? 'no people'
+    : patientInClip
+      ? 'patient present'
+      : 'person';
+  const presenceStyle = !peoplePresent
+    ? 'border-line bg-paper-dim text-ink4'
+    : patientInClip
+      ? 'border-success/40 bg-card-alt text-success'
+      : 'border-line bg-card-alt text-ink2';
 
   const fallDetected = asBool(f.fall_detected);
   const fallConf = pct(f.fall_confidence);
@@ -386,16 +402,14 @@ function AnalysisRow({
           cam {a.camera_id.slice(0, 8)}
         </span>
         {/* patient present (Re-ID verdict) */}
-        {patientInClipKnown && (
+        {a.provider !== 'skipped' && (
           <span
             className={cn(
               'inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
-              patientInClip
-                ? 'border-success/40 bg-card-alt text-success'
-                : 'border-line bg-paper-dim text-ink4',
+              presenceStyle,
             )}
           >
-            {patientInClip ? 'patient present' : 'no patient'}
+            {presenceLabel}
           </span>
         )}
         {/* motion */}
