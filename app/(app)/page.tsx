@@ -18,7 +18,7 @@ export default async function HomePage() {
     return (
       <div className="flex min-h-[60vh] flex-1 flex-col items-center justify-center px-6 py-12 text-center">
         <h1 className="font-serif text-4xl tracking-tight text-ink">
-          Welcome to Nemara
+          Welcome to Memoria
         </h1>
         <p className="mt-3 max-w-md text-base text-ink3">
           To get started, add the person you&apos;ll be caring for. You

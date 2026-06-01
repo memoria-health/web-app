@@ -147,7 +147,7 @@ function PairingCodeModal({
         </div>
 
         <p className="mb-5 text-sm text-ink2">
-          Open the NemaraCam app on the wall phone, tap{' '}
+          Open the MemoriaSensor app on the wall phone, tap{' '}
           <strong>Pair a phone</strong>, and enter this 6-digit code.
         </p>
 

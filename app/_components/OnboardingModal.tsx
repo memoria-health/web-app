@@ -26,9 +26,9 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    title: 'Welcome to Nemara',
+    title: 'Welcome to Memoria',
     body:
-      'Nemara turns a spare phone into an AI-monitored camera for the people you care for. This dashboard is where you watch live, review what the AI noticed, and get alerted when something needs attention.',
+      'Memoria turns a spare phone into an AI-monitored camera for the people you care for. This dashboard is where you watch live, review what the AI noticed, and get alerted when something needs attention.',
   },
   {
     title: 'Start with a patient',
@@ -39,7 +39,7 @@ const STEPS: Step[] = [
   {
     title: 'Pair a wall phone',
     body:
-      'Open a patient → Cameras → Add camera. You’ll get a 6-digit code. Open the NemaraCam app on the phone you’re mounting and enter that code to pair it. Each phone watches one room.',
+      'Open a patient → Cameras → Add camera. You’ll get a 6-digit code. Open the MemoriaSensor app on the phone you’re mounting and enter that code to pair it. Each phone watches one room.',
     image: '/onboarding/02-cameras.png',
   },
   {
@@ -82,7 +82,7 @@ export function OnboardingModal() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Getting started with Nemara"
+      aria-label="Getting started with Memoria"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
     >
       <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-line bg-card shadow-2xl">
@@ -104,7 +104,7 @@ export function OnboardingModal() {
           />
         ) : (
           <div className="flex aspect-[3/1] w-full items-center justify-center border-b border-line bg-paper-dim">
-            <span className="font-serif text-5xl text-ink2">Nemara</span>
+            <span className="font-serif text-5xl text-ink2">Memoria</span>
           </div>
         )}
 

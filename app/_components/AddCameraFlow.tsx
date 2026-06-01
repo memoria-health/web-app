@@ -188,7 +188,7 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
           {formatPairingCode(issued.pairing_code)}
         </div>
         <p className="text-base text-ink3">
-          Open the Nemara camera app on your wall phone and enter this code.
+          Open the MemoriaSensor app on your wall phone and enter this code.
         </p>
         {expired ? (
           <p className="text-xs text-terra">
@@ -360,7 +360,7 @@ function SensorSetupHelp() {
         <li>Plug the camera in and wait ~30 seconds for it to boot.</li>
         <li>
           On your phone or laptop, open WiFi settings and connect to the
-          network named <strong>Nemara-Setup-XXXXXX</strong> (the X&apos;s
+          network named <strong>Memoria-Setup-XXXXXX</strong> (the X&apos;s
           are the camera&apos;s ID).
         </li>
         <li>
@@ -373,7 +373,7 @@ function SensorSetupHelp() {
         </li>
         <li>
           Pick your home WiFi network and enter its password. The camera
-          will join and disappear from the &quot;Nemara-Setup&quot; list.
+          will join and disappear from the &quot;Memoria-Setup&quot; list.
         </li>
         <li>
           Reconnect your phone to your home WiFi. The camera will appear

@@ -35,7 +35,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Nemara',
+  title: 'Memoria',
   description: 'Caregiver dashboard',
 };
 

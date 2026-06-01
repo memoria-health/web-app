@@ -28,6 +28,18 @@ import type {
   UpdatePatientRequest,
 } from './types';
 
+// Backend wire sends camera `source_type` as 'iphone' | 'pi', but the UI
+// type (and all consumers, e.g. the pairing-code gate on the camera detail
+// page) use 'phone' | 'sensor'. Nothing previously mapped it, so an iPhone
+// camera arrived as 'iphone' and `=== 'phone'` checks silently failed
+// (hiding the "Awaiting pairing" / Show-pairing-code section). Normalize on
+// the way in so the runtime value matches the declared type.
+function normalizeCamera(c: Camera): Camera {
+  const wire = c.source_type as unknown as string;
+  const source_type = wire === 'pi' || wire === 'sensor' ? 'sensor' : 'phone';
+  return { ...c, source_type };
+}
+
 // Thin convenience wrapper. Methods mirror nemara-backend routers 1:1.
 export class NemaraClient {
   constructor(private readonly api: NemaraAPI) {}
@@ -77,17 +89,18 @@ export class NemaraClient {
 
   // Cameras
   listCameras = (patientId: string) =>
-    this.api.request<Camera[]>(`/v1/patients/${patientId}/cameras`);
+    this.api
+      .request<Camera[]>(`/v1/patients/${patientId}/cameras`)
+      .then((cams) => cams.map(normalizeCamera));
   createPairingCode = (patientId: string, body: CreatePairingCodeRequest) =>
     this.api.request<PairingCodeResponse>(
       `/v1/patients/${patientId}/cameras/pairing-code`,
       { method: 'POST', body },
     );
   updateCamera = (id: string, body: UpdateCameraRequest) =>
-    this.api.request<Camera>(`/v1/cameras/${id}`, {
-      method: 'PATCH',
-      body,
-    });
+    this.api
+      .request<Camera>(`/v1/cameras/${id}`, { method: 'PATCH', body })
+      .then(normalizeCamera);
   deleteCamera = (id: string) =>
     this.api.request<void>(`/v1/cameras/${id}`, { method: 'DELETE' });
   // Re-mint a pairing code for an unpaired camera. Caregivers hit

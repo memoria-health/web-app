@@ -32,6 +32,7 @@ export function PatientIdentityStatus({
   const [summary, setSummary] = useState<FaceEnrollmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,8 +68,9 @@ export function PatientIdentityStatus({
 
   const state = stateOf(summary);
   if (surface === 'detail' && state !== 'not_enrolled') return null;
+  if (dismissed) return null;
   return (
-    <Card>
+    <Card onDismiss={() => setDismissed(true)}>
       <Indicator state={state} />
       <Text title={titleFor(state, patientName)} subtitle={subtitleFor(state)} />
     </Card>
@@ -112,10 +114,22 @@ function subtitleFor(state: CardState): string {
 
 // ── presentation ────────────────────────────────────────────────────
 
-function Card({ children }: { children: React.ReactNode }) {
+function Card({ children, onDismiss }: { children: React.ReactNode; onDismiss?: () => void }) {
   return (
     <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3">
       {children}
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="ml-auto shrink-0 rounded p-1 text-ink3 transition-colors hover:bg-card-alt hover:text-ink"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

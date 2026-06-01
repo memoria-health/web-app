@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Wellness Terms of Use — Nemara',
+  title: 'Wellness Terms of Use — Memoria',
   description:
-    'The Nemara Wellness Terms of Use, including critical safety, liability, dispute resolution, and use disclaimers.',
+    'The Memoria Wellness Terms of Use, including critical safety, liability, dispute resolution, and use disclaimers.',
 };
 
 export default function TermsPage() {
@@ -11,12 +11,12 @@ export default function TermsPage() {
     <main className="mx-auto max-w-2xl px-6 py-12 text-ink">
       <nav className="mb-8 text-sm">
         <Link href="/login" className="text-terra underline">
-          ← Back to Nemara
+          ← Back to Memoria
         </Link>
       </nav>
 
       <h1 className="font-serif text-4xl tracking-tight">
-        Nemara Wellness Terms of Use
+        Memoria Wellness Terms of Use
       </h1>
       <p className="mt-2 text-sm text-ink3">
         Effective Date: May 26, 2026 · Last Revised: May 26, 2026
@@ -27,7 +27,7 @@ export default function TermsPage() {
         constitute a binding legal agreement between you (&ldquo;
         <strong>you</strong>&rdquo; or &ldquo;<strong>User</strong>&rdquo;)
         and Darda and Cui, Inc., a Delaware corporation doing business
-        as &ldquo;Nemara&rdquo; (&ldquo;<strong>Nemara</strong>,&rdquo;
+        as &ldquo;Memoria&rdquo; (&ldquo;<strong>Memoria</strong>,&rdquo;
         &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
         or &ldquo;<strong>our</strong>&rdquo;).
         These Terms govern your access to and use of the Service
@@ -100,19 +100,19 @@ export default function TermsPage() {
         <li>
           &ldquo;<strong>Documentation</strong>&rdquo; means any
           documentation, instructions, or guidance made available by
-          Nemara in connection with the Service.
+          Memoria in connection with the Service.
         </li>
         <li>
           &ldquo;<strong>Service</strong>&rdquo; means, collectively,
-          the Nemara caregiver iOS application, the NemaraCam iOS
+          the Memoria caregiver iOS application, the MemoriaSensor iOS
           application, the web-based Dashboard, the Sensors operating
-          under Nemara software, and all related cloud infrastructure,
+          under Memoria software, and all related cloud infrastructure,
           application programming interfaces, Documentation, and
-          updates made available by Nemara.
+          updates made available by Memoria.
         </li>
         <li>
           &ldquo;<strong>Sensor</strong>&rdquo; means an Apple iPhone
-          device running the NemaraCam application that has been
+          device running the MemoriaSensor application that has been
           paired to an Account for in-home monitoring.
         </li>
         <li>
@@ -144,9 +144,9 @@ export default function TermsPage() {
         4. The Service is a Wellness Service, not a Medical Device
       </h2>
       <p className="mt-3 text-ink2">
-        Nemara is a general wellness service intended to provide
+        Memoria is a general wellness service intended to provide
         insights about household activity and routines for
-        informational and convenience purposes only. Nemara is{' '}
+        informational and convenience purposes only. Memoria is{' '}
         <strong>not a medical device</strong> and is not intended to
         diagnose, treat, cure, prevent, or monitor any disease,
         medical condition, or symptom. The Service is not intended
@@ -182,7 +182,7 @@ export default function TermsPage() {
       <p className="mt-3 text-ink2">
         Any insights, observations, summaries, alerts, or
         notifications surfaced by the Service are informational
-        only and are provided on a best-effort basis. Nemara makes
+        only and are provided on a best-effort basis. Memoria makes
         no representations or warranties regarding:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
@@ -199,7 +199,7 @@ export default function TermsPage() {
         completeness. Push notifications and other alerts may be
         delayed by the Apple Push Notification service, your mobile
         carrier, your device&rsquo;s settings, do-not-disturb modes,
-        network conditions, or other factors beyond Nemara&rsquo;s
+        network conditions, or other factors beyond Memoria&rsquo;s
         control.
       </p>
 
@@ -208,18 +208,18 @@ export default function TermsPage() {
       </h2>
       <p className="mt-3 text-ink2">
         Subject to your continuing compliance with these Terms,
-        Nemara grants you a limited, revocable, non-exclusive,
+        Memoria grants you a limited, revocable, non-exclusive,
         non-transferable, non-sublicensable license to access and
         use the Service solely for your personal, non-commercial
         in-home monitoring purposes. The Service is licensed, not
         sold, to you. All rights not expressly granted are reserved
-        by Nemara.
+        by Memoria.
       </p>
       <p className="mt-3 text-ink2">You shall not, and shall not permit any third party to:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
         <li>reverse-engineer, decompile, disassemble, or attempt to derive the source code of any portion of the Service;</li>
         <li>circumvent or attempt to circumvent any security, rate-limiting, or access-control mechanism of the Service;</li>
-        <li>resell, sublicense, rent, lease, or otherwise commercially exploit the Service without Nemara&rsquo;s prior written consent;</li>
+        <li>resell, sublicense, rent, lease, or otherwise commercially exploit the Service without Memoria&rsquo;s prior written consent;</li>
         <li>use the Service to develop a competing product or service;</li>
         <li>use the Service in violation of applicable law, court order, or the rights of any third party.</li>
       </ul>
@@ -228,9 +228,9 @@ export default function TermsPage() {
       <p className="mt-3 text-ink2">
         You are responsible for maintaining the confidentiality of
         your Account credentials and for all activity that occurs
-        under your Account. You shall notify Nemara promptly of any
+        under your Account. You shall notify Memoria promptly of any
         unauthorized access to or use of your Account, or any other
-        breach of security of which you become aware. Nemara shall
+        breach of security of which you become aware. Memoria shall
         not be liable for any loss or damage arising from your
         failure to comply with this section.
       </p>
@@ -297,7 +297,7 @@ export default function TermsPage() {
         Inc., Google LLC, OpenAI L.L.C., LiveKit Cloud, Supabase,
         Inc., Railway Corporation, and Vercel Inc.). Such Third-Party
         Services are governed by their own terms and privacy
-        policies. Nemara does not control Third-Party Services and
+        policies. Memoria does not control Third-Party Services and
         is not responsible for their availability, performance,
         terms of service, or actions. Outages, modifications, or
         terminations by Third-Party Services may affect the
@@ -306,7 +306,7 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-serif text-2xl">12. Privacy</h2>
       <p className="mt-3 text-ink2">
-        Nemara&rsquo;s collection, use, and disclosure of Personal
+        Memoria&rsquo;s collection, use, and disclosure of Personal
         Information is governed by the{' '}
         <Link href="/privacy" className="text-terra underline">
           Privacy Notice
@@ -320,16 +320,16 @@ export default function TermsPage() {
       <p className="mt-3 text-ink2">
         The Service and all related software, designs, trademarks,
         service marks, logos, text, graphics, and other materials
-        (collectively, the &ldquo;Nemara Materials&rdquo;) are owned
-        by Nemara or its licensors and are protected by intellectual-
+        (collectively, the &ldquo;Memoria Materials&rdquo;) are owned
+        by Memoria or its licensors and are protected by intellectual-
         property laws of the United States and other jurisdictions.
-        No right, title, or interest in or to the Nemara Materials
+        No right, title, or interest in or to the Memoria Materials
         is transferred to you under these Terms.
       </p>
       <p className="mt-3 text-ink2">
-        Nemara welcomes feedback and suggestions about the Service.
+        Memoria welcomes feedback and suggestions about the Service.
         If you provide any feedback or suggestions, you hereby grant
-        Nemara an irrevocable, perpetual, worldwide, royalty-free,
+        Memoria an irrevocable, perpetual, worldwide, royalty-free,
         sublicensable license to use such feedback and suggestions
         for any purpose without obligation or compensation to you.
       </p>
@@ -390,13 +390,13 @@ export default function TermsPage() {
         maximum extent permitted by applicable law. You acknowledge
         that the limitations of liability set forth in this section
         are an essential element of the bargain between you and
-        Nemara and that, absent such limitations, Nemara would not
+        Memoria and that, absent such limitations, Memoria would not
         provide the Service to you.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">16. Indemnification</h2>
       <p className="mt-3 text-ink2">
-        You agree to defend, indemnify, and hold harmless the Nemara
+        You agree to defend, indemnify, and hold harmless the Memoria
         Parties from and against any and all claims, demands,
         actions, damages, losses, liabilities, settlements, costs,
         and expenses (including reasonable attorneys&rsquo; fees and
@@ -410,24 +410,24 @@ export default function TermsPage() {
         <li>your violation of the rights of any third party.</li>
       </ul>
       <p className="mt-3 text-ink2">
-        Nemara reserves the right, at its own expense, to assume the
+        Memoria reserves the right, at its own expense, to assume the
         exclusive defense and control of any matter otherwise
         subject to indemnification by you, in which event you will
-        cooperate with Nemara in asserting any available defenses.
+        cooperate with Memoria in asserting any available defenses.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">17. Modifications to the Service</h2>
       <p className="mt-3 text-ink2">
-        Nemara may, in its sole discretion and at any time, modify,
+        Memoria may, in its sole discretion and at any time, modify,
         suspend, or discontinue the Service or any portion or
-        feature of the Service, with or without notice. Nemara shall
+        feature of the Service, with or without notice. Memoria shall
         not be liable to you or any third party for any such
         modification, suspension, or discontinuation.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">18. Modifications to these Terms</h2>
       <p className="mt-3 text-ink2">
-        Nemara may amend these Terms from time to time. We will
+        Memoria may amend these Terms from time to time. We will
         notify you of material amendments through the Service or by
         other reasonable means. The &ldquo;Last Revised&rdquo; date
         at the top of these Terms indicates when they were last
@@ -440,10 +440,10 @@ export default function TermsPage() {
       <h2 className="mt-10 font-serif text-2xl">19. Termination</h2>
       <p className="mt-3 text-ink2">
         You may terminate these Terms at any time by ceasing to use
-        the Service and closing your Account. Nemara may suspend or
+        the Service and closing your Account. Memoria may suspend or
         terminate your access to the Service at any time, with or
         without notice, for any reason or no reason, including if
-        Nemara reasonably believes you have violated these Terms or
+        Memoria reasonably believes you have violated these Terms or
         are using the Service in an unsafe manner. Upon termination,
         the rights granted to you under these Terms shall
         immediately cease, but the provisions of these Terms that
@@ -513,10 +513,10 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-serif text-2xl">23. Notices</h2>
       <p className="mt-3 text-ink2">
-        Nemara may provide notices to you by email to the address
+        Memoria may provide notices to you by email to the address
         associated with your Account, by posting within the Service,
         or by any other reasonable means. You shall direct legal
-        notices to Nemara by email to{' '}
+        notices to Memoria by email to{' '}
         <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
           sunnycui@stanford.edu
         </a>{' '}
@@ -530,9 +530,9 @@ export default function TermsPage() {
       <p className="mt-3 text-ink2">
         You may not assign or transfer these Terms or any of your
         rights or obligations hereunder, in whole or in part, by
-        operation of law or otherwise, without Nemara&rsquo;s prior
+        operation of law or otherwise, without Memoria&rsquo;s prior
         written consent, and any attempted assignment in violation
-        of the foregoing shall be void. Nemara may freely assign or
+        of the foregoing shall be void. Memoria may freely assign or
         transfer these Terms, in whole or in part, including
         without limitation in connection with a merger, acquisition,
         reorganization, financing, or sale of all or substantially
@@ -543,11 +543,11 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-serif text-2xl">25. Waiver and Severability</h2>
       <p className="mt-3 text-ink2">
-        No failure or delay by Nemara to exercise any right or
+        No failure or delay by Memoria to exercise any right or
         remedy under these Terms shall operate as a waiver of such
         right or remedy. No waiver of any provision of these Terms
         shall be effective unless made in writing and signed by an
-        authorized representative of Nemara. If any provision of
+        authorized representative of Memoria. If any provision of
         these Terms is held to be invalid, illegal, or
         unenforceable, that provision shall be limited or
         eliminated to the minimum extent necessary so that the
@@ -557,7 +557,7 @@ export default function TermsPage() {
 
       <h2 className="mt-10 font-serif text-2xl">26. Force Majeure</h2>
       <p className="mt-3 text-ink2">
-        Nemara shall not be liable for any failure or delay in
+        Memoria shall not be liable for any failure or delay in
         performance under these Terms to the extent such failure or
         delay is caused by circumstances beyond its reasonable
         control, including without limitation acts of God, natural
@@ -571,7 +571,7 @@ export default function TermsPage() {
       <p className="mt-3 text-ink2">
         The parties are independent contractors. These Terms do not
         create any agency, partnership, joint venture, employment,
-        or fiduciary relationship between you and Nemara. Neither
+        or fiduciary relationship between you and Memoria. Neither
         party has the authority to bind the other or to incur
         obligations on behalf of the other.
       </p>
@@ -598,7 +598,7 @@ export default function TermsPage() {
           Privacy Notice
         </Link>{' '}
         and any Consent to In-Home Monitoring executed by you,
-        constitute the entire agreement between you and Nemara with
+        constitute the entire agreement between you and Memoria with
         respect to the subject matter hereof and supersede all
         prior or contemporaneous agreements, representations,
         warranties, and understandings with respect to such subject
@@ -621,7 +621,7 @@ export default function TermsPage() {
         below:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Darda and Cui, Inc. (d/b/a Nemara)</li>
+        <li>Darda and Cui, Inc. (d/b/a Memoria)</li>
         <li>Attn: Legal &mdash; Sunny Cui</li>
         <li>
           Email:{' '}
@@ -640,13 +640,13 @@ export default function TermsPage() {
       <h2 className="mt-10 font-serif text-2xl">Acknowledgment</h2>
       <p className="mt-3 text-ink2">
         By accepting these Terms, you acknowledge that you have
-        read, understood, and agree to be bound by these Nemara
+        read, understood, and agree to be bound by these Memoria
         Wellness Terms of Use. You specifically acknowledge that:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Nemara is a general wellness service and is not a medical device, diagnostic tool, or emergency response system;</li>
-        <li>you will not rely on Nemara for the detection of medical events or emergencies;</li>
-        <li>Nemara provides no guarantee that any specific activity, event, or condition will be observed or surfaced by the Service;</li>
+        <li>Memoria is a general wellness service and is not a medical device, diagnostic tool, or emergency response system;</li>
+        <li>you will not rely on Memoria for the detection of medical events or emergencies;</li>
+        <li>Memoria provides no guarantee that any specific activity, event, or condition will be observed or surfaced by the Service;</li>
         <li>you have read and accepted the limitations of liability, indemnification, dispute resolution, and class-action waiver provisions above.</li>
       </ul>
 

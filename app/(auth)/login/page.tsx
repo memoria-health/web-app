@@ -100,7 +100,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
-      <h1 className="font-serif text-5xl tracking-tight text-ink">Nemara</h1>
+      <h1 className="font-serif text-5xl tracking-tight text-ink">Memoria</h1>
       <Suspense fallback={<div className="text-sm text-ink3">Loading…</div>}>
         <LoginForm />
       </Suspense>

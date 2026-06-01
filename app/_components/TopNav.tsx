@@ -9,7 +9,7 @@ import { PatientSwitcher } from './PatientSwitcher';
 /// Top of every page. Two stacked rows:
 ///
 ///   Row 1 (always):
-///     - Left: Nemara brand
+///     - Left: Memoria brand
 ///     - Right: "Current patient: <name> ▾" (only when inside a
 ///              patient) + email + Sign out
 ///
@@ -51,7 +51,7 @@ export function TopNav({ email }: { email: string | null }) {
           href="/"
           className="justify-self-start font-serif text-2xl tracking-tight text-ink hover:text-ink2 transition-colors"
         >
-          Nemara
+          Memoria
         </Link>
 
         <div className="justify-self-center">

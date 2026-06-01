@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Notice — Nemara',
+  title: 'Privacy Notice — Memoria',
   description:
-    'How Nemara collects, uses, discloses, and protects personal information; your rights; and the choices available to you.',
+    'How Memoria collects, uses, discloses, and protects personal information; your rights; and the choices available to you.',
 };
 
 export default function PrivacyPage() {
@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <main className="mx-auto max-w-2xl px-6 py-12 text-ink">
       <nav className="mb-8 text-sm">
         <Link href="/login" className="text-terra underline">
-          ← Back to Nemara
+          ← Back to Memoria
         </Link>
       </nav>
 
@@ -23,20 +23,20 @@ export default function PrivacyPage() {
       <section className="mt-8 rounded-lg border border-line bg-card-alt p-5">
         <h2 className="font-serif text-xl">Summary</h2>
         <p className="mt-2 text-sm text-ink2">
-          Nemara is a household-activity monitoring service. The Nemara
+          Memoria is a household-activity monitoring service. The Memoria
           Sensor streams live video and audio in real time so that
           our artificial-intelligence service can surface insights and
           so that Authorized Users can &ldquo;look in&rdquo; through
-          the Nemara application or web Dashboard.{' '}
+          the Memoria application or web Dashboard.{' '}
           <strong>
-            Nemara does not maintain a stored library of video or audio
+            Memoria does not maintain a stored library of video or audio
             for later replay.
           </strong>{' '}
           Live streams pass through processing in real time and are
           discarded; event clips are briefly retained for processing
           and then automatically deleted. What is retained are short
           text descriptions of household activity, account and
-          configuration data, and authentication metadata. Nemara does
+          configuration data, and authentication metadata. Memoria does
           not sell Personal Information, does not use it for
           advertising, and does not permit the AI provider to retain
           or train on it.
@@ -47,15 +47,15 @@ export default function PrivacyPage() {
       <p className="mt-3 text-ink2">
         This Privacy Notice (this &ldquo;<strong>Notice</strong>&rdquo;)
         describes how Darda and Cui, Inc., a Delaware corporation
-        doing business as &ldquo;Nemara&rdquo; (together with its
-        affiliates, &ldquo;<strong>Nemara</strong>,&rdquo; &ldquo;
+        doing business as &ldquo;Memoria&rdquo; (together with its
+        affiliates, &ldquo;<strong>Memoria</strong>,&rdquo; &ldquo;
         <strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
         or &ldquo;<strong>our</strong>&rdquo;), collects, uses,
         discloses, and otherwise processes Personal Information in
         connection with the Service. This Notice forms part of, and is
         incorporated by reference into, the{' '}
         <Link href="/terms" className="text-terra underline">
-          Nemara Wellness Terms of Use
+          Memoria Wellness Terms of Use
         </Link>{' '}
         (the &ldquo;<strong>Terms</strong>&rdquo;). Capitalized terms
         not defined herein have the meanings ascribed to them in the
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
         <li>
           &ldquo;<strong>Account Holder</strong>&rdquo; means the
-          natural person who creates a Nemara account and is the
+          natural person who creates a Memoria account and is the
           subscriber to the Service.
         </li>
         <li>
@@ -99,8 +99,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           &ldquo;<strong>Dashboard</strong>&rdquo; means the
-          web-based application made available by Nemara at the
-          Nemara domain through which Authorized Users may access the
+          web-based application made available by Memoria at the
+          Memoria domain through which Authorized Users may access the
           Service.
         </li>
         <li>
@@ -116,15 +116,15 @@ export default function PrivacyPage() {
         </li>
         <li>
           &ldquo;<strong>Sensor</strong>&rdquo; means an Apple iPhone
-          device running the NemaraCam application and paired to an
+          device running the MemoriaSensor application and paired to an
           Account Holder for the purpose of in-home monitoring.
         </li>
         <li>
           &ldquo;<strong>Service</strong>&rdquo; means, collectively,
-          the Nemara iOS caregiver application, the NemaraCam iOS
+          the Memoria iOS caregiver application, the MemoriaSensor iOS
           application, the Dashboard, the Sensor while operating, and
           all related cloud infrastructure, application programming
-          interfaces, and software made available by Nemara.
+          interfaces, and software made available by Memoria.
         </li>
       </ul>
 
@@ -214,7 +214,7 @@ export default function PrivacyPage() {
         and audio is discarded. When the AI Provider flags a possible
         event, a short clip covering that event is briefly retained
         for the purpose of completing the analysis and is then
-        automatically deleted. Nemara does not maintain a library of
+        automatically deleted. Memoria does not maintain a library of
         stored video, audio, or media content accessible for later
         replay. Live look-in sessions are not recorded.
       </p>
@@ -256,7 +256,7 @@ export default function PrivacyPage() {
           States on Amazon Web Services infrastructure.
         </li>
         <li>
-          <strong>Railway Corporation</strong> — hosts the Nemara
+          <strong>Railway Corporation</strong> — hosts the Memoria
           backend application.
         </li>
         <li>
@@ -268,20 +268,20 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p className="mt-3 text-ink2">
-        Beyond the foregoing Service Providers, Nemara may disclose
+        Beyond the foregoing Service Providers, Memoria may disclose
         Personal Information (a) to a successor entity in connection
         with a merger, acquisition, financing, or sale of all or
-        substantially all of Nemara&rsquo;s assets, (b) in response
+        substantially all of Memoria&rsquo;s assets, (b) in response
         to a lawful request from a governmental authority or in
-        connection with legal process where Nemara reasonably
+        connection with legal process where Memoria reasonably
         believes disclosure is required by law, or (c) to enforce
         these terms or protect the rights, property, or safety of
-        Nemara, its users, or others.
+        Memoria, its users, or others.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">7. Data Retention</h2>
       <p className="mt-3 text-ink2">
-        Nemara retains Personal Information only for as long as is
+        Memoria retains Personal Information only for as long as is
         reasonably necessary to fulfill the purposes set forth in
         this Notice, subject to the following retention periods:
       </p>
@@ -325,7 +325,7 @@ export default function PrivacyPage() {
         Personal Information to, and processing in, the United
         States, which may have data-protection rules different from
         those in your jurisdiction. Where required by applicable law,
-        Nemara implements appropriate safeguards in connection with
+        Memoria implements appropriate safeguards in connection with
         such transfers.
       </p>
 
@@ -336,7 +336,7 @@ export default function PrivacyPage() {
         Authorized Users may, at their election, open the application
         or Dashboard and view the live Sensor stream. Look-in sessions
         are transmitted in real time, are subject to authentication,
-        and are not recorded by Nemara. Access to the live stream is
+        and are not recorded by Memoria. Access to the live stream is
         limited to:
       </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
@@ -344,7 +344,7 @@ export default function PrivacyPage() {
         <li>Any Authorized User to whom the Account Holder has granted access.</li>
       </ul>
       <p className="mt-3 text-ink2">
-        Nemara personnel, including the founders, do not have the
+        Memoria personnel, including the founders, do not have the
         ability to view the live Sensor stream. The AI Provider
         processes streams algorithmically; AI Provider personnel do
         not view streams.
@@ -352,7 +352,7 @@ export default function PrivacyPage() {
 
       <h2 className="mt-10 font-serif text-2xl">10. Information Security</h2>
       <p className="mt-3 text-ink2">
-        Nemara employs administrative, technical, and physical
+        Memoria employs administrative, technical, and physical
         safeguards designed to protect Personal Information against
         unauthorized access, alteration, disclosure, or destruction.
         These safeguards include:
@@ -368,7 +368,7 @@ export default function PrivacyPage() {
         Despite these measures, no system can be guaranteed entirely
         secure. In the event of a security incident that creates a
         material risk of significant harm to affected individuals,
-        Nemara will provide notice in accordance with applicable
+        Memoria will provide notice in accordance with applicable
         breach-notification laws.
       </p>
 
@@ -387,7 +387,7 @@ export default function PrivacyPage() {
         <li>Request a portable copy of your Personal Information.</li>
       </ul>
       <p className="mt-2 text-ink2">
-        You may exercise these rights by contacting Nemara at the
+        You may exercise these rights by contacting Memoria at the
         address set forth in Section 16. We respond to verified
         requests within thirty (30) days, or such longer period as
         permitted by applicable law.
@@ -409,8 +409,8 @@ export default function PrivacyPage() {
         Sensitive Personal Information.
       </p>
       <p className="mt-2 text-ink2">
-        Nemara does not sell or share Personal Information as those
-        terms are defined under the CCPA. Nemara does not use or
+        Memoria does not sell or share Personal Information as those
+        terms are defined under the CCPA. Memoria does not use or
         disclose Sensitive Personal Information for purposes other
         than those permitted under the CCPA without offering the
         opportunity to limit such use. To exercise any California
@@ -450,7 +450,7 @@ export default function PrivacyPage() {
       <h2 className="mt-10 font-serif text-2xl">12. Children&rsquo;s Privacy</h2>
       <p className="mt-3 text-ink2">
         The Service is not directed to children under the age of
-        thirteen (13) and Nemara does not knowingly collect Personal
+        thirteen (13) and Memoria does not knowingly collect Personal
         Information from anyone under thirteen (13). If we learn that
         we have collected Personal Information from a child under
         thirteen (13), we will delete that information promptly. If
@@ -475,7 +475,7 @@ export default function PrivacyPage() {
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">14. Limitations on Use</h2>
-      <p className="mt-3 text-ink2">Nemara will not:</p>
+      <p className="mt-3 text-ink2">Memoria will not:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
         <li>Maintain a video or audio archive accessible for later replay;</li>
         <li>Sell, rent, or trade Personal Information to any third party;</li>
@@ -490,9 +490,9 @@ export default function PrivacyPage() {
       <p className="mt-3 text-ink2">
         The Dashboard uses strictly necessary cookies and
         session-management technologies to authenticate users and to
-        maintain session state. Nemara does not use third-party
+        maintain session state. Memoria does not use third-party
         advertising cookies, tracking pixels, or behavioral-
-        advertising trackers. Nemara honors browser &ldquo;Do Not
+        advertising trackers. Memoria honors browser &ldquo;Do Not
         Track&rdquo; signals to the extent technically feasible.
       </p>
 
@@ -509,14 +509,14 @@ export default function PrivacyPage() {
         substitute for professional medical care, supervision, or
         emergency response. Please review the{' '}
         <Link href="/terms" className="text-terra underline">
-          Nemara Wellness Terms of Use
+          Memoria Wellness Terms of Use
         </Link>{' '}
         for the scope and limitations of the Service.
       </p>
 
       <h2 className="mt-10 font-serif text-2xl">17. Changes to this Notice</h2>
       <p className="mt-3 text-ink2">
-        Nemara may amend this Notice from time to time. If we make
+        Memoria may amend this Notice from time to time. If we make
         material changes, we will notify active users by means of the
         Service or by email. The &ldquo;Last Revised&rdquo; date at
         the top of this Notice indicates when it was last updated.
@@ -549,7 +549,7 @@ export default function PrivacyPage() {
       <p className="mt-12 text-sm text-ink3">
         See also our{' '}
         <Link href="/terms" className="text-terra underline">
-          Nemara Wellness Terms of Use
+          Memoria Wellness Terms of Use
         </Link>
         .
       </p>
