@@ -36,26 +36,26 @@ export default async function PatientLivePage({
   if (!patient) notFound();
 
   // Fetch cameras. Each tile in the live grid is "reserved" — every
-  // paired camera gets a tile regardless of disabled / desired_state,
-  // so the caregiver can always reach the ⋯ menu to re-enable. The
-  // tile body itself swaps between live video / "Hidden" placeholder /
-  // "Disconnected" placeholder based on state.
+  // paired camera gets a tile regardless of disabled / desired_state /
+  // patient-level pause, so the caregiver can always reach the ⋯ menu
+  // to re-enable. The tile body itself swaps between live video /
+  // "Hidden" placeholder / "Disconnected" placeholder based on state.
   //
-  // Patient-level pause (patient.cameras_paused) still hides EVERY
-  // tile — it's a kill switch, semantically different from per-camera
-  // toggles. PauseMonitoringToggle at the top of the page is the only
-  // affordance to un-pause it.
+  // Patient-level pause (patient.cameras_paused) cascades every camera's
+  // desired_state to 'disconnected', so the tiles render the
+  // "Disconnected" placeholder and STAY in their grid slot rather than
+  // vanishing (the old behavior collapsed the whole grid to "No cameras
+  // yet", which read as "cameras gone" instead of "monitoring paused").
+  // Reconnect-all flips desired_state back and the tiles go live again.
   //
   // Unpaired cameras (livekit_identity null) are excluded — they have
   // no LiveKit identity to render anything with. The /cameras pairing
   // flow handles them separately.
   const cameras = await api.listCameras(patient.id);
-  const allPairedCameras = patient.cameras_paused
-    ? []
-    : cameras.filter(
-        (c): c is typeof c & { livekit_identity: string } =>
-          c.livekit_identity !== null,
-      );
+  const allPairedCameras = cameras.filter(
+    (c): c is typeof c & { livekit_identity: string } =>
+      c.livekit_identity !== null,
+  );
   const gridCameras = allPairedCameras.map((c) => ({
     id: c.id,
     identity: c.livekit_identity,
