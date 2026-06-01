@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { CameraDetectorsForm } from '@/app/_components/CameraDetectorsForm';
 import { ShowPairingCodeButton } from '@/app/_components/ShowPairingCodeButton';
-import { timeAgo } from '@/lib/utils/time';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,8 +76,6 @@ export default async function CameraDetailPage({
           <dd className="font-mono text-ink2">
             {camera.livekit_identity ?? '— not yet claimed —'}
           </dd>
-          <dt className="text-ink3">Last seen</dt>
-          <dd className="text-ink2">{timeAgo(camera.last_seen_at)}</dd>
         </dl>
       </section>
 

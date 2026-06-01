@@ -10,7 +10,6 @@ import type {
 } from '@supabase/supabase-js';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
-import { timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
 import { CameraIcon } from '@/lib/icons/cameraIcons';
 import type { Camera } from '@/lib/api/types';
@@ -248,8 +247,6 @@ export function CameraList({
                   ) : (
                     <span>not yet claimed</span>
                   )}
-                  {' · '}
-                  Last seen {timeAgo(cam.last_seen_at)}
                 </p>
               </div>
               <button

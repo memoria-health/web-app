@@ -111,7 +111,6 @@ export interface Camera {
   // backend or pre-migration row).
   source_type: CameraSourceType;
   livekit_identity: string | null;
-  last_seen_at: string | null;
   created_at: string;
   // True once the wall phone has completed the /v1/cameras/pair
   // handshake. False = row exists with an open pairing code but no
