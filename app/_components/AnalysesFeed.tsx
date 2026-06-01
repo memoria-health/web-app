@@ -152,12 +152,15 @@ export function AnalysesFeed({
             setRows((prev) => {
               const next = payload.new;
               if (prev.some((r) => r.id === next.id)) return prev;
-              // Sort by captured_at (when the clip was taken), not
-              // arrival order. Gemini calls vary in latency (~3-15s),
-              // so a slow T-tick can land after a fast T+10 tick if
-              // we just prepend by insert order.
+              // Sort by created_at (when the analysis LANDED) so the order
+              // matches the "X ago" we render — which is also created_at.
+              // Sorting by captured_at while displaying created_at made the
+              // feed disagree with its own timestamps (a slow tick filmed
+              // earlier but written later sorted above a fast later tick),
+              // showing "10s ago" above "5s ago". created_at == write/arrival
+              // order == display order, so they stay consistent.
               return [next, ...prev]
-                .sort((a, b) => b.captured_at.localeCompare(a.captured_at))
+                .sort((a, b) => b.created_at.localeCompare(a.created_at))
                 .slice(0, MAX_ROWS);
             });
           },
