@@ -103,14 +103,15 @@ export function LiveAnalysesSection({
   // Same predicate as the page used to compute server-side: a camera gets a
   // feed as soon as it's paired (has a livekit_identity) + meant-to-be-on
   // (desired_state connected), WITHOUT requiring `online` (which lags).
-  const feedCameras = camerasPaused
-    ? []
-    : cameras.filter(
-        (c) =>
-          c.livekit_identity !== null &&
-          !c.disabled &&
-          c.desired_state === 'connected',
-      );
+  // Per-camera state only — `camerasPaused` (the bulk button) is no longer a
+  // gate. A connected camera shows its feed regardless of the patient-level
+  // flag, matching the grid + detection.
+  const feedCameras = cameras.filter(
+    (c) =>
+      c.livekit_identity !== null &&
+      !c.disabled &&
+      c.desired_state === 'connected',
+  );
   const feedCameraIds = feedCameras.map((c) => c.id);
 
   if (feedCameras.length === 0) {

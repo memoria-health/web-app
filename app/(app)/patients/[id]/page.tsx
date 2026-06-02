@@ -76,14 +76,16 @@ export default async function PatientLivePage({
   // the enabled-set the feed filters on) off this stable list.
   // NOTE: deliberately NOT router.refresh() — it's unreliable in Next 16
   // here (see CameraList).
-  const analysesFeedCameras = patient.cameras_paused
-    ? []
-    : cameras.filter(
-        (c): c is typeof c & { livekit_identity: string } =>
-          c.livekit_identity !== null
-          && !c.disabled
-          && c.desired_state === 'connected',
-      );
+  // Follows per-camera state only — the patient-level pause flag is NOT a
+  // gate (a camera that's connected gets its feed regardless of the bulk
+  // disconnect-all/reconnect-all button; detection itself is decoupled from
+  // cameras_paused too).
+  const analysesFeedCameras = cameras.filter(
+    (c): c is typeof c & { livekit_identity: string } =>
+      c.livekit_identity !== null
+      && !c.disabled
+      && c.desired_state === 'connected',
+  );
 
   const room = `patient_${patient.id}`;
 
