@@ -236,9 +236,16 @@ function CameraTileBody({
       </div>
     );
   }
+  // Paired, intended-on, not hidden, but no video track yet — the sensor
+  // is coming up (cold connect or a reconnect). Show an active buffering
+  // state so the gap reads as "connecting", not "nothing happened".
   return (
-    <div className="flex h-full items-center justify-center text-base text-ink4 italic">
-      Preparing to start — this can take a moment.
+    <div className="flex h-full flex-col items-center justify-center gap-3 text-ink4">
+      <div
+        className="h-6 w-6 animate-spin rounded-full border-2 border-ink4/30 border-t-ink2"
+        aria-hidden
+      />
+      <span className="text-base italic">Connecting — this can take a moment.</span>
     </div>
   );
 }
