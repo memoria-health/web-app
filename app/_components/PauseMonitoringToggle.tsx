@@ -65,8 +65,8 @@ export function PauseMonitoringToggle({
         aria-pressed={!paused}
         title={
           paused
-            ? 'All cameras are off (LLM is skipped, cameras hidden). Click to resume.'
-            : 'All cameras are being monitored. Click to pause everything.'
+            ? 'All sensors are off (LLM is skipped, sensors hidden). Click to resume.'
+            : 'All sensors are being monitored. Click to pause everything.'
         }
         className={cn(
           'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50',
@@ -80,10 +80,10 @@ export function PauseMonitoringToggle({
       {totalCount !== undefined && (
         <span className="text-base text-ink3">
           {paused
-            ? `all ${totalCount} cameras hidden`
+            ? `all ${totalCount} sensors hidden`
             : hiddenCount && hiddenCount > 0
-              ? `${totalCount - hiddenCount} of ${totalCount} cameras visible · ${hiddenCount} individually disabled`
-              : `${totalCount} of ${totalCount} cameras visible`}
+              ? `${totalCount - hiddenCount} of ${totalCount} sensors visible · ${hiddenCount} individually disabled`
+              : `${totalCount} of ${totalCount} sensors visible`}
         </span>
       )}
       {error && (

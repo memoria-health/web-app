@@ -12,6 +12,7 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
 import { cn } from '@/lib/utils/cn';
 import { CameraIcon } from '@/lib/icons/cameraIcons';
+import { isSensorPreparing, markSensorStarted } from '@/lib/utils/sensorState';
 import type { Camera } from '@/lib/api/types';
 
 // Single connection signal: ONLINE iff the backend has recently
@@ -21,15 +22,23 @@ import type { Camera } from '@/lib/api/types';
 // online=true by construction (online requires a tick which
 // requires CameraIngest which requires credentials), so they
 // always render OFFLINE without us having to check `paired` here.
-function statusFor(cam: Camera): { label: 'ONLINE' | 'OFFLINE'; tone: 'live' | 'offline' } {
+//
+// `preparing` (first-connect, never been online yet) takes precedence:
+// a brand-new sensor reads as STARTING UP, not OFFLINE, while it boots.
+function statusFor(
+  cam: Camera,
+  preparing: boolean,
+): { label: string; tone: 'live' | 'offline' | 'preparing' } {
+  if (preparing) return { label: 'STARTING UP', tone: 'preparing' };
   return cam.online
     ? { label: 'ONLINE', tone: 'live' }
     : { label: 'OFFLINE', tone: 'offline' };
 }
 
-const TONE_CLASSES: Record<'live' | 'offline', string> = {
+const TONE_CLASSES: Record<'live' | 'offline' | 'preparing', string> = {
   live: 'border-success/40 bg-card-alt text-success',
   offline: 'border-line bg-paper-dim text-ink4',
+  preparing: 'border-warning/40 bg-card-alt text-warning',
 };
 
 // User-triggered toggle styling. Mirrors iOS's chip palette
@@ -150,9 +159,22 @@ export function CameraList({
 
   useEffect(() => setCameras(initial), [initial]);
 
+  // Remember any sensor we've ever seen online (initial load + every
+  // realtime update), persisted, so a sensor that has started once never
+  // regresses to "preparing" after a reload — it just reads OFFLINE.
+  useEffect(() => {
+    for (const c of cameras) if (c.online) markSensorStarted(c.id);
+  }, [cameras]);
+
+  // `isSensorPreparing` reads localStorage, so only evaluate it after
+  // mount to avoid a server/client hydration mismatch (server has no
+  // localStorage and would always render the pre-started branch).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   async function removeCamera(id: string, name: string) {
     if (
-      !confirm(`Remove camera "${name}"? This is irreversible.`)
+      !confirm(`Remove sensor "${name}"? This is irreversible.`)
     )
       return;
     setRemoving(id);
@@ -171,7 +193,7 @@ export function CameraList({
   if (cameras.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-line bg-card px-4 py-8 text-center text-base text-ink3">
-        No cameras yet. Pair one to start streaming.
+        No sensors yet. Pair one to start streaming.
       </div>
     );
   }
@@ -185,7 +207,8 @@ export function CameraList({
       )}
       <ul className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden">
         {cameras.map((cam) => {
-          const status = statusFor(cam);
+          const preparing = mounted && isSensorPreparing(cam);
+          const status = statusFor(cam, preparing);
           return (
             <li
               key={cam.id}
@@ -199,7 +222,7 @@ export function CameraList({
               <Link
                 href={`/patients/${patientId}/cameras/${cam.id}`}
                 className="absolute inset-0"
-                title="Configure detectors for this camera"
+                title="Configure detectors for this sensor"
                 aria-label={`Open ${cam.room}`}
               />
               <div className="flex min-w-0 flex-1 flex-col">
@@ -212,12 +235,13 @@ export function CameraList({
                     {cam.room}
                   </span>
                   <span className="font-mono text-xs text-ink4 tracking-wide">
-                    CAM {String(cam.display_id).padStart(2, '0')}
+                    SENSOR {String(cam.display_id).padStart(2, '0')}
                   </span>
                   <span
                     className={cn(
                       'inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider',
                       TONE_CLASSES[status.tone],
+                      status.tone === 'preparing' && 'animate-pulse',
                     )}
                   >
                     {status.label}

@@ -72,9 +72,9 @@ export interface Patient {
 }
 
 // Which physical device class a camera row represents. Backend
-// returns both shapes from the same /cameras endpoint; the UI
-// branches on this for the SENSOR chip in CameraList and for which
-// tab is preselected when editing.
+// returns both shapes from the same /cameras endpoint. The two
+// classes are both branded "Memoria Sensor"; in the Add Camera flow
+// they map to the "Phone" and "Native" device-type tabs.
 export type CameraSourceType = 'phone' | 'sensor';
 
 // The wire format keeps the historical strings 'iphone' / 'pi' so

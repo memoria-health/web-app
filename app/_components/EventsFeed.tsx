@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   RealtimePostgresInsertPayload,
   RealtimePostgresUpdatePayload,
@@ -19,6 +19,38 @@ export function EventsFeed({
 }) {
   const [events, setEvents] = useState<DetectionEvent[]>(initial);
   const [tick, setTick] = useState(0);
+
+  // Catch-up refetch. Realtime has NO replay: anything inserted while
+  // this browser tab was hidden (the socket is throttled/dropped in a
+  // backgrounded tab) is never pushed when the tab wakes. We re-pull the
+  // latest page directly from Supabase — RLS scopes it to this caregiver
+  // — so a freshly-fired event lands the moment the tab is visible again,
+  // without a manual reload. Mirrors the iOS foreground `resync()`.
+  const refetch = useCallback(async () => {
+    const supa = await getAuthedBrowserSupabase();
+    const { data } = await supa
+      .from('events')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('occurred_at', { ascending: false })
+      .limit(50);
+    if (data) setEvents(data as DetectionEvent[]);
+  }, [patientId]);
+
+  // Run once on mount (covers the gap between the server-rendered
+  // `initial` and the live subscription) and on every tab-visible/focus.
+  useEffect(() => {
+    void refetch();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refetch();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [refetch]);
 
   // Must await getAuthedBrowserSupabase — see lib/supabase/client.ts for
   // the anon-role race that drops every broadcast otherwise.
@@ -91,10 +123,27 @@ export function EventsFeed({
 
   if (rows.length === 0) {
     return (
-      <p className="text-base text-ink3 italic">
-        No detections yet. Pair a wall phone and let it publish — events will
-        stream in here.
-      </p>
+      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-card px-6 py-16 text-center">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-10 w-10 text-ink3"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 13l2.5-7h13L21 13M3 13v5a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-5M3 13h5l1.5 2.5h5L16 13h5"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+        <p className="font-serif text-2xl text-ink">Nothing to see here yet</p>
+        <p className="max-w-sm text-base text-ink3">
+          When a detector notices something, events will stream in here. Pair a
+          Memoria Sensor to start monitoring.
+        </p>
+      </div>
     );
   }
 

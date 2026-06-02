@@ -70,7 +70,7 @@ export function PatientIdentityStatus({
   if (surface === 'detail' && state !== 'not_enrolled') return null;
   if (dismissed) return null;
   return (
-    <Card onDismiss={() => setDismissed(true)}>
+    <Card urgent={state === 'not_enrolled'} onDismiss={() => setDismissed(true)}>
       <Indicator state={state} />
       <Text title={titleFor(state, patientName)} subtitle={subtitleFor(state)} />
     </Card>
@@ -114,9 +114,21 @@ function subtitleFor(state: CardState): string {
 
 // ── presentation ────────────────────────────────────────────────────
 
-function Card({ children, onDismiss }: { children: React.ReactNode; onDismiss?: () => void }) {
+function Card({
+  children,
+  urgent,
+  onDismiss,
+}: {
+  children: React.ReactNode;
+  urgent?: boolean;
+  onDismiss?: () => void;
+}) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-line bg-card px-4 py-3">
+    <div
+      className={`flex items-center gap-3 rounded-md border px-4 py-3 ${
+        urgent ? 'border-terra/50 bg-terra-soft' : 'border-line bg-card'
+      }`}
+    >
       {children}
       {onDismiss && (
         <button
@@ -183,7 +195,22 @@ function Indicator({ state }: { state: CardState }) {
       </svg>
     );
   }
-  // not_enrolled and loading both render the dashed empty circle.
+  if (state === 'not_enrolled') {
+    // Exclamation triangle in terra — an action the caregiver needs to
+    // take, so it reads as a nudge, not a neutral placeholder.
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-7 w-7 shrink-0 text-terra"
+        aria-hidden="true"
+      >
+        <path d="M12 3.2 L22.5 21 H1.5 Z" fill="currentColor" />
+        <path d="M12 9 v5" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+        <circle cx="12" cy="17.6" r="1.15" fill="white" />
+      </svg>
+    );
+  }
+  // loading renders the dashed empty circle.
   return (
     <svg
       viewBox="0 0 24 24"

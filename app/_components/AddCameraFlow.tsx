@@ -10,7 +10,7 @@ import { formatPairingCode } from '@/lib/utils/pairing';
 import { countdown, isExpired } from '@/lib/utils/time';
 import { CAMERA_ICON_NAMES, CameraIcon } from '@/lib/icons/cameraIcons';
 import { cn } from '@/lib/utils/cn';
-import type { DiscoveredCamera } from '@/lib/api/types';
+import { SensorSetupWizard } from './SensorSetupWizard';
 
 type Tab = 'phone' | 'sensor';
 
@@ -20,8 +20,6 @@ interface Issued {
   camera_id: string;
   room: string;
 }
-
-const SENSOR_POLL_INTERVAL_MS = 3000;
 
 export function AddCameraFlow({ patientId }: { patientId: string }) {
   const [tab, setTab] = useState<Tab>('phone');
@@ -62,7 +60,7 @@ function TabBar({
         onClick={() => onChange('phone')}
         className={cls(tab === 'phone')}
       >
-        Phone Camera
+        Phone
       </button>
       <button
         role="tab"
@@ -70,7 +68,7 @@ function TabBar({
         onClick={() => onChange('sensor')}
         className={cls(tab === 'sensor')}
       >
-        Sensor Camera
+        Native
       </button>
     </div>
   );
@@ -160,7 +158,7 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
       <div className="flex flex-col items-center gap-4 rounded-lg border border-success/40 bg-card-alt p-8 text-center">
         <h2 className="font-serif text-4xl tracking-tight text-ink">Paired!</h2>
         <p className="text-base text-ink2">
-          The phone camera for{' '}
+          The phone sensor for{' '}
           <strong className="font-medium">{issued?.room}</strong> is now
           connected.
         </p>
@@ -168,7 +166,7 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
           onClick={() => router.replace(`/patients/${patientId}/cameras`)}
           className="rounded-md bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 transition-colors"
         >
-          View cameras
+          View sensors
         </button>
       </div>
     );
@@ -208,7 +206,7 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
           href={`/patients/${patientId}/cameras`}
           className="rounded border border-line px-3 py-1.5 text-base text-ink2 hover:border-line"
         >
-          Done (return to cameras)
+          Done (return to sensors)
         </Link>
       </div>
     );
@@ -220,7 +218,7 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
       className="flex flex-col gap-3 rounded border border-line bg-card p-6"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-base font-medium text-ink2">Camera name</span>
+        <span className="text-base font-medium text-ink2">Sensor name</span>
         <input
           type="text"
           value={name}
@@ -253,214 +251,15 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Sensor Camera tab. Polls GET /v1/cameras/discovered every 3 s,
-// shows unclaimed sensor cameras. Tap one to enter a room name +
-// icon, then POST /pi-provision. On success, redirect to /cameras.
-//
-// First-time setup help is rendered inline so a caregiver who has
-// not yet plugged in / connected the camera knows what to do.
+// Native (Sensor) tab. The device class is branded "Memoria Sensor"
+// and built on our purpose-built Raspberry-Pi hardware. Setup is a
+// guided 4-step wizard (plug in → home Wi-Fi → discovery poll →
+// configure). All of that logic lives in SensorSetupWizard; this tab
+// is a thin wrapper so AddCameraFlow's tab switch stays unchanged.
 // ─────────────────────────────────────────────────────────────
 
 function SensorCameraTab({ patientId }: { patientId: string }) {
-  const router = useRouter();
-  const [discovered, setDiscovered] = useState<DiscoveredCamera[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<DiscoveredCamera | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function poll() {
-      try {
-        const res = await getBrowserNemara().listDiscoveredCameras();
-        if (!cancelled) {
-          setDiscovered(res.pis);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : String(err));
-        }
-      }
-    }
-    void poll();
-    const id = setInterval(poll, SENSOR_POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-
-  if (selected) {
-    return (
-      <SensorAssignForm
-        patientId={patientId}
-        discovery={selected}
-        onCancel={() => setSelected(null)}
-        onPaired={() => router.replace(`/patients/${patientId}/cameras`)}
-      />
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <SensorSetupHelp />
-      <div className="rounded border border-line bg-card p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-ink2">Available cameras</h3>
-          <span className="inline-flex items-center gap-1.5 text-xs text-ink3">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-action" />
-            Scanning…
-          </span>
-        </div>
-        {error && <ErrorBanner message={error} />}
-        {discovered === null ? (
-          <p className="py-6 text-center text-sm text-ink3">Looking…</p>
-        ) : discovered.length === 0 ? (
-          <p className="py-6 text-center text-sm text-ink3">
-            No cameras found yet. Follow the setup steps above.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1.5">
-            {discovered.map((d) => (
-              <li key={d.discovery_id}>
-                <button
-                  onClick={() => setSelected(d)}
-                  className="flex w-full items-center justify-between rounded border border-line bg-paper-dim px-3 py-2.5 text-left hover:border-action"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-base text-ink">{d.device_label}</span>
-                    <span className="text-xs text-ink3">
-                      {relativeAge(d.last_seen_at)}
-                    </span>
-                  </div>
-                  <span className="text-xs text-ink3">Pair →</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <Link
-        href={`/patients/${patientId}/cameras`}
-        className="self-end rounded border border-line px-3 py-1.5 text-base text-ink2"
-      >
-        Cancel
-      </Link>
-    </div>
-  );
-}
-
-function SensorSetupHelp() {
-  return (
-    <details className="rounded border border-line bg-card-alt p-4 text-sm text-ink2">
-      <summary className="cursor-pointer font-medium text-ink">
-        Setting up a new sensor camera?
-      </summary>
-      <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-ink3">
-        <li>Plug the camera in and wait ~30 seconds for it to boot.</li>
-        <li>
-          On your phone or laptop, open WiFi settings and connect to the
-          network named <strong>Memoria-Setup-XXXXXX</strong> (the X&apos;s
-          are the camera&apos;s ID).
-        </li>
-        <li>
-          Your device should automatically open a setup page. If not, open
-          a browser and visit{' '}
-          <code className="rounded bg-paper-dim px-1 py-0.5 text-xs">
-            192.168.4.1
-          </code>
-          .
-        </li>
-        <li>
-          Pick your home WiFi network and enter its password. The camera
-          will join and disappear from the &quot;Memoria-Setup&quot; list.
-        </li>
-        <li>
-          Reconnect your phone to your home WiFi. The camera will appear
-          below within about a minute.
-        </li>
-      </ol>
-    </details>
-  );
-}
-
-function SensorAssignForm({
-  patientId,
-  discovery,
-  onCancel,
-  onPaired,
-}: {
-  patientId: string;
-  discovery: DiscoveredCamera;
-  onCancel: () => void;
-  onPaired: () => void;
-}) {
-  const [name, setName] = useState('');
-  const [icon, setIcon] = useState('tv');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await getBrowserNemara().provisionSensorCamera(patientId, {
-        room: name,
-        icon_name: icon,
-        discovery_id: discovery.discovery_id,
-      });
-      onPaired();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBusy(false);
-    }
-  }
-
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="flex flex-col gap-3 rounded border border-line bg-card p-6"
-    >
-      <div className="rounded border border-line bg-paper-dim px-3 py-2">
-        <span className="text-xs uppercase tracking-wider text-ink3">
-          Pairing
-        </span>
-        <p className="text-base text-ink">{discovery.device_label}</p>
-      </div>
-      <label className="flex flex-col gap-1">
-        <span className="text-base font-medium text-ink2">Camera name</span>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Living room, Kitchen, Bedroom"
-          maxLength={64}
-          required
-          autoFocus
-          className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
-        />
-      </label>
-      <IconPicker icon={icon} onChange={setIcon} />
-      {error && <ErrorBanner message={error} />}
-      <div className="flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded border border-line px-3 py-1.5 text-base text-ink2"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          disabled={busy || !name.trim()}
-          className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink hover:bg-ink2 disabled:opacity-50"
-        >
-          {busy ? 'Pairing…' : 'Pair camera'}
-        </button>
-      </div>
-    </form>
-  );
+  return <SensorSetupWizard patientId={patientId} />;
 }
 
 // ─── Shared bits ────────────────────────────────────────────────
@@ -513,13 +312,4 @@ function ErrorBanner({ message }: { message: string }) {
       {message}
     </div>
   );
-}
-
-function relativeAge(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
-  const s = Math.max(0, Math.round(ms / 1000));
-  if (s < 60) return `seen ${s}s ago`;
-  const m = Math.round(s / 60);
-  if (m < 60) return `seen ${m}m ago`;
-  return `seen ${Math.round(m / 60)}h ago`;
 }

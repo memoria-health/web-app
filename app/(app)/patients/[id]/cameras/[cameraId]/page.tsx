@@ -42,7 +42,7 @@ export default async function CameraDetailPage({
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3 flex-wrap">
         <Link href={`/patients/${patient.id}/cameras`} className="text-base text-ink3 hover:text-ink">
-          ← Cameras
+          ← Sensors
         </Link>
         <span className="text-ink4">/</span>
         <h1 className="font-serif text-4xl tracking-tight text-ink">{camera.room}</h1>
@@ -65,7 +65,7 @@ export default async function CameraDetailPage({
 
       <section className="rounded-lg border border-line bg-card px-4 py-4">
         <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
-          Camera info
+          Sensor info
         </h2>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
           <dt className="text-ink3">Display ID</dt>
@@ -85,8 +85,8 @@ export default async function CameraDetailPage({
             Awaiting pairing
           </h2>
           <p className="mb-3 text-sm text-ink2">
-            No wall phone has claimed this camera yet. Tap to view a 6-digit
-            pairing code, then enter it on the NemaraCam wall-phone app to
+            No wall phone has claimed this sensor yet. Tap to view a 6-digit
+            pairing code, then enter it on the MemoriaSensor wall-phone app to
             complete pairing.
           </p>
           <ShowPairingCodeButton cameraId={camera.id} room={camera.room} />
@@ -95,7 +95,7 @@ export default async function CameraDetailPage({
 
       <section>
         <h2 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
-          Detectors running on this camera
+          Detectors running on this sensor
         </h2>
         <CameraDetectorsForm
           cameraId={camera.id}

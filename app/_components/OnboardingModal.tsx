@@ -37,15 +37,15 @@ const STEPS: Step[] = [
     image: '/onboarding/01-patient.png',
   },
   {
-    title: 'Pair a wall phone',
+    title: 'Pair a Memoria Sensor',
     body:
-      'Open a patient → Cameras → Add camera. You’ll get a 6-digit code. Open the MemoriaSensor app on the phone you’re mounting and enter that code to pair it. Each phone watches one room.',
+      'Open a patient → Cameras → Add a sensor. Pick Phone or Native. For a phone, you’ll get a 6-digit code — open the MemoriaSensor app on the phone you’re mounting and enter it. Each sensor watches one room.',
     image: '/onboarding/02-cameras.png',
   },
   {
     title: 'Watch live + tune detectors',
     body:
-      'The Live tab shows each camera’s video and a running feed of what the AI sees every few seconds. The Detectors tab lets you turn falls, wandering, agitation, and medication checks on or off per camera.',
+      'The Live tab shows each sensor’s video and a running feed of what the AI sees every few seconds. The Detectors tab lets you turn falls, wandering, agitation, and medication checks on or off per sensor.',
     image: '/onboarding/03-live.png',
   },
   {

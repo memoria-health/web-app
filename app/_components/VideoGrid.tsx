@@ -85,7 +85,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
   if (enabledCameras.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
-        No cameras. Pair a wall phone from /cameras.
+        No sensors. Pair a Memoria Sensor from the Sensors tab.
       </div>
     );
   }
@@ -186,7 +186,7 @@ function CameraTileBody({
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
         <span className="font-serif text-xl text-ink2">Awaiting pairing</span>
         <span className="text-sm text-ink3">
-          Open this camera in /cameras to view the 6-digit code.
+          Open this sensor in /cameras to view the 6-digit code.
         </span>
       </div>
     );
@@ -238,7 +238,7 @@ function CameraTileBody({
   }
   return (
     <div className="flex h-full items-center justify-center text-base text-ink4 italic">
-      Waiting for camera to join…
+      Preparing to start — this can take a moment.
     </div>
   );
 }
@@ -417,7 +417,7 @@ function CameraTileMenu({
   // Hide (instant) and Disconnect (LiveKit reconnect).
   const hideShowLabel = busy
     ? disabled ? 'Showing…' : 'Hiding…'
-    : disabled ? 'Show camera' : 'Hide camera';
+    : disabled ? 'Show sensor' : 'Hide sensor';
   const hideShowSubtitle = disabled
     ? 'Resume AI calls. Instant.'
     : 'Pause AI calls. LiveKit stays connected.';
@@ -446,7 +446,7 @@ function CameraTileMenu({
         }}
         disabled={busy}
         aria-label={`Options for ${cameraRoom}`}
-        title="Camera options"
+        title="Sensor options"
         className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line/60 bg-card/90 text-ink backdrop-blur hover:border-line hover:bg-card disabled:opacity-50"
       >
         <span className="text-base leading-none">⋯</span>
@@ -672,7 +672,7 @@ export function VideoGrid({
   if (cameras.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-line bg-card text-base text-ink3">
-        No cameras yet. Pair a wall phone from /cameras.
+        No sensors yet. Pair a wall phone from /cameras.
       </div>
     );
   }

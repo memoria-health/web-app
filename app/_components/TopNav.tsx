@@ -14,7 +14,7 @@ import { PatientSwitcher } from './PatientSwitcher';
 ///              patient) + email + Sign out
 ///
 ///   Row 2 (only when inside a patient):
-///     - Centered: Live · Cameras · Detectors · Settings
+///     - Centered: Live · Sensors · Detectors · Settings
 ///
 /// On non-patient routes (`/`, `/patients/new`) only Row 1 renders.
 export function TopNav({ email }: { email: string | null }) {
@@ -28,7 +28,7 @@ export function TopNav({ email }: { email: string | null }) {
         { href: base, label: 'Live', isActive: pathname === base },
         {
           href: `${base}/cameras`,
-          label: 'Cameras',
+          label: 'Sensors',
           isActive: pathname.startsWith(`${base}/cameras`),
         },
         {
