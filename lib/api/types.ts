@@ -118,6 +118,15 @@ export interface Camera {
   // cameras list, the "Show pairing code" button on the detail page,
   // and the LiveKit tile bypass on the Live grid (no track yet).
   paired: boolean;
+  // True while the Memoria Sensor app is RUNNING on this camera's
+  // iPhone (it polls the backend every 1s when open). false = app
+  // closed / phone off → the grid shows "Sensor app closed, open
+  // Memoria Sensor" instead of a reconnectable "Disconnected", since
+  // Reconnect can't help while the phone isn't polling. Only ever
+  // false for iPhone sensors; Pi cameras have no app to close and stay
+  // true. Optional/defaulted true on older backends — undefined is
+  // treated as present (never falsely shows "app closed").
+  app_present?: boolean;
 }
 
 // Canonical "this camera is currently producing a live feed the

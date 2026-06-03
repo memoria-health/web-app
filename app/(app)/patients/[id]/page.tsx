@@ -64,6 +64,11 @@ export default async function PatientLivePage({
     ai_paused: c.ai_paused,
     desired_state: c.desired_state,
     paired: c.paired,
+    // Carried so the tile can distinguish "app closed" (open Memoria
+    // Sensor) from a reconnectable "Disconnected". `online` lets us keep
+    // app-closed from ever shadowing a live feed.
+    online: c.online,
+    app_present: c.app_present ?? true,
   }));
   // Analyses feeds mount as soon as a camera is paired + meant-to-be-on
   // (`desired_state === 'connected'`), WITHOUT requiring `online`. `online`

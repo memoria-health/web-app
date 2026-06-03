@@ -39,7 +39,7 @@ const STEPS: Step[] = [
   {
     title: 'Pair a Memoria Sensor',
     body:
-      'Open a patient → Cameras → Add a sensor. Pick Phone or Native. For a phone, you’ll get a 6-digit code — open the MemoriaSensor app on the phone you’re mounting and enter it. Each sensor watches one room.',
+      'Open a patient → Sensors → Add a sensor. Pick Phone or Native. For a phone, you’ll get a 6-digit code — open the MemoriaSensor app on the phone you’re mounting and enter it. Each sensor watches one room.',
     image: '/onboarding/02-cameras.png',
   },
   {

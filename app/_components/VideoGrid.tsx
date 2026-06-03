@@ -30,6 +30,13 @@ interface EnabledCamera {
   // an "Awaiting pairing" placeholder and skip the LiveKit subscription
   // since there's no published track yet.
   paired: boolean;
+  // Backend liveness (publishing) — used only to keep "app closed" from
+  // ever shadowing a live feed.
+  online: boolean;
+  // Whether the Memoria Sensor iPhone app is running (polling). false +
+  // !online → "app closed" (open the app), distinct from a reconnectable
+  // "Disconnected". Only false for iPhone sensors; Pi stays true.
+  app_present: boolean;
 }
 
 function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
@@ -98,6 +105,11 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
         const trackRef = trackByIdentity.get(cam.identity);
         const audioRef = audioByIdentity.get(cam.identity);
         const isAudible = audioUnmuted.has(cam.identity);
+        // The Memoria Sensor app is shut on the phone: not publishing and
+        // its 1s heartbeat stopped. Reconnect can't help — the phone isn't
+        // polling — so the tile + menu say "open the app". `app_present`
+        // is only ever false for iPhone sensors (Pi has no app to close).
+        const appClosed = !cam.online && cam.app_present === false;
         // Always mount AudioTrack when an audio track exists; use the
         // `volume` prop to gate audible output (0 = silent, 1 = audible).
         // Conditional mount/unmount of `<AudioTrack>` was causing a
@@ -127,6 +139,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                   disabled={cam.disabled}
                   aiPaused={cam.ai_paused}
                   desiredState={cam.desired_state}
+                  appClosed={appClosed}
                   trackRef={trackRef}
                 />
                 {audioRef && (
@@ -148,6 +161,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                 disabled={cam.disabled}
                 aiPaused={cam.ai_paused}
                 desiredState={cam.desired_state}
+                appClosed={appClosed}
               />
             </div>
           </div>
@@ -169,12 +183,17 @@ function CameraTileBody({
   disabled,
   aiPaused,
   desiredState,
+  appClosed,
   trackRef,
 }: {
   paired: boolean;
   disabled: boolean;
   aiPaused: boolean;
   desiredState: 'connected' | 'disconnected';
+  // iPhone sensor whose Memoria Sensor app is closed (not online +
+  // heartbeat stopped). Reconnect can't help; tell the user to reopen
+  // the app. Takes precedence over the reconnectable "Disconnected".
+  appClosed: boolean;
   // The LiveKit track type — kept loose because the GridInner-internal
   // shape isn't exported. Only used as: present → render ParticipantTile.
   trackRef: Parameters<typeof ParticipantTile>[0]['trackRef'] | undefined;
@@ -187,6 +206,18 @@ function CameraTileBody({
         <span className="font-serif text-xl text-ink2">Awaiting pairing</span>
         <span className="text-sm text-ink3">
           Open this sensor in /cameras to view the 6-digit code.
+        </span>
+      </div>
+    );
+  }
+  // App closed beats "Disconnected": the phone isn't running, so the ⋯
+  // Reconnect won't bring it back — the caregiver must reopen the app.
+  if (appClosed) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
+        <span className="font-serif text-xl text-ink2">Sensor app closed</span>
+        <span className="text-xs text-ink4">
+          Open Memoria Sensor on the camera phone
         </span>
       </div>
     );
@@ -321,12 +352,17 @@ function CameraTileMenu({
   disabled,
   aiPaused,
   desiredState,
+  appClosed,
 }: {
   cameraId: string;
   cameraRoom: string;
   disabled: boolean;
   aiPaused: boolean;
   desiredState: 'connected' | 'disconnected';
+  // iPhone app closed: a "Reconnect" here is a no-op (the phone isn't
+  // polling to hear it), so we disable that button and point the user
+  // at the phone instead.
+  appClosed: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -432,9 +468,14 @@ function CameraTileMenu({
   const dcLabel = busy
     ? desiredState === 'disconnected' ? 'Reconnecting…' : 'Disconnecting…'
     : desiredState === 'disconnected' ? 'Reconnect' : 'Disconnect (privacy)';
-  const dcSubtitle = desiredState === 'disconnected'
-    ? 'Phone rejoins LiveKit (~1-2s).'
-    : 'Phone leaves LiveKit. ~1-2s reconnect.';
+  // When the app is closed, a Reconnect is a no-op (nothing on the phone
+  // is polling to hear it) — disable it and point the user at the phone.
+  const dcDisabledByAppClosed = appClosed && desiredState === 'disconnected';
+  const dcSubtitle = dcDisabledByAppClosed
+    ? 'App closed — open Memoria Sensor on the phone first.'
+    : desiredState === 'disconnected'
+      ? 'Phone rejoins LiveKit (~1-2s).'
+      : 'Phone leaves LiveKit. ~1-2s reconnect.';
 
   return (
     <div className="absolute right-2 top-2 z-50">
@@ -481,7 +522,7 @@ function CameraTileMenu({
           <button
             type="button"
             onClick={handleToggleDisconnect}
-            disabled={busy}
+            disabled={busy || dcDisabledByAppClosed}
             className={
               desiredState === 'disconnected'
                 ? 'block w-full border-t border-line px-3 py-2.5 text-left text-sm text-success hover:bg-card-alt disabled:opacity-50'
@@ -572,6 +613,11 @@ export function VideoGrid({
             // Pi UPDATE caused the tile to flip to "Awaiting pairing".
             api_key_hash: string | null;
             ingest_token_hash: string | null;
+            // Drives the "app closed" vs reconnectable "Disconnected"
+            // distinction; the PresenceSweeper flips app_present so the
+            // tile updates live with no refresh.
+            online: boolean;
+            app_present: boolean;
           }>) => {
             const next = payload.new;
             setCameras((prev) =>
@@ -587,6 +633,8 @@ export function VideoGrid({
                       paired:
                         next.api_key_hash !== null
                         || next.ingest_token_hash !== null,
+                      online: next.online,
+                      app_present: next.app_present,
                     }
                   : c,
               ),
@@ -610,6 +658,8 @@ export function VideoGrid({
             desired_state: 'connected' | 'disconnected';
             api_key_hash: string | null;
             ingest_token_hash: string | null;
+            online: boolean;
+            app_present: boolean;
           }>) => {
             const fresh = payload.new;
             // No livekit_identity yet = backend hasn't reserved one.
@@ -632,6 +682,8 @@ export function VideoGrid({
                   paired:
                     fresh.api_key_hash !== null
                     || fresh.ingest_token_hash !== null,
+                  online: fresh.online,
+                  app_present: fresh.app_present ?? true,
                 },
               ];
             });

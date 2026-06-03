@@ -34,6 +34,31 @@ export function PatientIdentityStatus({
   const [error, setError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
+  // Persist dismissal for the browser session (per patient) so the nudge
+  // doesn't reappear every time the caregiver navigates back to this
+  // page. sessionStorage (not localStorage) → it's a per-session
+  // dismissal: gone for this session, surfaces again next session as a
+  // gentle reminder until they actually enroll. Runs before `summary`
+  // finishes loading (the banner only renders after that async fetch),
+  // so there's no dismissed→visible flash.
+  const dismissKey = `face-enroll-dismissed:${patientId}`;
+  useEffect(() => {
+    try {
+      setDismissed(sessionStorage.getItem(dismissKey) === '1');
+    } catch {
+      // sessionStorage unavailable (private mode edge) — just don't persist.
+    }
+  }, [dismissKey]);
+
+  function handleDismiss() {
+    setDismissed(true);
+    try {
+      sessionStorage.setItem(dismissKey, '1');
+    } catch {
+      // ignore — dismissal still holds for this mount via state.
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -70,7 +95,7 @@ export function PatientIdentityStatus({
   if (surface === 'detail' && state !== 'not_enrolled') return null;
   if (dismissed) return null;
   return (
-    <Card urgent={state === 'not_enrolled'} onDismiss={() => setDismissed(true)}>
+    <Card urgent={state === 'not_enrolled'} onDismiss={handleDismiss}>
       <Indicator state={state} />
       <Text title={titleFor(state, patientName)} subtitle={subtitleFor(state)} />
     </Card>

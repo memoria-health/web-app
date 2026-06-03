@@ -28,17 +28,24 @@ import type { Camera } from '@/lib/api/types';
 function statusFor(
   cam: Camera,
   preparing: boolean,
-): { label: string; tone: 'live' | 'offline' | 'preparing' } {
+  appClosed: boolean,
+): { label: string; tone: 'live' | 'offline' | 'preparing' | 'appClosed' } {
+  // APP CLOSED is the distinct 4th state: the Memoria Sensor app isn't
+  // running on the phone, so reconnect can't help — the caregiver must
+  // reopen it. Wins over OFFLINE (which now strictly means reconnectable)
+  // but never over a live stream. iPhone-only — Pi sensors never hit it.
+  if (appClosed) return { label: 'APP CLOSED', tone: 'appClosed' };
   if (preparing) return { label: 'STARTING UP', tone: 'preparing' };
   return cam.online
     ? { label: 'ONLINE', tone: 'live' }
     : { label: 'OFFLINE', tone: 'offline' };
 }
 
-const TONE_CLASSES: Record<'live' | 'offline' | 'preparing', string> = {
+const TONE_CLASSES: Record<'live' | 'offline' | 'preparing' | 'appClosed', string> = {
   live: 'border-success/40 bg-card-alt text-success',
   offline: 'border-line bg-paper-dim text-ink4',
   preparing: 'border-warning/40 bg-card-alt text-warning',
+  appClosed: 'border-warning/40 bg-card-alt text-warning',
 };
 
 // User-triggered toggle styling. Mirrors iOS's chip palette
@@ -208,7 +215,11 @@ export function CameraList({
       <ul className="divide-y divide-line rounded-lg border border-line bg-card overflow-hidden">
         {cameras.map((cam) => {
           const preparing = mounted && isSensorPreparing(cam);
-          const status = statusFor(cam, preparing);
+          // iPhone app shut: not online + heartbeat stopped. Backend only
+          // ever sets app_present=false for iPhone sensors, so this stays
+          // false for Pi. undefined (old backend) → treated as present.
+          const appClosed = !cam.online && cam.app_present === false;
+          const status = statusFor(cam, preparing, appClosed);
           return (
             <li
               key={cam.id}
@@ -247,8 +258,11 @@ export function CameraList({
                     {status.label}
                   </span>
                   {/* User-triggered toggles. Independent + additive —
-                      render every chip that applies. */}
-                  {cam.desired_state === 'disconnected' && (
+                      render every chip that applies. The DISCONNECTED chip
+                      is suppressed while app-closed: "disconnected" now
+                      strictly means the reconnectable case, and the primary
+                      pill already reads APP CLOSED. */}
+                  {cam.desired_state === 'disconnected' && !appClosed && (
                     <span className={cn(TOGGLE_CHIP_BASE, TOGGLE_DISCONNECTED)}>
                       DISCONNECTED
                     </span>

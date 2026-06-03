@@ -27,15 +27,22 @@ export default async function CameraDetailPage({
   const camera = cameras.find((c) => c.id === cameraId);
   if (!camera || !assignments) notFound();
 
+  // App closed (iPhone sensor, not online, heartbeat stopped) is the
+  // distinct 4th state: reconnect can't help, the caregiver must reopen
+  // Memoria Sensor. Only ever true for iPhone sensors — Pi stays present.
+  const appClosed = !camera.online && camera.app_present === false;
   const statusLabel = !camera.paired
     ? { text: 'PAIRING', tone: 'pairing' as const }
     : camera.online
       ? { text: 'LIVE', tone: 'live' as const }
-      : { text: 'OFFLINE', tone: 'offline' as const };
+      : appClosed
+        ? { text: 'APP CLOSED', tone: 'appClosed' as const }
+        : { text: 'OFFLINE', tone: 'offline' as const };
   const toneClass: Record<typeof statusLabel.tone, string> = {
     live: 'border-action/30 bg-action text-action-ink',
     offline: 'border-line bg-paper-dim text-ink3',
     pairing: 'border-warning/40 bg-card-alt text-warning',
+    appClosed: 'border-warning/40 bg-card-alt text-warning',
   };
 
   return (
@@ -70,7 +77,7 @@ export default async function CameraDetailPage({
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
           <dt className="text-ink3">Display ID</dt>
           <dd className="font-mono text-ink2">
-            CAM {String(camera.display_id).padStart(2, '0')}
+            SENSOR {String(camera.display_id).padStart(2, '0')}
           </dd>
           <dt className="text-ink3">LiveKit identity</dt>
           <dd className="font-mono text-ink2">

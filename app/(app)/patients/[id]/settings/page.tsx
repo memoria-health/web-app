@@ -42,7 +42,7 @@ export default async function PatientSettingsPage({
       <section className="rounded-lg border border-line bg-card px-5 py-5">
         <h2 className="mb-1 font-serif text-2xl text-ink">Monitoring</h2>
         <p className="mb-4 text-sm text-ink3">
-          Pause to stop watching {firstName}. All cameras turn off and
+          Pause to stop watching {firstName}. All sensors turn off and
           AI alerts stop until you resume. Resume brings everything back
           in a few seconds.
         </p>
