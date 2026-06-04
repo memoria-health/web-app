@@ -6,6 +6,9 @@ import { TopNav } from '@/app/_components/TopNav';
 import { OnboardingModal } from '@/app/_components/OnboardingModal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { PatientProvider } from '@/app/_components/PatientProvider';
+import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
+import { AlertsFirstRunPrompt } from '@/app/_components/alerts/AlertsFirstRunPrompt';
+import { Toaster } from 'sonner';
 import { patientSession } from '@/lib/server/patientSession';
 
 async function ensureCaregiver(): Promise<{
@@ -66,10 +69,19 @@ export default async function AppLayout({
   return (
     <div className="flex flex-1 flex-col">
       <PatientProvider patients={patients} selected={selected}>
-        <TopNav email={email} />
-        <main className="flex-1 flex flex-col">{children}</main>
-        {!onboardedWeb && <OnboardingModal />}
-        <TimezoneSync current={timezone} />
+        {/* AlertsProvider wraps TopNav (which hosts the bell) + children so
+            the global browser-alert subscription runs on every signed-in
+            page. See app/_components/alerts/AlertsProvider.tsx. */}
+        <AlertsProvider patients={patients}>
+          <TopNav email={email} />
+          <main className="flex-1 flex flex-col">{children}</main>
+          {!onboardedWeb && <OnboardingModal />}
+          <TimezoneSync current={timezone} />
+          {/* In-app toast target for Tier-2 alerts. */}
+          <Toaster position="top-right" richColors closeButton />
+          {/* One-time first-visit offer to turn alerts on (gesture-safe). */}
+          <AlertsFirstRunPrompt />
+        </AlertsProvider>
       </PatientProvider>
     </div>
   );

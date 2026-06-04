@@ -1,6 +1,6 @@
 'use client';
 
-import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
+import { LiveKitRoom } from '@livekit/components-react';
 
 /// Mounts a single `<LiveKitRoom>` at the patient-layout level so that
 /// the room connection survives sub-tab navigation (Live ↔ Cameras ↔
@@ -39,7 +39,14 @@ export function LiveRoomProvider({
       video={false}
     >
       {children}
-      <RoomAudioRenderer />
+      {/* Intentionally NO <RoomAudioRenderer />. It plays EVERY subscribed
+          room audio track at full volume with no per-track control, which
+          overrode the per-tile mute toggle in the live grid: each tile's own
+          <AudioTrack volume={isAudible?1:0}> was correctly muted, but
+          RoomAudioRenderer blasted the same track anyway (verified — the tile
+          element read elVolume:0 while audio still played). Audio is rendered
+          PER TILE in VideoGrid instead, so the mute button controls audibility.
+          Do not re-add this without per-tile volume support. */}
     </LiveKitRoom>
   );
 }

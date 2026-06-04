@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
 import { PatientSwitcher } from './PatientSwitcher';
+import { AlertsBell } from './alerts/AlertsBell';
 
 /// Top of every page. Two stacked rows:
 ///
@@ -67,6 +68,9 @@ export function TopNav({ email }: { email: string | null }) {
               {email}
             </span>
           )}
+          {/* Per-device browser-alerts toggle (sound + desktop notification +
+              toast). See app/_components/alerts/AlertsProvider.tsx. */}
+          <AlertsBell />
           <SignOutButton />
         </div>
       </nav>

@@ -6,6 +6,7 @@ import {
   AudioTrack,
   ParticipantTile,
   VideoTrack,
+  useRoomContext,
   useTracks,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
@@ -40,6 +41,10 @@ interface EnabledCamera {
 }
 
 function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
+  // The LiveKit room — used to resume the browser AudioContext on a user
+  // gesture (see toggleAudio). GridInner only renders inside <LiveKitRoom>
+  // (useTracks below requires it too), so this is always available here.
+  const room = useRoomContext();
   const tracks = useTracks(
     [{ source: Track.Source.Camera, withPlaceholder: false }],
     { onlySubscribed: true },
@@ -73,14 +78,16 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
   }
 
   // Per-tile audio unmute state, keyed by participant identity. Default
-  // is muted for every camera ("all rooms silent unless I opt in") —
-  // matches the iOS LiveKit client's `audioEnabledByIdentity` default.
-  // State lives in GridInner (component-local) since it's UI-only and
-  // doesn't need to survive remounts: the audio track stays subscribed
-  // regardless, we're just choosing whether to render the <AudioTrack>
-  // (which produces audible output).
+  // is muted for every camera ("all rooms silent unless I opt in").
   const [audioUnmuted, setAudioUnmuted] = useState<Set<string>>(new Set());
   const toggleAudio = (identity: string) => {
+    // Resume the browser AudioContext on THIS user gesture. Removing
+    // RoomAudioRenderer (so per-tile mute could work) also removed LiveKit's
+    // autoplay-unlock, leaving the AudioContext suspended ("could not playback
+    // audio"). `startAudio()` must be called from a gesture; the toggle click
+    // is one. Idempotent + harmless once audio is already unlocked, so we call
+    // it on every toggle (the unmute case is the one that matters).
+    void room.startAudio().catch(() => {});
     setAudioUnmuted((prev) => {
       const next = new Set(prev);
       if (next.has(identity)) next.delete(identity);
@@ -142,6 +149,9 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                   appClosed={appClosed}
                   trackRef={trackRef}
                 />
+                {/* Per-tile audio — the ONLY audio sink now that
+                    RoomAudioRenderer is removed (see LiveRoomProvider). `volume`
+                    gates audibility from the per-tile mute toggle. */}
                 {audioRef && (
                   <AudioTrack
                     trackRef={audioRef as Parameters<typeof AudioTrack>[0]['trackRef']}
@@ -342,17 +352,17 @@ function CameraTileAudioButton({
 }
 
 
-/// Per-tile overflow menu. Always shows two toggles with state-aware
-/// labels:
+/// Per-tile overflow menu. Two state-aware toggles:
 ///
-///   - Hide ↔ Show      (toggles `cameras.disabled`)
-///   - Disconnect ↔ Reconnect (toggles `cameras.desired_state`)
+///   - Pause AI ↔ Resume AI    (toggles `cameras.ai_paused`)
+///   - Disconnect ↔ Reconnect  (toggles `cameras.desired_state`)
 ///
-/// The menu is the only way to leave AND re-enter both states from
-/// the live grid — tiles stay in place regardless of state so the
-/// caregiver can always reach the ⋯ button. Confirm dialog fires
-/// only on the connecting→disconnecting direction (the destructive
-/// one); reconnecting is harmless.
+/// (The old "Hide ↔ Show" toggle — `cameras.disabled` — was removed: the
+/// caregiver's options are just Disconnect or Pause AI. The `disabled`
+/// field still exists and is honored where read; it's no longer settable.)
+///
+/// Confirm dialog fires only on the connecting→disconnecting direction
+/// (the destructive one); reconnecting is harmless.
 function CameraTileMenu({
   cameraId,
   cameraRoom,
@@ -385,29 +395,6 @@ function CameraTileMenu({
     return () => document.removeEventListener('click', close);
   }, [open]);
 
-  /// Toggle `disabled`. Both directions are instant + reversible —
-  /// no confirm dialog. Phone keeps publishing either way (this only
-  /// gates LLM calls + dashboard visibility, not the LiveKit
-  /// connection itself).
-  ///
-  /// `finally { setBusy(false) }` matters here: the component stays
-  /// MOUNTED across the state change (reserved tile), so a stale
-  /// `busy=true` would leave the button permanently disabled. Always
-  /// clear it, success or failure.
-  async function handleToggleHide(e: React.MouseEvent) {
-    e.stopPropagation();
-    setBusy(true);
-    setErr(null);
-    try {
-      await getBrowserNemara().updateCamera(cameraId, { disabled: !disabled });
-      router.refresh();
-    } catch (e2) {
-      setErr(e2 instanceof Error ? e2.message : String(e2));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   /// Toggle `ai_paused`. Video keeps streaming either way; only the
   /// LLM tick is skipped. Instant + reversible — no confirm dialog.
   /// Disabled while the camera is fully hidden (`disabled=true`)
@@ -432,7 +419,9 @@ function CameraTileMenu({
   /// connection drops, reconnect takes ~1-2s of polling). Going BACK
   /// to connected is one click — no confirm needed.
   ///
-  /// Same `finally { setBusy(false) }` reasoning as handleToggleHide.
+  /// `finally { setBusy(false) }`: the tile stays MOUNTED across the
+  /// state change (reserved tile), so a stale `busy=true` would leave the
+  /// button permanently disabled. Always clear it, success or failure.
   async function handleToggleDisconnect(e: React.MouseEvent) {
     e.stopPropagation();
     if (desiredState === 'connected') {
@@ -455,16 +444,7 @@ function CameraTileMenu({
     }
   }
 
-  // State-derived labels for the buttons. Helper text underneath
-  // explains the wire effect so users learn the difference between
-  // Hide (instant) and Disconnect (LiveKit reconnect).
-  const hideShowLabel = busy
-    ? disabled ? 'Showing…' : 'Hiding…'
-    : disabled ? 'Show sensor' : 'Hide sensor';
-  const hideShowSubtitle = disabled
-    ? 'Resume AI calls. Instant.'
-    : 'Pause AI calls. LiveKit stays connected.';
-
+  // State-derived labels for the buttons.
   const aiLabel = busy
     ? aiPaused ? 'Resuming AI…' : 'Pausing AI…'
     : aiPaused ? 'Resume AI' : 'Pause AI';
@@ -513,17 +493,6 @@ function CameraTileMenu({
             {aiLabel}
             <div className="mt-0.5 text-xs font-normal leading-tight text-ink3">
               {aiSubtitle}
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleHide}
-            disabled={busy}
-            className="block w-full border-t border-line px-3 py-2.5 text-left text-base text-ink hover:bg-paper-dim disabled:opacity-50"
-          >
-            {hideShowLabel}
-            <div className="mt-0.5 text-xs font-normal leading-tight text-ink3">
-              {hideShowSubtitle}
             </div>
           </button>
           <button
