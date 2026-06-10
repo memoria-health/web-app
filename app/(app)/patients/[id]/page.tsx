@@ -6,6 +6,7 @@ import { EventsFeed } from '@/app/_components/EventsFeed';
 import { LiveAnalysesSection } from '@/app/_components/LiveAnalysesSection';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { type Analysis } from '@/lib/api/types';
+import { SHOW_LIVE_ANALYSES } from '@/lib/featureFlags';
 
 // How many recent rows to pre-fill each per-camera AnalysesFeed with.
 // Realtime only delivers events AFTER subscribe — without this prefetch,
@@ -158,20 +159,24 @@ export default async function PatientLivePage({
         )}
       </section>
 
-      <section>
-        <header className="mb-3">
-          <h2 className="font-serif text-3xl tracking-tight text-ink">
-            Live analyses
-          </h2>
-        </header>
-        <LiveAnalysesSection
-          patientId={patient.id}
-          camerasPaused={patient.cameras_paused}
-          initialCameras={cameras}
-          detectors={allDetectors}
-          initialByCamera={Object.fromEntries(initialByCamera)}
-        />
-      </section>
+      {/* Hidden via feature flag — flip SHOW_LIVE_ANALYSES in lib/featureFlags
+          to bring it back. Code + data fetch are intentionally left intact. */}
+      {SHOW_LIVE_ANALYSES && (
+        <section>
+          <header className="mb-3">
+            <h2 className="font-serif text-3xl tracking-tight text-ink">
+              Live analyses
+            </h2>
+          </header>
+          <LiveAnalysesSection
+            patientId={patient.id}
+            camerasPaused={patient.cameras_paused}
+            initialCameras={cameras}
+            detectors={allDetectors}
+            initialByCamera={Object.fromEntries(initialByCamera)}
+          />
+        </section>
+      )}
 
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
