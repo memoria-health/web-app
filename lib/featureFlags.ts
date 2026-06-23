@@ -11,4 +11,4 @@
  * feed). Hidden for now. Set to `true` to show it again — that's the only
  * change needed; the component and its data fetch are untouched.
  */
-export const SHOW_LIVE_ANALYSES = false;
+export const SHOW_LIVE_ANALYSES = true;
