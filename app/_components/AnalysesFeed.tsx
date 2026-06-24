@@ -33,6 +33,23 @@ function asNumber(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+// Which VLM produced a tick. `openrouter` is shown as "Qwen" (the model we
+// route there) and gets its own colour so gemini / openai / qwen are
+// distinguishable at a glance.
+const PROVIDER_LABEL: Record<string, string> = {
+  gemini: 'Gemini',
+  openai: 'OpenAI',
+  openrouter: 'Qwen',
+  skipped: 'skipped',
+};
+
+function providerStyle(p: string): string {
+  if (p === 'gemini') return 'border-sky/40 bg-sky-soft text-sky';
+  if (p === 'openai') return 'border-success/40 bg-card-alt text-success';
+  if (p === 'openrouter') return 'border-terra/40 bg-terra-soft text-terra-deep';
+  return 'border-line bg-paper-dim text-ink4';
+}
+
 export function AnalysesFeed({
   patientId,
   enabledCameraIds,
@@ -236,17 +253,35 @@ export function AnalysesFeed({
     </div>
   );
 
+  // The model currently running this camera = the provider of the most
+  // recent non-skipped tick. Surfaced as a badge in the header so you can
+  // see at a glance whether this family is on Gemini / OpenAI / Qwen.
+  const currentProvider = rows.find((r) => r.provider !== 'skipped')?.provider ?? null;
+
   // Optional per-camera label header (when cameraId is set, this feed
   // is one cell of a per-camera grid — show the room name so the user
   // knows which video tile it pairs with).
   const headerBar = cameraLabel ? (
     <div className="mb-2 flex items-center justify-between">
       <span className="font-serif text-xl text-ink">{cameraLabel}</span>
-      {debugEnabled && cameraId && (
-        <span className="font-mono text-xs text-ink4 tracking-wide">
-          {cameraId.slice(0, 8)}…
-        </span>
-      )}
+      <div className="flex items-center gap-2">
+        {currentProvider && (
+          <span
+            className={cn(
+              'inline-flex items-center rounded-sm border px-2 py-0.5 font-mono text-xs uppercase tracking-wider',
+              providerStyle(currentProvider),
+            )}
+            title="The VLM currently analysing this camera"
+          >
+            {PROVIDER_LABEL[currentProvider] ?? currentProvider}
+          </span>
+        )}
+        {debugEnabled && cameraId && (
+          <span className="font-mono text-xs text-ink4 tracking-wide">
+            {cameraId.slice(0, 8)}…
+          </span>
+        )}
+      </div>
     </div>
   ) : null;
 
@@ -426,16 +461,14 @@ function AnalysisRow({
         >
           {a.motion_in_clip ? 'motion' : 'still'}
         </span>
-        {/* provider */}
+        {/* provider — which VLM produced this tick (Qwen = openrouter) */}
         <span
           className={cn(
             'ml-auto inline-flex items-center rounded-sm border px-1.5 py-0.5 font-mono uppercase tracking-wider',
-            a.provider === 'gemini' && 'border-sky/40 bg-sky-soft text-sky',
-            a.provider === 'openai' && 'border-sky/40 bg-sky-soft text-sky',
-            a.provider === 'skipped' && 'border-line bg-paper-dim text-ink4',
+            providerStyle(a.provider),
           )}
         >
-          {a.provider}
+          {PROVIDER_LABEL[a.provider] ?? a.provider}
         </span>
         {/* fall + wandering + agitation badges (right-aligned cluster) */}
         {fallDetected && (

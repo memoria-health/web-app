@@ -251,7 +251,7 @@ export interface Analysis {
   caregiver_id: string;
   patient_id: string;
   camera_id: string;
-  provider: 'gemini' | 'openai' | 'skipped';
+  provider: 'gemini' | 'openai' | 'openrouter' | 'skipped';
   description: string;
   // JSONB blob; shape depends on which detectors were enabled at tick time.
   // Common keys: people_present, people_count, fall_detected, fall_confidence,
