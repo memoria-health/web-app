@@ -69,6 +69,14 @@ export interface Patient {
   // (which always receives this patient's alerts when enabled).
   email_alerts_enabled: boolean;
   email_alert_recipients: string[];
+  // Per-patient data-collection consent. `enabled` = the actual on/off
+  // (master switch for storing short video/audio clips to improve the
+  // AI). `decided_at` is stamped server-side whenever the caregiver
+  // sets `data_collection_enabled` (both true AND false record a
+  // decision). decided_at === null ⇒ caregiver never asked ⇒ show the
+  // first-open consent banner; non-null ⇒ never auto-show again.
+  data_collection_enabled: boolean;
+  data_collection_decided_at: string | null;
 }
 
 // Which physical device class a camera row represents. Backend
@@ -304,6 +312,11 @@ export interface UpdatePatientRequest {
   // the live grid + analyses feed). Per-camera disable lives on
   // the Camera row instead.
   cameras_paused?: boolean;
+  // Per-patient data-collection consent. When present in the PATCH
+  // body, the backend stamps `data_collection_decided_at` server-side
+  // (so both true and false record a decision). Never send
+  // `data_collection_decided_at` from the client.
+  data_collection_enabled?: boolean;
 }
 
 export interface UpdateCameraRequest {
