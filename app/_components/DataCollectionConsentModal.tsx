@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Video } from 'lucide-react';
 import { getBrowserNemara } from '@/lib/api/client';
 import { cn } from '@/lib/utils/cn';
 
@@ -51,17 +52,24 @@ export function DataCollectionConsentModal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
     >
       <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-line bg-card shadow-2xl">
-        {/* Copy */}
+        {/* Copy. Icon-led stack to match the browser-alerts banner. */}
         <div className="flex flex-col gap-3 px-6 py-6">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-paper-dim text-ink2">
+            <Video className="h-5 w-5" aria-hidden="true" />
+          </span>
           <h2 className="font-serif text-2xl tracking-tight text-ink">
             Help improve care for everyone.
           </h2>
           <p className="text-base leading-relaxed text-ink2">
-            With your permission, Memoria will securely store short video and
-            audio clips of {patientName} — only when someone is present — to
-            help improve our AI&apos;s understanding of elderly health and
-            disease. This is optional, never required, and you can turn it off
-            anytime in Settings.
+            With your permission, Memoria will{" "}
+            <strong className="font-semibold text-ink">
+              securely store video and audio clips of {patientName}
+            </strong>{" "}
+            to help improve our understanding of elderly health and disease.
+          </p>
+          <p className="text-base leading-relaxed text-ink2">
+            This is optional, never required, and you can turn it off anytime in
+            Settings.
           </p>
         </div>
 
@@ -79,7 +87,7 @@ export function DataCollectionConsentModal({
             disabled={busy}
             onClick={() => decide(false)}
             className={cn(
-              'rounded-md border border-line bg-card-alt px-4 py-2 text-sm font-medium text-ink hover:bg-paper-dim transition-colors disabled:opacity-50',
+              'rounded-md border border-line bg-transparent px-4 py-2 text-sm text-ink2 hover:bg-paper-dim hover:text-ink transition-colors disabled:opacity-50',
             )}
           >
             Not now
