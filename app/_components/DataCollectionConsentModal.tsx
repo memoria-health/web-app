@@ -52,14 +52,15 @@ export function DataCollectionConsentModal({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
     >
       <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-line bg-card shadow-2xl">
-        {/* Copy. Icon-led stack to match the browser-alerts banner. */}
+        {/* Copy. Bare icon inline with the title, mirroring the alerts
+            banner's [icon][text] row (no badge). */}
         <div className="flex flex-col gap-3 px-6 py-6">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-paper-dim text-ink2">
-            <Video className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <h2 className="font-serif text-2xl tracking-tight text-ink">
-            Help improve care for everyone.
-          </h2>
+          <div className="flex items-center gap-2.5">
+            <Video className="h-6 w-6 shrink-0 text-ink2" aria-hidden="true" />
+            <h2 className="font-serif text-2xl tracking-tight text-ink">
+              Help improve care for everyone.
+            </h2>
+          </div>
           <p className="text-base leading-relaxed text-ink2">
             With your permission, Memoria will{" "}
             <strong className="font-semibold text-ink">
