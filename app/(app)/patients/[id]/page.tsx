@@ -5,6 +5,7 @@ import { VideoGrid } from '@/app/_components/VideoGrid';
 import { EventsFeed } from '@/app/_components/EventsFeed';
 import { LiveAnalysesSection } from '@/app/_components/LiveAnalysesSection';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
+import { DataCollectionConsentGate } from '@/app/_components/DataCollectionConsentGate';
 import { type Analysis } from '@/lib/api/types';
 import { SHOW_LIVE_ANALYSES } from '@/lib/featureFlags';
 
@@ -134,6 +135,15 @@ export default async function PatientLivePage({
 
   return (
     <div className="flex flex-1 flex-col gap-7 px-6 py-6 max-w-7xl w-full mx-auto">
+      {/* First-open data-collection consent. Renders a modal only when
+          the caregiver has never decided (decided_at == null); inert
+          (renders nothing) once a decision has been recorded. */}
+      <DataCollectionConsentGate
+        patientId={patient.id}
+        patientName={patient.preferred_name || patient.full_name}
+        initialDecidedAt={patient.data_collection_decided_at}
+      />
+
       <PatientIdentityStatus
         patientId={patient.id}
         patientName={patient.preferred_name || patient.full_name}
