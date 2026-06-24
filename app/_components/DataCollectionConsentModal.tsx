@@ -48,7 +48,7 @@ export function DataCollectionConsentModal({
       role="dialog"
       aria-modal="true"
       aria-label="Help improve care for everyone"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
     >
       <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-line bg-card shadow-2xl">
         {/* Copy */}
