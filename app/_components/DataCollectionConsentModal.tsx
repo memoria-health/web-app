@@ -1,0 +1,101 @@
+'use client';
+
+import { useState } from 'react';
+import { getBrowserNemara } from '@/lib/api/client';
+import { cn } from '@/lib/utils/cn';
+
+/// First-open data-collection consent modal. Rendered by the patient
+/// detail page when `patient.data_collection_decided_at == null` (the
+/// caregiver has never been asked). Mirrors OnboardingModal's plain
+/// `role="dialog"` overlay — no dialog dependency.
+///
+/// Both choices RECORD a decision: "Share recordings" PATCHes
+/// {data_collection_enabled: true}, "Not now" PATCHes false. The
+/// backend stamps `data_collection_decided_at` server-side whenever
+/// the field is present, so either choice stops the banner from
+/// re-nagging; the Settings toggle is how the caregiver changes it
+/// later. We pass the resulting `enabled` value up via `onDecide` so
+/// the parent can optimistically hide the modal for the session.
+export function DataCollectionConsentModal({
+  patientId,
+  patientName,
+  onDecide,
+}: {
+  patientId: string;
+  patientName: string;
+  onDecide: (enabled: boolean) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function decide(enabled: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      await getBrowserNemara().updatePatient(patientId, {
+        data_collection_enabled: enabled,
+      });
+      onDecide(enabled);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Help improve care for everyone"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 animate-[fadeIn_150ms_ease-out]"
+    >
+      <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-line bg-card shadow-2xl">
+        {/* Copy */}
+        <div className="flex flex-col gap-3 px-6 py-6">
+          <h2 className="font-serif text-2xl tracking-tight text-ink">
+            Help improve care for everyone.
+          </h2>
+          <p className="text-base leading-relaxed text-ink2">
+            With your permission, Memoria will securely store short video and
+            audio clips of {patientName} — only when someone is present — to
+            help improve our AI&apos;s understanding of elderly health and
+            disease. This is optional, never required, and you can turn it off
+            anytime in Settings.
+          </p>
+        </div>
+
+        {error && (
+          <div className="mx-6 mb-2 rounded-md border border-terra/40 bg-terra-soft px-3 py-2 text-sm text-terra-deep">
+            {error}
+          </div>
+        )}
+
+        {/* Controls. "Not now" is the secondary; "Share recordings" the
+            primary action — both disabled during the in-flight PATCH. */}
+        <div className="flex items-center justify-end gap-2 border-t border-line px-6 py-4">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => decide(false)}
+            className={cn(
+              'rounded-md border border-line bg-card-alt px-4 py-2 text-sm font-medium text-ink hover:bg-paper-dim transition-colors disabled:opacity-50',
+            )}
+          >
+            Not now
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => decide(true)}
+            className={cn(
+              'rounded-md bg-action px-5 py-2 text-sm font-semibold text-action-ink hover:bg-ink2 transition-colors disabled:opacity-50',
+            )}
+          >
+            Share recordings
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
