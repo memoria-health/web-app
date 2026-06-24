@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { PatientForm } from '@/app/_components/PatientForm';
 import { EmailAlertsSettings } from '@/app/_components/EmailAlertsSettings';
+import { DataCollectionSettings } from '@/app/_components/DataCollectionSettings';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { patientSession } from '@/lib/server/patientSession';
@@ -79,6 +80,20 @@ export default async function PatientSettingsPage({
           accountEmail={accountEmail}
           initialEnabled={patient.email_alerts_enabled}
           initialRecipients={patient.email_alert_recipients}
+        />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Data collection</h2>
+        <p className="mb-4 text-sm text-ink3">
+          With your permission, Memoria securely stores short video and audio
+          clips of {firstName} — only when someone is present — to help improve
+          our AI’s understanding of elderly health and disease. This is
+          optional and never required; turn it off anytime.
+        </p>
+        <DataCollectionSettings
+          patientId={patient.id}
+          initialEnabled={patient.data_collection_enabled}
         />
       </section>
     </div>
