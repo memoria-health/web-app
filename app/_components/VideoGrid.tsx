@@ -577,11 +577,20 @@ export function VideoGrid({
   // through this subscription, not through a page refresh.
   const [cameras, setCameras] = useState<EnabledCamera[]>(enabledCameras);
 
-  // Mirror prop changes back into state (covers an SSR re-render
-  // landing while the user is on the page, e.g. after a hard nav).
-  useEffect(() => {
+  // Mirror server-rendered prop changes back into state (covers an SSR
+  // re-render landing while the user is on the page — a hard nav or a
+  // router.refresh() after a privacy/settings toggle). Uses React's
+  // "adjust state during render" pattern instead of a setState-in-effect:
+  // when the `enabledCameras` prop identity changes we reset synchronously
+  // (no extra commit/paint), which is exactly when the server handed us a
+  // fresh snapshot. Pure client re-renders (realtime mutations to
+  // `cameras`) keep the same prop reference, so they never reset.
+  const [prevEnabledCameras, setPrevEnabledCameras] =
+    useState<EnabledCamera[]>(enabledCameras);
+  if (enabledCameras !== prevEnabledCameras) {
+    setPrevEnabledCameras(enabledCameras);
     setCameras(enabledCameras);
-  }, [enabledCameras]);
+  }
 
   // Realtime: cameras table, scoped to this patient. Same auth-aware
   // client + payload-driven mutation pattern as CameraList /
