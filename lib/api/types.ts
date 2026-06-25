@@ -45,6 +45,10 @@ export interface Caregiver {
   // IANA timezone scheduled detectors evaluate in. Auto-set from the
   // browser on app load (TimezoneSync).
   timezone: string;
+  // Per-account visibility of the "Live analyses" feed. Default true;
+  // flipped false to hide it for specific accounts (e.g. demo logins).
+  // The page gates the section on this AND the global SHOW_LIVE_ANALYSES.
+  show_live_analyses: boolean;
 }
 
 export interface Patient {

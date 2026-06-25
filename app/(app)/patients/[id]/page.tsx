@@ -29,6 +29,10 @@ export default async function PatientLivePage({
     data: { user },
   } = await supa.auth.getUser();
 
+  // Per-account "Live analyses" visibility. The layout already ensured the
+  // caregiver row exists (provisions on 404), so getMe succeeds here.
+  const me = await api.getMe();
+
   // Patient existence is already validated by the layout (404 there
   // if missing) — refetch here so we have the full row including
   // cameras_paused. listPatients is patient-list-scoped, cheap.
@@ -159,9 +163,11 @@ export default async function PatientLivePage({
         )}
       </section>
 
-      {/* Hidden via feature flag — flip SHOW_LIVE_ANALYSES in lib/featureFlags
-          to bring it back. Code + data fetch are intentionally left intact. */}
-      {SHOW_LIVE_ANALYSES && (
+      {/* Two gates: SHOW_LIVE_ANALYSES is the global master kill-switch
+          (flip in lib/featureFlags to hide for EVERYONE); me.show_live_analyses
+          is the per-account dial (default true, flipped false to hide it for
+          specific accounts e.g. demo logins). Both must be true to render. */}
+      {SHOW_LIVE_ANALYSES && me.show_live_analyses && (
         <section>
           <header className="mb-3">
             <h2 className="font-serif text-3xl tracking-tight text-ink">
