@@ -77,6 +77,11 @@ export interface Patient {
   // first-open consent banner; non-null ⇒ never auto-show again.
   data_collection_enabled: boolean;
   data_collection_decided_at: string | null;
+  // Privacy mode (dignity override). When true: no clips are stored, the
+  // live video+audio feed is severed server-side, and event clips are
+  // stripped from insights — text insights keep flowing. Suspends
+  // data_collection_enabled without changing it.
+  privacy_mode_enabled: boolean;
 }
 
 // Which physical device class a camera row represents. Backend
@@ -317,6 +322,9 @@ export interface UpdatePatientRequest {
   // (so both true and false record a decision). Never send
   // `data_collection_decided_at` from the client.
   data_collection_enabled?: boolean;
+  // Privacy mode toggle. Suspends data collection + severs the live feed
+  // server-side; does not touch the stored consent decision.
+  privacy_mode_enabled?: boolean;
 }
 
 export interface UpdateCameraRequest {

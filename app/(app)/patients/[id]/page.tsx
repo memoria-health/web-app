@@ -151,10 +151,15 @@ export default async function PatientLivePage({
       />
 
       <section>
-        <header className="mb-3">
+        <header className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live grid
           </h2>
+          {patient.privacy_mode_enabled && (
+            <span className="inline-flex items-center gap-1 rounded-sm border border-action/40 bg-action-soft px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-action">
+              Privacy mode on
+            </span>
+          )}
         </header>
         {lkError ? (
           <div className="rounded-lg border border-terra/40 bg-terra-soft px-4 py-3 text-sm text-terra-deep">
@@ -165,6 +170,7 @@ export default async function PatientLivePage({
             patientId={patient.id}
             hasLivekitToken={true}
             enabledCameras={gridCameras}
+            privacyMode={patient.privacy_mode_enabled}
           />
         )}
       </section>

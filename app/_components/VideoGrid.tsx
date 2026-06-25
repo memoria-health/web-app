@@ -40,7 +40,13 @@ interface EnabledCamera {
   app_present: boolean;
 }
 
-function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
+function GridInner({
+  enabledCameras,
+  privacyMode = false,
+}: {
+  enabledCameras: EnabledCamera[];
+  privacyMode?: boolean;
+}) {
   // The LiveKit room — used to resume the browser AudioContext on a user
   // gesture (see toggleAudio). GridInner only renders inside <LiveKitRoom>
   // (useTracks below requires it too), so this is always available here.
@@ -148,14 +154,16 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                   desiredState={cam.desired_state}
                   appClosed={appClosed}
                   trackRef={trackRef}
+                  privacyMode={privacyMode}
                 />
                 {/* Per-tile audio — the ONLY audio sink now that
                     RoomAudioRenderer is removed (see LiveRoomProvider). `volume`
-                    gates audibility from the per-tile mute toggle. */}
+                    gates audibility from the per-tile mute toggle. Privacy mode
+                    forces it silent (the server also severs the track). */}
                 {audioRef && (
                   <AudioTrack
                     trackRef={audioRef as Parameters<typeof AudioTrack>[0]['trackRef']}
-                    volume={isAudible ? 1.0 : 0.0}
+                    volume={isAudible && !privacyMode ? 1.0 : 0.0}
                   />
                 )}
               </div>
@@ -195,6 +203,7 @@ function CameraTileBody({
   desiredState,
   appClosed,
   trackRef,
+  privacyMode,
 }: {
   paired: boolean;
   disabled: boolean;
@@ -207,7 +216,22 @@ function CameraTileBody({
   // The LiveKit track type — kept loose because the GridInner-internal
   // shape isn't exported. Only used as: present → render ParticipantTile.
   trackRef: Parameters<typeof ParticipantTile>[0]['trackRef'] | undefined;
+  // Privacy mode — when on, the feed is severed server-side; show the
+  // dignity placard instead of any video/spinner.
+  privacyMode: boolean;
 }) {
+  // Privacy mode beats everything — the live feed is intentionally
+  // hidden (and severed at the SFU), regardless of pairing/connection.
+  if (privacyMode) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-1 px-4 text-center text-ink3">
+        <span className="font-serif text-xl text-ink2">Privacy mode</span>
+        <span className="text-xs text-ink4">
+          Live video and audio are hidden. Insights are still active.
+        </span>
+      </div>
+    );
+  }
   // "Awaiting pairing" beats every other state — there literally is no
   // wall phone publishing yet, so nothing else can be true.
   if (!paired) {
@@ -531,6 +555,7 @@ export function VideoGrid({
   patientId,
   hasLivekitToken,
   enabledCameras,
+  privacyMode = false,
 }: {
   patientId: string;
   // Whether the patient layout successfully minted a LiveKit token.
@@ -539,6 +564,10 @@ export function VideoGrid({
   // empty grid so the caregiver knows the upstream mint failed.
   hasLivekitToken: boolean;
   enabledCameras: EnabledCamera[];
+  // Privacy mode for this patient. While on, the backend severs the
+  // caregiver's media at the SFU (no track arrives), so every tile shows
+  // the privacy placard instead of a feed.
+  privacyMode?: boolean;
 }) {
   // Own the camera list as client state so realtime updates from
   // OTHER surfaces (iOS PATCH of `disabled`, wall-phone PATCH of
@@ -709,5 +738,5 @@ export function VideoGrid({
   // context via useTracks(). That preserves the room connection across
   // sub-tab navigation; previously this component owned the wrapper,
   // which tore down the room every time the user left the Live tab.
-  return <GridInner enabledCameras={cameras} />;
+  return <GridInner enabledCameras={cameras} privacyMode={privacyMode} />;
 }

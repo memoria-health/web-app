@@ -14,9 +14,14 @@ import { cn } from '@/lib/utils/cn';
 export function DataCollectionSettings({
   patientId,
   initialEnabled,
+  suspendedByPrivacy = false,
 }: {
   patientId: string;
   initialEnabled: boolean;
+  // Privacy mode SUSPENDS data collection without changing the stored
+  // choice. While on, this control is locked and reads as suspended; the
+  // underlying value is preserved and resumes when privacy clears.
+  suspendedByPrivacy?: boolean;
 }) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [busy, setBusy] = useState(false);
@@ -53,17 +58,25 @@ export function DataCollectionSettings({
           track (justify-end when on) — no absolute/translate math, so
           it can't drift off the edge. */}
       <div className="flex items-center justify-between gap-4">
-        <span className="text-base text-ink">
-          Contribute recordings to research
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className="text-base text-ink">
+            Contribute recordings to research
+          </span>
+          {suspendedByPrivacy && (
+            <span className="text-sm text-ink3">
+              Suspended while Privacy mode is on. Your choice is saved and
+              resumes the moment Privacy mode is turned off.
+            </span>
+          )}
+        </div>
         <button
           type="button"
           role="switch"
           aria-checked={enabled}
-          disabled={busy}
+          disabled={busy || suspendedByPrivacy}
           onClick={toggleEnabled}
           className={cn(
-            'flex h-7 w-12 items-center rounded-full p-0.5 transition-colors disabled:opacity-50',
+            'flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:opacity-50',
             enabled ? 'justify-end bg-action' : 'justify-start bg-line',
           )}
         >
