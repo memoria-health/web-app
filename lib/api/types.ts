@@ -245,6 +245,10 @@ export interface DetectionEvent {
   review_notes: string | null;
   reviewed_at: string | null;
   clip_storage_key: string | null;
+  // True when the clip was suppressed by privacy mode (vs still
+  // processing). The web events feed is text-only so this isn't rendered
+  // yet, but it's kept in sync with the backend EventResponse.
+  clip_suppressed: boolean;
   created_at: string;
 }
 
