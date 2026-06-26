@@ -73,6 +73,19 @@ export interface Patient {
   // (which always receives this patient's alerts when enabled).
   email_alerts_enabled: boolean;
   email_alert_recipients: string[];
+  // Per-patient data-collection consent. `enabled` = the actual on/off
+  // (master switch for storing short video/audio clips to improve the
+  // AI). `decided_at` is stamped server-side whenever the caregiver
+  // sets `data_collection_enabled` (both true AND false record a
+  // decision). decided_at === null ⇒ caregiver never asked ⇒ show the
+  // first-open consent banner; non-null ⇒ never auto-show again.
+  data_collection_enabled: boolean;
+  data_collection_decided_at: string | null;
+  // Privacy mode (dignity override). When true: no clips are stored, the
+  // live video+audio feed is severed server-side, and event clips are
+  // stripped from insights — text insights keep flowing. Suspends
+  // data_collection_enabled without changing it.
+  privacy_mode_enabled: boolean;
 }
 
 // Which physical device class a camera row represents. Backend
@@ -236,6 +249,10 @@ export interface DetectionEvent {
   review_notes: string | null;
   reviewed_at: string | null;
   clip_storage_key: string | null;
+  // True when the clip was suppressed by privacy mode (vs still
+  // processing). The web events feed is text-only so this isn't rendered
+  // yet, but it's kept in sync with the backend EventResponse.
+  clip_suppressed: boolean;
   created_at: string;
 }
 
@@ -308,6 +325,14 @@ export interface UpdatePatientRequest {
   // the live grid + analyses feed). Per-camera disable lives on
   // the Camera row instead.
   cameras_paused?: boolean;
+  // Per-patient data-collection consent. When present in the PATCH
+  // body, the backend stamps `data_collection_decided_at` server-side
+  // (so both true and false record a decision). Never send
+  // `data_collection_decided_at` from the client.
+  data_collection_enabled?: boolean;
+  // Privacy mode toggle. Suspends data collection + severs the live feed
+  // server-side; does not touch the stored consent decision.
+  privacy_mode_enabled?: boolean;
 }
 
 export interface UpdateCameraRequest {
