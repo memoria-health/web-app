@@ -53,19 +53,16 @@ export default async function PatientLayout({
 
   return (
     <PatientProvider patients={patients} selected={patient}>
-      {/* `key` flips with privacy state so a privacy toggle REMOUNTS the
-          room — forcing a fresh LiveKit connect with the just-minted
-          token (severed `can_subscribe=false` when on, restored when
-          off). Without this, `router.refresh()` re-mints the token but
-          the already-connected `<LiveKitRoom>` keeps its old severed
-          session, so the feed never comes back after turning privacy off
-          (you'd have to hard-refresh). Keyed on the boolean, NOT the
-          token, so ordinary token refreshes + sub-tab nav don't churn the
-          connection. */}
+      {/* `privacyMode` drives an IN-PLACE room reconnect inside the
+          provider when privacy flips (the layout re-mints `token` to
+          match — severed when on, restored when off). We pass the flag
+          rather than keying the provider, so the room reconnects without
+          remounting the page the caregiver is on (no flash / scroll
+          jump). */}
       <LiveRoomProvider
-        key={patient.privacy_mode_enabled ? 'privacy-on' : 'privacy-off'}
         token={lkToken}
         serverUrl={env.LIVEKIT_URL}
+        privacyMode={patient.privacy_mode_enabled}
       >
         {children}
       </LiveRoomProvider>
