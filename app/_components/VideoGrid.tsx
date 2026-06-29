@@ -6,10 +6,11 @@ import {
   AudioTrack,
   ParticipantTile,
   VideoTrack,
+  useConnectionState,
   useRoomContext,
   useTracks,
 } from '@livekit/components-react';
-import { Track } from 'livekit-client';
+import { ConnectionState, Track } from 'livekit-client';
 import type {
   RealtimePostgresUpdatePayload,
   RealtimePostgresInsertPayload,
@@ -45,6 +46,11 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
   // gesture (see toggleAudio). GridInner only renders inside <LiveKitRoom>
   // (useTracks below requires it too), so this is always available here.
   const room = useRoomContext();
+  // When the browser's LiveKit connection isn't Connected (reconnecting after a
+  // server blip), any track we still hold is STALE — its <video> keeps painting
+  // the last frame. We must never let that read as a live feed, so we dim it and
+  // overlay "Signal lost" until the connection is healthy again.
+  const roomLive = useConnectionState() === ConnectionState.Connected;
   const tracks = useTracks(
     [{ source: Track.Source.Camera, withPlaceholder: false }],
     { onlySubscribed: true },
@@ -148,6 +154,7 @@ function GridInner({ enabledCameras }: { enabledCameras: EnabledCamera[] }) {
                   desiredState={cam.desired_state}
                   appClosed={appClosed}
                   trackRef={trackRef}
+                  roomLive={roomLive}
                 />
                 {/* Per-tile audio — the ONLY audio sink now that
                     RoomAudioRenderer is removed (see LiveRoomProvider). `volume`
@@ -195,6 +202,7 @@ function CameraTileBody({
   desiredState,
   appClosed,
   trackRef,
+  roomLive,
 }: {
   paired: boolean;
   disabled: boolean;
@@ -207,6 +215,9 @@ function CameraTileBody({
   // The LiveKit track type — kept loose because the GridInner-internal
   // shape isn't exported. Only used as: present → render ParticipantTile.
   trackRef: Parameters<typeof ParticipantTile>[0]['trackRef'] | undefined;
+  // False while the browser's LiveKit connection is down/reconnecting — any
+  // held track is stale, so we overlay "Signal lost" instead of trusting it.
+  roomLive: boolean;
 }) {
   // "Awaiting pairing" beats every other state — there literally is no
   // wall phone publishing yet, so nothing else can be true.
@@ -267,26 +278,60 @@ function CameraTileBody({
       <div className="relative h-full w-full">
         <VideoTrack
           trackRef={trackRef as Parameters<typeof VideoTrack>[0]['trackRef']}
-          className="h-full w-full object-cover"
+          className={`h-full w-full object-cover ${
+            roomLive ? '' : 'opacity-20 grayscale'
+          }`}
         />
-        {aiPaused && (
+        {/* AI-paused badge only matters while the feed is actually live. */}
+        {aiPaused && roomLive && (
           <div className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
             AI Paused
+          </div>
+        )}
+        {/* Connection lost: the frame is FROZEN/stale. Make it unmistakable so a
+            caregiver never reads it as a live feed (rendered last = on top). */}
+        {!roomLive && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-paper-dim/70 backdrop-blur-sm">
+            <span className="font-serif text-xl text-ink2">Signal lost</span>
+            <span className="text-xs text-ink4">Reconnecting…</span>
           </div>
         )}
       </div>
     );
   }
-  // Paired, intended-on, not hidden, but no video track yet — the sensor
-  // is coming up (cold connect or a reconnect). Show an active buffering
-  // state so the gap reads as "connecting", not "nothing happened".
+  // Paired, intended-on, not hidden, but no video track yet. Briefly that's a
+  // normal cold connect / reconnect; but if NO frames arrive for a while it's a
+  // real fault, not a quick blip — escalate to a clear, actionable tech-support
+  // message (which auto-clears back to live video the instant frames return).
+  return <ConnectingOrError />;
+}
+
+
+/// "Connecting…" for a grace window, then "Something went wrong" + a support
+/// number once frames STILL haven't arrived. Mounted ONLY in the no-track state,
+/// so the timer measures continuous time-without-video and resets the moment a
+/// track appears (this unmounts) — no false alarm on a quick reconnect.
+function ConnectingOrError() {
+  const [stalled, setStalled] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setStalled(true), 20000); // 20s grace, tunable
+    return () => clearTimeout(t);
+  }, []);
+  if (!stalled) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-ink4">
+        <div
+          className="h-6 w-6 animate-spin rounded-full border-2 border-ink4/30 border-t-ink2"
+          aria-hidden
+        />
+        <span className="text-base italic">Connecting — this can take a moment.</span>
+      </div>
+    );
+  }
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 text-ink4">
-      <div
-        className="h-6 w-6 animate-spin rounded-full border-2 border-ink4/30 border-t-ink2"
-        aria-hidden
-      />
-      <span className="text-base italic">Connecting — this can take a moment.</span>
+    <div className="flex h-full flex-col items-center justify-center gap-1 text-ink3">
+      <span className="font-serif text-xl text-ink2">Something went wrong</span>
+      <span className="text-sm text-ink3">Call (716) 602-1101 for tech support</span>
     </div>
   );
 }
