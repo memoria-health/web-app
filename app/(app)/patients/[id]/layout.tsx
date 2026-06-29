@@ -53,7 +53,17 @@ export default async function PatientLayout({
 
   return (
     <PatientProvider patients={patients} selected={patient}>
-      <LiveRoomProvider token={lkToken} serverUrl={env.LIVEKIT_URL}>
+      {/* `privacyMode` drives an IN-PLACE room reconnect inside the
+          provider when privacy flips (the layout re-mints `token` to
+          match — severed when on, restored when off). We pass the flag
+          rather than keying the provider, so the room reconnects without
+          remounting the page the caregiver is on (no flash / scroll
+          jump). */}
+      <LiveRoomProvider
+        token={lkToken}
+        serverUrl={env.LIVEKIT_URL}
+        privacyMode={patient.privacy_mode_enabled}
+      >
         {children}
       </LiveRoomProvider>
     </PatientProvider>

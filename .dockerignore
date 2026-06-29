@@ -1,0 +1,7 @@
+# Keep the build context small + never bake local state into the image.
+# (Source is bind-mounted at runtime; node_modules is an anonymous volume.)
+node_modules
+.next
+.git
+.env*.local
+*.log

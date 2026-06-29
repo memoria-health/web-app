@@ -1,0 +1,30 @@
+# docker/Dockerfile.dev — local-dev image for the nemara-web caregiver
+# dashboard. Mirrors nemara-backend's Dockerfile.dev pattern:
+#
+#   1. third-party deps are baked into the image (the dependency layer),
+#   2. the app source is bind-mounted at runtime (see the `web` service in
+#      nemara-backend/docker/docker-compose.local.yml), and
+#   3. `next dev` serves it with hot-reload.
+#
+# node_modules lives in an anonymous volume so the host (which may have a
+# different arch / pnpm store) never shadows the image's install.
+FROM node:22-slim
+
+# pnpm via corepack. Pinned to match the host + the v9.0 lockfile.
+RUN corepack enable && corepack prepare pnpm@10.6.5 --activate
+
+WORKDIR /app
+
+# Dependency layer only — installing from the lockfile. The app's own source
+# is bind-mounted at runtime rather than copied, so code edits hot-reload
+# without a rebuild.
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+EXPOSE 3000
+
+# Bind to 0.0.0.0 so the published port reaches the host. NEXT_PUBLIC_* env
+# (backend URL, Supabase, LiveKit) comes from the bind-mounted .env.local,
+# which uses the host LAN IP so it resolves from BOTH the browser and this
+# container's server-side fetches.
+CMD ["pnpm", "exec", "next", "dev", "--hostname", "0.0.0.0", "--port", "3000"]

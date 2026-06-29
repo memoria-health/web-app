@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { PatientForm } from '@/app/_components/PatientForm';
 import { EmailAlertsSettings } from '@/app/_components/EmailAlertsSettings';
+import { DataCollectionSettings } from '@/app/_components/DataCollectionSettings';
+import { PrivacyModeSettings } from '@/app/_components/PrivacyModeSettings';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { patientSession } from '@/lib/server/patientSession';
@@ -79,6 +81,35 @@ export default async function PatientSettingsPage({
           accountEmail={accountEmail}
           initialEnabled={patient.email_alerts_enabled}
           initialRecipients={patient.email_alert_recipients}
+        />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Privacy mode</h2>
+        <p className="mb-4 text-sm text-ink3">
+          Hide {firstName}&apos;s live video and audio and stop all recording.
+          No one can watch or listen to the live feed, and nothing is stored.
+          You still receive insights. This preserves {firstName}&apos;s dignity
+          at all times. While on, it overrides Data collection below.
+        </p>
+        <PrivacyModeSettings
+          patientId={patient.id}
+          initialEnabled={patient.privacy_mode_enabled}
+        />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Data collection</h2>
+        <p className="mb-4 text-sm text-ink3">
+          With your permission, Memoria will securely store video and audio
+          clips of {firstName} to help improve our understanding of elderly
+          health and disease. This is optional, never required, and you can
+          turn it off anytime.
+        </p>
+        <DataCollectionSettings
+          patientId={patient.id}
+          initialEnabled={patient.data_collection_enabled}
+          suspendedByPrivacy={patient.privacy_mode_enabled}
         />
       </section>
     </div>
