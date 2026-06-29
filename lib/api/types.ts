@@ -10,7 +10,8 @@ export type Relation =
   | 'other';
 export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
-// 'state' is legacy (agitation preset) — no longer offered in the UI.
+// 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
+// whole session into one event via rising-edge episodes.
 // 'scheduled' = absence detector that fires if a signal is missing
 // from a recurring time window.
 export type DetectorShape = 'point_in_time' | 'state' | 'scheduled';
@@ -222,6 +223,8 @@ export interface Detector {
   identifier: string | null;
   // Null for reactive detectors; the evaluation window for `scheduled`.
   schedule_config: ScheduleConfig | null;
+  // Null unless shape === 'state'; the rising-edge episode gap (seconds).
+  episode_gap_seconds: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -371,6 +374,8 @@ export interface CreateDetectorRequest {
   when_scope?: string;
   sensitivity?: DetectorSensitivity;
   schedule_config?: ScheduleConfig | null;
+  // Set only when shape === 'state'; the rising-edge episode gap (seconds).
+  episode_gap_seconds?: number | null;
 }
 
 export interface InferDetectorRequest {
@@ -384,6 +389,8 @@ export interface InferDetectorResponse {
   icon_name: string;
   sensitivity: DetectorSensitivity;
   schedule_config: ScheduleConfig | null;
+  // Set when the model classified the activity as 'state'; null otherwise.
+  episode_gap_seconds: number | null;
 }
 
 export interface UpdateDetectorRequest {

@@ -53,6 +53,10 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
   const [windowStart, setWindowStart] = useState('');
   const [windowEnd, setWindowEnd] = useState('');
   const [deadline, setDeadline] = useState('');
+  // Inferred only for `state` (continuous) detectors — the rising-edge
+  // episode gap (seconds), sent on create so the backend collapses an
+  // ongoing activity into one event instead of one per tick.
+  const [episodeGapSeconds, setEpisodeGapSeconds] = useState<number | null>(null);
 
   async function generate() {
     if (!prompt.trim()) {
@@ -66,7 +70,8 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         name: name.trim() || undefined,
         prompt: prompt.trim(),
       });
-      setShape(inf.shape === 'state' ? 'point_in_time' : inf.shape);
+      setShape(inf.shape);
+      setEpisodeGapSeconds(inf.episode_gap_seconds);
       setCategory(inf.category);
       setIcon(inf.icon_name);
       setSensitivity(inf.sensitivity);
@@ -116,6 +121,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         icon_name: icon,
         sensitivity: sensitivity as never,
         schedule_config,
+        episode_gap_seconds: shape === 'state' ? episodeGapSeconds : null,
       });
       router.push(`/patients/${patientId}/detectors`);
     } catch (e) {
@@ -196,16 +202,22 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
             <Label>Type</Label>
             <div className="mb-4 flex flex-col gap-1.5">
               <Radio
-                checked={shape === 'scheduled'}
-                onClick={() => setShape('scheduled')}
-                label="Scheduled check"
-                sub="alerts if it DOESN'T happen in a time window"
-              />
-              <Radio
                 checked={shape === 'point_in_time'}
                 onClick={() => setShape('point_in_time')}
                 label="Live detection"
                 sub="fires the moment it's seen"
+              />
+              <Radio
+                checked={shape === 'state'}
+                onClick={() => setShape('state')}
+                label="Ongoing activity"
+                sub="one alert per session, not every moment"
+              />
+              <Radio
+                checked={shape === 'scheduled'}
+                onClick={() => setShape('scheduled')}
+                label="Scheduled check"
+                sub="alerts if it DOESN'T happen in a time window"
               />
             </div>
 
