@@ -98,7 +98,7 @@ export type CameraSourceType = 'phone' | 'sensor';
 // The wire format keeps the historical strings 'iphone' / 'pi' so
 // existing rows do not need a backfill; we normalize at the
 // API-client boundary.
-export type CameraSourceTypeWire = 'iphone' | 'pi';
+export type CameraSourceTypeWire = 'iphone' | 'pi' | 'gateway';
 
 export interface Camera {
   id: string;

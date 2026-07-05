@@ -36,7 +36,8 @@ import type {
 // the way in so the runtime value matches the declared type.
 function normalizeCamera(c: Camera): Camera {
   const wire = c.source_type as unknown as string;
-  const source_type = wire === 'pi' || wire === 'sensor' ? 'sensor' : 'phone';
+  const source_type =
+    wire === 'pi' || wire === 'gateway' || wire === 'sensor' ? 'sensor' : 'phone';
   return { ...c, source_type };
 }
 
