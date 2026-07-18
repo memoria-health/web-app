@@ -833,7 +833,9 @@ export function VideoGrid({
       <div className="flex items-center justify-end">
         <button
           type="button"
-          onClick={toggleSkeletonMode}
+          // Drop focus after a mouse click so a later Spacebar/Enter doesn't
+          // re-activate the still-focused button and silently toggle blur off.
+          onClick={(e) => { e.currentTarget.blur(); toggleSkeletonMode(); }}
           aria-pressed={skeletonMode}
           className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
             skeletonMode
