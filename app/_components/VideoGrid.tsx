@@ -842,7 +842,7 @@ export function VideoGrid({
           }`}
         >
           <span className={`h-2 w-2 rounded-full ${skeletonMode ? 'bg-action' : 'bg-line'}`} />
-          Skeleton mode {skeletonMode ? 'on' : 'off'}
+          Blur people {skeletonMode ? 'on' : 'off'}
         </button>
       </div>
       <GridInner
