@@ -38,9 +38,9 @@ const PAD_BOTTOM = 0.06;
 const HOLD_MS = 1600;
 const SMOOTH = 0.4; // EMA factor for the single-person box (0=frozen, 1=raw/jumpy)
 
-// Flip to false before promoting to prod — the on-tile status HUD is a
-// dev/diagnostic aid, not something a caregiver should see.
-const SHOW_STATUS = true;
+// On-tile status HUD — a dev/diagnostic aid, off in prod. Flip true locally to
+// watch the pipeline (model load, detections, blurred count).
+const SHOW_STATUS = false;
 
 type Box = [number, number, number, number]; // x, y, w, h
 
