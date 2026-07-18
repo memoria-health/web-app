@@ -634,29 +634,28 @@ export function VideoGrid({
   // through this subscription, not through a page refresh.
   const [cameras, setCameras] = useState<EnabledCamera[]>(enabledCameras);
 
-  // Client-side "skeleton mode" for this patient — no backend, persisted in
-  // localStorage per patient. When on, every tile renders the pose/box-blur
-  // canvas instead of raw video. Kept client-only for now; may later merge
-  // with privacy mode.
+  // Client-side "blur people" mode for this patient — no backend, persisted in
+  // localStorage per patient. When on, every tile renders the pose-mask blur
+  // canvas instead of raw video. The TOGGLE lives on the patient Settings page
+  // (BlurPeopleSettings) which writes this same key; here we only READ it, on
+  // mount + on cross-tab storage events, and apply it to the grid.
   const [skeletonMode, setSkeletonMode] = useState(false);
   useEffect(() => {
-    try {
-      setSkeletonMode(localStorage.getItem(`skeleton-mode:${patientId}`) === '1');
-    } catch {
-      /* localStorage unavailable — leave off */
-    }
-  }, [patientId]);
-  function toggleSkeletonMode() {
-    setSkeletonMode((v) => {
-      const next = !v;
+    const read = () => {
       try {
-        localStorage.setItem(`skeleton-mode:${patientId}`, next ? '1' : '0');
+        setSkeletonMode(localStorage.getItem(`skeleton-mode:${patientId}`) === '1');
       } catch {
-        /* noop */
+        /* localStorage unavailable — leave off */
       }
-      return next;
-    });
-  }
+    };
+    read();
+    // Keep the live grid in sync if the setting is flipped in another tab.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === `skeleton-mode:${patientId}`) read();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [patientId]);
 
   // Mirror server-rendered prop changes back into state (covers an SSR
   // re-render landing while the user is on the page — a hard nav or a
@@ -829,29 +828,10 @@ export function VideoGrid({
   // sub-tab navigation; previously this component owned the wrapper,
   // which tore down the room every time the user left the Live tab.
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          // Drop focus after a mouse click so a later Spacebar/Enter doesn't
-          // re-activate the still-focused button and silently toggle blur off.
-          onClick={(e) => { e.currentTarget.blur(); toggleSkeletonMode(); }}
-          aria-pressed={skeletonMode}
-          className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
-            skeletonMode
-              ? 'border-action bg-action-soft text-action'
-              : 'border-line bg-card text-ink3 hover:text-ink'
-          }`}
-        >
-          <span className={`h-2 w-2 rounded-full ${skeletonMode ? 'bg-action' : 'bg-line'}`} />
-          Blur people {skeletonMode ? 'on' : 'off'}
-        </button>
-      </div>
-      <GridInner
-        enabledCameras={cameras}
-        privacyMode={privacyMode}
-        skeletonMode={skeletonMode}
-      />
-    </div>
+    <GridInner
+      enabledCameras={cameras}
+      privacyMode={privacyMode}
+      skeletonMode={skeletonMode}
+    />
   );
 }
