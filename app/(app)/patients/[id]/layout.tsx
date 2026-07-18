@@ -28,11 +28,16 @@ export default async function PatientLayout({
   const patient = patients.find((p) => p.id === id);
   if (!patient) notFound();
 
-  // Mint a viewer token for this patient's room. Room identity matches
-  // the convention used everywhere else: `patient_<id>` for the room,
-  // `caregiver_<uid>_web` for the caregiver participant. Failure is
-  // non-fatal — LiveRoomProvider will skip mounting LiveKitRoom and
-  // children that depend on it (VideoGrid) will show a placeholder.
+  // Mint a viewer token for this patient's room. Room is `patient_<id>`.
+  // The caregiver participant identity keeps the canonical `caregiver_<uid>_web`
+  // prefix (the backend requires `caregiver_` so the privacy media-cut can
+  // target it; see nemara-backend src/api/livekit.py) but appends a per-connection
+  // random suffix. Without it, two web tabs (or laptop+phone) on the SAME patient
+  // mint the IDENTICAL identity, and LiveKit evicts the duplicate → the two
+  // connections thrash each other (endless connecting/disconnecting). A unique
+  // suffix lets them coexist as separate viewers. Generated per server render, so
+  // it's stable within a tab (layouts persist across sub-tab nav) and distinct
+  // per new tab. Failure to mint is non-fatal — LiveRoomProvider skips the room.
   const api = await getServerNemara();
   const supa = await getServerSupabase();
   const {
@@ -43,7 +48,7 @@ export default async function PatientLayout({
   try {
     const minted = await api.mintLiveKitToken({
       room: `patient_${patient.id}`,
-      identity: `caregiver_${user!.id}_web`,
+      identity: `caregiver_${user!.id}_web_${crypto.randomUUID().slice(0, 8)}`,
       role: 'viewer',
     });
     lkToken = minted.token;

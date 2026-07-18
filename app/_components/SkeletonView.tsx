@@ -18,6 +18,7 @@
 /// privacy only: the raw stream still reaches the browser.
 
 import { useEffect, useRef, useState } from 'react';
+import { getPersonDetector } from '@/lib/vision/personDetector';
 
 type LooseTrackRef =
   | { publication?: { track?: { attach: (el: HTMLMediaElement) => void; detach: (el: HTMLMediaElement) => void } | null } }
@@ -72,19 +73,10 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
 
     (async () => {
       try {
-        setStatus('loading tf…');
-        const tf = await import('@tensorflow/tfjs');
-        await tf.setBackend('webgl').catch(() => tf.setBackend('cpu'));
-        await tf.ready();
+        setStatus('loading model…');
+        // Shared session singleton — instant if PreloadVision already warmed it.
+        model = await getPersonDetector();
         if (cancelled) return;
-        setStatus(`tf ${tf.getBackend()} · loading model…`);
-        const cocoSsd = await import('@tensorflow-models/coco-ssd');
-        if (cancelled) return;
-        model = await cocoSsd.load({
-          base: 'lite_mobilenet_v2',
-          modelUrl: '/models/coco-ssd/model.json',
-        });
-        if (cancelled) { model?.dispose?.(); return; }
         setStatus('model ready · waiting for frames…');
         raf = requestAnimationFrame(loop);
       } catch (e) {
@@ -165,7 +157,7 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
-      try { model?.dispose?.(); } catch { /* noop */ }
+      // NOTE: model is a shared session singleton — do NOT dispose it here.
       if (track) { try { track.detach(video); } catch { /* noop */ } }
     };
   }, [track]);

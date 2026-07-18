@@ -8,6 +8,7 @@ import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { PatientProvider } from '@/app/_components/PatientProvider';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
 import { AlertsFirstRunPrompt } from '@/app/_components/alerts/AlertsFirstRunPrompt';
+import { PreloadVision } from '@/app/_components/PreloadVision';
 import { Toaster } from 'sonner';
 import { patientSession } from '@/lib/server/patientSession';
 
@@ -81,6 +82,9 @@ export default async function AppLayout({
           <Toaster position="top-right" richColors closeButton />
           {/* One-time first-visit offer to turn alerts on (gesture-safe). */}
           <AlertsFirstRunPrompt />
+          {/* Deferred warm-up of the "Blur people" person detector (idle,
+              after first paint) so toggling blur is instant. No-op if unused. */}
+          <PreloadVision />
         </AlertsProvider>
       </PatientProvider>
     </div>
