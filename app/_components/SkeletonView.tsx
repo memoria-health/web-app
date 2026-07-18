@@ -36,7 +36,12 @@ const PAD_BOTTOM = 0.06;
 // PRIVACY-CRITICAL: keep blurring a person's last-known box this long after the
 // last confident sighting. A momentary miss must NOT un-hide them.
 const HOLD_MS = 1600;
-const SMOOTH = 0.4; // EMA factor for the single-person box (0=frozen, 1=raw/jumpy)
+// Sticky coverage for the single-person box: the blur GROWS instantly to cover
+// (snap outward) but SHRINKS slowly (ease inward at SHRINK per detection). So a
+// jittery/undersized detection frame can never momentarily uncover the person
+// (the flicker fix) — coverage only ever contracts gradually once they've truly
+// moved/left. Applied per box edge (left/top/right/bottom).
+const SHRINK = 0.12; // fraction the box eases inward per detection when a person shrinks
 
 // On-tile status HUD — a dev/diagnostic aid, off in prod. Flip true locally to
 // watch the pipeline (model load, detections, blurred count).
@@ -60,7 +65,8 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
     // Persisted blur boxes with expiry — the privacy hold. A 0-person frame
     // never clears these; they lapse HOLD_MS after the last sighting.
     let held: { box: Box; exp: number }[] = [];
-    let smooth: Box | null = null; // EMA'd box for the single-person case
+    // Sticky edges [left, top, right, bottom] for the single-person case.
+    let smoothEdges: [number, number, number, number] | null = null;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -132,13 +138,24 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
             // Only REPLACE the hold when we actually found someone; a 0-person
             // result leaves the previous boxes to persist (fail-safe).
             if (boxes.length === 1) {
-              const nb = boxes[0];
-              smooth = smooth
-                ? (smooth.map((v, i) => v + (nb[i] - v) * SMOOTH) as Box)
-                : nb;
-              held = [{ box: smooth, exp: now + HOLD_MS }];
+              const [x, y, w, h] = boxes[0];
+              const nl = x, nt = y, nr = x + w, nb = y + h; // new edges
+              if (smoothEdges) {
+                const [l, t, r, b] = smoothEdges;
+                // Grow instantly outward; ease inward slowly (grow-fast/shrink-slow).
+                smoothEdges = [
+                  nl < l ? nl : l + (nl - l) * SHRINK, // left
+                  nt < t ? nt : t + (nt - t) * SHRINK, // top
+                  nr > r ? nr : r + (nr - r) * SHRINK, // right
+                  nb > b ? nb : b + (nb - b) * SHRINK, // bottom
+                ];
+              } else {
+                smoothEdges = [nl, nt, nr, nb];
+              }
+              const [l, t, r, b] = smoothEdges;
+              held = [{ box: [l, t, r - l, b - t], exp: now + HOLD_MS }];
             } else if (boxes.length > 1) {
-              smooth = null;
+              smoothEdges = null;
               held = boxes.map((b) => ({ box: b, exp: now + HOLD_MS }));
             }
             const live = held.filter((h) => h.exp > now).length;
