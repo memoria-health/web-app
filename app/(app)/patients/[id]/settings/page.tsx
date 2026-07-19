@@ -4,6 +4,7 @@ import { EmailAlertsSettings } from '@/app/_components/EmailAlertsSettings';
 import { DataCollectionSettings } from '@/app/_components/DataCollectionSettings';
 import { PrivacyModeSettings } from '@/app/_components/PrivacyModeSettings';
 import { BlurPeopleSettings } from '@/app/_components/BlurPeopleSettings';
+import { PatientAccessSettings } from '@/app/_components/PatientAccessSettings';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { patientSession } from '@/lib/server/patientSession';
@@ -40,6 +41,16 @@ export default async function PatientSettingsPage({
       <section className="rounded-lg border border-line bg-card px-5 py-5">
         <h2 className="mb-4 font-serif text-2xl text-ink">Profile</h2>
         <PatientForm mode="edit" initial={patient} />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Shared access</h2>
+        <p className="mb-4 text-sm text-ink3">
+          People who can view and manage {firstName}. Invite another caregiver
+          by their Memoria account email — they&apos;ll see {firstName} in their
+          own dashboard. Only an owner can add or remove people.
+        </p>
+        <PatientAccessSettings patientId={patient.id} />
       </section>
 
       <section className="rounded-lg border border-line bg-card px-5 py-5">

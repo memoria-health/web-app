@@ -20,6 +20,7 @@ import type {
   MintTokenRequest,
   PairingCodeResponse,
   Patient,
+  PatientMember,
   ProvisionSensorCameraRequest,
   ProvisionSensorCameraResponse,
   SetCameraDetectorsRequest,
@@ -74,6 +75,20 @@ export class NemaraClient {
     this.api.request<{ status: string }>(
       `/v1/patients/${patientId}/test-email`,
       { method: 'POST' },
+    );
+
+  // Patient sharing (membership management)
+  listPatientMembers = (patientId: string) =>
+    this.api.request<PatientMember[]>(`/v1/patients/${patientId}/members`);
+  sharePatient = (patientId: string, body: { email: string; role?: string }) =>
+    this.api.request<PatientMember>(`/v1/patients/${patientId}/members`, {
+      method: 'POST',
+      body,
+    });
+  removePatientMember = (patientId: string, caregiverId: string) =>
+    this.api.request<void>(
+      `/v1/patients/${patientId}/members/${caregiverId}`,
+      { method: 'DELETE' },
     );
 
   // Patients

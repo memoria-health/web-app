@@ -52,6 +52,15 @@ export interface Caregiver {
   show_live_analyses: boolean;
 }
 
+/// A caregiver's membership on a patient (patient sharing). `role` is present
+/// for future per-patient permission levels; in the MVP every member has full
+/// access and only 'owner' is meaningful (can share/remove, can't be removed).
+export interface PatientMember {
+  caregiver_id: string;
+  email: string;
+  role: string;
+}
+
 export interface Patient {
   id: string;
   caregiver_id: string;
