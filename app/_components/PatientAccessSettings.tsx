@@ -18,16 +18,26 @@ export function PatientAccessSettings({ patientId }: { patientId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setError(null);
-    try {
+    const fetchOnce = async () => {
       const [ms, me] = await Promise.all([
         api.listPatientMembers(patientId),
         api.getMe(),
       ]);
       setMembers(ms);
       setMyId(me.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(null);
+    };
+    try {
+      await fetchOnce();
+    } catch {
+      // First-paint race: the Supabase session may not be attached yet, so the
+      // initial request can fail. Retry once after a beat before surfacing it.
+      try {
+        await new Promise((r) => setTimeout(r, 400));
+        await fetchOnce();
+      } catch (e2) {
+        setError(e2 instanceof Error ? e2.message : String(e2));
+      }
     }
   }, [api, patientId]);
 
