@@ -8,6 +8,9 @@ export type Relation =
   | 'sibling'
   | 'client'
   | 'other';
+// Data-residency region for a patient's data. The onboarding country picker
+// (United States / India) maps to these. Set at creation, immutable after.
+export type Region = 'US' | 'IN';
 export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
 // 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
@@ -70,6 +73,8 @@ export interface Patient {
   gender: string | null;
   relation: Relation;
   home_address: string | null;
+  // Data-residency region for this patient's data ('US' | 'IN').
+  region: Region;
   state: PatientState;
   status_line: string;
   last_event_at: string | null;
@@ -323,6 +328,9 @@ export interface CreatePatientRequest {
   date_of_birth?: string;
   gender?: string;
   home_address?: string;
+  // Data-residency region for this patient's data. Optional on the wire
+  // (backend defaults 'US'); the onboarding form always sends it.
+  region?: Region;
 }
 
 export interface UpdatePatientRequest {
