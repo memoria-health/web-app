@@ -22,6 +22,7 @@ import type {
   Patient,
   ProvisionSensorCameraRequest,
   ProvisionSensorCameraResponse,
+  RefineDetectorRequest,
   SetCameraDetectorsRequest,
   UpdateCameraRequest,
   UpdateDetectorRequest,
@@ -158,6 +159,15 @@ export class NemaraClient {
   updateDetector = (id: string, body: UpdateDetectorRequest) =>
     this.api.request<Detector>(`/v1/detectors/${id}`, {
       method: 'PATCH',
+      body,
+    });
+  // Append one plain-words refinement and recompile the detector's
+  // criteria. The backend recompiles asynchronously, so `user_criteria`
+  // on the returned row may still be the prior summary — poll listDetectors
+  // until it changes (see DetectorInsight).
+  refineDetector = (id: string, body: RefineDetectorRequest) =>
+    this.api.request<Detector>(`/v1/detectors/${id}/refine`, {
+      method: 'POST',
       body,
     });
   deleteDetector = (id: string) =>

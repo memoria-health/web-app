@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getBrowserNemara } from '@/lib/api/client';
 import type {
   DetectorCategory,
+  DetectorPlan,
   DetectorShape,
   ScheduleCadence,
   ScheduleConfig,
@@ -57,6 +58,9 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
   // episode gap (seconds), sent on create so the backend collapses an
   // ongoing activity into one event instead of one per tick.
   const [episodeGapSeconds, setEpisodeGapSeconds] = useState<number | null>(null);
+  // Compiled-behavior preview from /infer, shown as the "What this will do"
+  // card on the review stage. Null when the backend couldn't compose one.
+  const [plan, setPlan] = useState<DetectorPlan | null>(null);
 
   async function generate() {
     if (!prompt.trim()) {
@@ -71,6 +75,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         prompt: prompt.trim(),
       });
       setShape(inf.shape);
+      setPlan(inf.plan ?? null);
       setEpisodeGapSeconds(inf.episode_gap_seconds);
       setCategory(inf.category);
       setIcon(inf.icon_name);
@@ -193,6 +198,23 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         </div>
       ) : (
         <>
+          {plan && (
+            <div className="mt-5 rounded-md border border-line bg-paper-dim/50 p-4">
+              <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
+                What this will do
+              </p>
+              <dl className="flex flex-col gap-2">
+                <PlanRow label="Watches" value={plan.watches} />
+                <PlanRow label="Sees" value={plan.media} />
+                <PlanRow label="Alerts" value={plan.fires} />
+                <PlanRow label="Checks" value={plan.checks} />
+                {plan.listens && (
+                  <PlanRow label="Sound" value="Uses audio as evidence" />
+                )}
+              </dl>
+            </div>
+          )}
+
           <div className="my-5 border-t border-line pt-4">
             <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
               ✦ Inferred — adjust anything
@@ -327,6 +349,17 @@ function Label({ children }: { children: React.ReactNode }) {
     <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
       {children}
     </label>
+  );
+}
+
+// One row of the "What this will do" plan card: a fixed-width plain-English
+// label (Watches / Sees / Alerts / Checks / Sound) + the compiled value.
+function PlanRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-3 text-sm">
+      <dt className="w-16 shrink-0 text-ink3">{label}</dt>
+      <dd className="text-ink">{value}</dd>
+    </div>
   );
 }
 

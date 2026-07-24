@@ -229,6 +229,18 @@ export interface Detector {
   schedule_config: ScheduleConfig | null;
   // Null unless shape === 'state'; the rising-edge episode gap (seconds).
   episode_gap_seconds: number | null;
+  // Caregiver-facing summary of the compiled prompt (plain lines:
+  // "Counts: …" / "Doesn't count: …" / "Caution: …"). Regenerated on every
+  // compile; null while compiling. Custom detectors only. Optional on the
+  // wire so older backends (which omit it) don't break the type.
+  user_criteria?: string[] | null;
+  // Plain-words change requests accumulated via /refine, oldest first.
+  refinements?: string[] | null;
+  // True for fine-detail detectors (small motion like seizure/choking, small
+  // objects like medication/stove) whose accuracy varies with camera distance
+  // and lighting. Server-computed; optional on the wire (older backends omit
+  // it) — treat absent as false. Mirrors iOS Detector.accuracyCaveat.
+  accuracy_caveat?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -387,6 +399,18 @@ export interface InferDetectorRequest {
   prompt: string;
 }
 
+// Compiled-behavior preview surfaced on the create review screen so the
+// detector's actual configured behavior is visible (and correctable) BEFORE
+// it exists. Mirrors backend DetectorPlan (Aryaman 2026-07-18: customs
+// visibility).
+export interface DetectorPlan {
+  watches: string; // who: "Your patient only" / "Anyone in view" / a room
+  media: string; // what pixels: whole-room view vs a per-person crop
+  fires: string; // the fire rule as a sentence
+  checks: string; // look cadence as a sentence
+  listens: boolean; // whether audio evidence is used
+}
+
 export interface InferDetectorResponse {
   shape: DetectorShape;
   category: DetectorCategory;
@@ -395,6 +419,10 @@ export interface InferDetectorResponse {
   schedule_config: ScheduleConfig | null;
   // Set when the model classified the activity as 'state'; null otherwise.
   episode_gap_seconds: number | null;
+  // Plain-English preview of the compiled behavior. Null (or absent on
+  // older backends) when composition failed — the review screen then hides
+  // the card rather than blocking creation.
+  plan?: DetectorPlan | null;
 }
 
 export interface UpdateDetectorRequest {
@@ -408,6 +436,14 @@ export interface UpdateDetectorRequest {
   sensitivity?: DetectorSensitivity;
   is_on?: boolean;
   custom_prompt?: string;
+}
+
+// Body of POST /v1/detectors/{id}/refine — one plain-words change request
+// ("don't count eating as choking"). The compiler receives the FULL
+// accumulated list on every recompile, so refinements never weaken the
+// safety bias. Mirrors backend RefineDetectorRequest.
+export interface RefineDetectorRequest {
+  feedback: string;
 }
 
 export interface MintTokenRequest {

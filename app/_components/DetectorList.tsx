@@ -12,6 +12,7 @@ import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector, DetectorSensitivity } from '@/lib/api/types';
+import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
 
 const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high'];
 
@@ -284,6 +285,11 @@ function Section({
                     <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink4">
                       {d.shape} · {d.where_scope} · {d.when_scope}
                     </p>
+                    {d.accuracy_caveat && (
+                      <div className="mt-1.5">
+                        <AccuracyCaveatNotice compact />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {d.source === 'custom' && (
