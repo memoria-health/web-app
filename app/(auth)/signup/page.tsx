@@ -105,6 +105,27 @@ export default function SignupPage() {
             {info}
           </div>
         )}
+        <p className="text-xs leading-relaxed text-ink4">
+          By creating an account you agree to our{' '}
+          <a
+            href="/legal/terms.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-terra underline"
+          >
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a
+            href="/legal/privacy.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-terra underline"
+          >
+            Privacy Notice
+          </a>
+          . You&apos;ll review and confirm them on first sign-in.
+        </p>
         <button
           type="submit"
           disabled={busy}

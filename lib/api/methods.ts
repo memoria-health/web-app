@@ -55,6 +55,13 @@ export class NemaraClient {
       method: 'PATCH',
       body: { onboarded_web: true },
     });
+  // Record acceptance of the current Terms + Privacy version. The server
+  // stamps tos_accepted_at; the client only sends the version it displayed.
+  acceptTerms = (version: string) =>
+    this.api.request<Caregiver>('/v1/me', {
+      method: 'PATCH',
+      body: { tos_version: version },
+    });
   updateTimezone = (timezone: string) =>
     this.api.request<Caregiver>('/v1/me', {
       method: 'PATCH',

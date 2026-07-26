@@ -50,6 +50,12 @@ export interface Caregiver {
   // flipped false to hide it for specific accounts (e.g. demo logins).
   // The page gates the section on this AND the global SHOW_LIVE_ANALYSES.
   show_live_analyses: boolean;
+  // Terms of Service + Privacy Notice acceptance. `tos_accepted_at` is null
+  // until the caregiver accepts; the (app) layout hard-gates the dashboard
+  // while it's null or `tos_version` is stale. Mirror of the backend
+  // caregivers columns; the timestamp is server-stamped, never client-set.
+  tos_accepted_at: string | null;
+  tos_version: string | null;
 }
 
 export interface Patient {

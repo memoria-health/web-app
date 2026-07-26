@@ -4,6 +4,8 @@ import { getServerNemara } from '@/lib/api/server';
 import { isAPIError } from '@/lib/api/errors';
 import { TopNav } from '@/app/_components/TopNav';
 import { OnboardingModal } from '@/app/_components/OnboardingModal';
+import { TermsGate } from '@/app/_components/TermsGate';
+import { CURRENT_TOS_VERSION } from '@/lib/legal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { PatientProvider } from '@/app/_components/PatientProvider';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
@@ -15,6 +17,7 @@ async function ensureCaregiver(): Promise<{
   email: string | null;
   onboardedWeb: boolean;
   timezone: string;
+  needsTerms: boolean;
 }> {
   const supa = await getServerSupabase();
   const {
@@ -32,10 +35,14 @@ async function ensureCaregiver(): Promise<{
   // visit.
   let onboardedWeb = true;
   let timezone = 'America/New_York';
+  let tosAcceptedAt: string | null = null;
+  let tosVersion: string | null = null;
   try {
     const me = await api.getMe();
     onboardedWeb = me.onboarded_web;
     timezone = me.timezone;
+    tosAcceptedAt = me.tos_accepted_at;
+    tosVersion = me.tos_version;
   } catch (err) {
     if (isAPIError(err) && err.status === 404) {
       const displayName =
@@ -45,12 +52,16 @@ async function ensureCaregiver(): Promise<{
       const created = await api.createMe({ display_name: displayName });
       onboardedWeb = created.onboarded_web;
       timezone = created.timezone;
+      tosAcceptedAt = created.tos_accepted_at;
+      tosVersion = created.tos_version;
     } else {
       throw err;
     }
   }
 
-  return { email: user.email ?? null, onboardedWeb, timezone };
+  // Hard gate: never accepted, or accepted an older document version.
+  const needsTerms = !tosAcceptedAt || tosVersion !== CURRENT_TOS_VERSION;
+  return { email: user.email ?? null, onboardedWeb, timezone, needsTerms };
 }
 
 export default async function AppLayout({
@@ -58,7 +69,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { email, onboardedWeb, timezone } = await ensureCaregiver();
+  const { email, onboardedWeb, timezone, needsTerms } = await ensureCaregiver();
   // Resolve the caregiver's patient list + current selection from
   // cookie. Pages downstream consume this via the PatientProvider's
   // `usePatient()` (throws if no patient — for pages that require
@@ -75,7 +86,9 @@ export default async function AppLayout({
         <AlertsProvider patients={patients}>
           <TopNav email={email} />
           <main className="flex-1 flex flex-col">{children}</main>
-          {!onboardedWeb && <OnboardingModal />}
+          {/* Terms gate takes precedence over onboarding: no dashboard
+              access until the current Terms + Privacy version is accepted. */}
+          {needsTerms ? <TermsGate /> : !onboardedWeb && <OnboardingModal />}
           <TimezoneSync current={timezone} />
           {/* In-app toast target for Tier-2 alerts. */}
           <Toaster position="top-right" richColors closeButton />
