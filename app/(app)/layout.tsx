@@ -52,7 +52,11 @@ async function ensureCaregiver(): Promise<{
         (user.user_metadata?.display_name as string | undefined) ??
         user.email?.split('@')[0] ??
         'Caregiver';
-      const created = await api.createMe({ display_name: displayName });
+      // Country was stashed in user_metadata at signup; carry it into the
+      // lazy provision so the email-confirmation path still records residency
+      // (backend defaults to 'US' if absent).
+      const country = user.user_metadata?.country as string | undefined;
+      const created = await api.createMe({ display_name: displayName, country });
       onboardedWeb = created.onboarded_web;
       timezone = created.timezone;
       tosAcceptedAt = created.tos_accepted_at;

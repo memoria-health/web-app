@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserNemara } from '@/lib/api/client';
-import type { Patient, Region, Relation } from '@/lib/api/types';
+import type { Patient, Relation } from '@/lib/api/types';
+import { countryOptions } from '@/lib/countries';
 
 const RELATIONS: Relation[] = [
   'parent',
@@ -12,13 +13,6 @@ const RELATIONS: Relation[] = [
   'sibling',
   'client',
   'other',
-];
-
-// Data-residency region picker (patient onboarding only — region is
-// immutable after creation). Maps a country label to the wire value.
-const REGIONS: { value: Region; label: string }[] = [
-  { value: 'US', label: 'United States' },
-  { value: 'IN', label: 'India' },
 ];
 
 /// Shared form for /patients/new and /patients/[id] edit. Mirrors the
@@ -40,9 +34,11 @@ export function PatientForm({
   const [dateOfBirth, setDateOfBirth] = useState(initial?.date_of_birth ?? '');
   const [gender, setGender] = useState(initial?.gender ?? '');
   const [homeAddress, setHomeAddress] = useState(initial?.home_address ?? '');
-  // Data residency. Only set at creation (immutable server-side), so the
-  // picker renders in create mode only; edit keeps the existing value.
-  const [region, setRegion] = useState<Region>(initial?.region ?? 'US');
+  // Country this home is in. Only set at creation (immutable server-side, and
+  // the residency region derives from it), so the picker renders in create mode
+  // only; edit keeps the existing value.
+  const [country, setCountry] = useState(initial?.country ?? 'US');
+  const countries = useMemo(() => countryOptions(), []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,7 +65,7 @@ export function PatientForm({
           date_of_birth: dateOfBirth || undefined,
           gender: gender || undefined,
           home_address: homeAddress.trim() || undefined,
-          region,
+          country,
         });
         // Cookie write so the home-page redirect prefers the just-
         // created patient on subsequent root-loads. The drill-down
@@ -154,22 +150,22 @@ export function PatientForm({
       {mode === 'create' && (
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">
-            Region
+            Country
           </span>
           <select
-            value={region}
-            onChange={(e) => setRegion(e.target.value as Region)}
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
             className="rounded-md border border-line bg-paper-dim px-3 py-2 text-sm text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           >
-            {REGIONS.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
               </option>
             ))}
           </select>
           <span className="text-xs text-ink4">
-            Where this person&apos;s data is stored. Set once at onboarding and
-            can&apos;t be changed later.
+            Where this person lives. Sets where their data is stored. Chosen once
+            at onboarding and can&apos;t be changed later.
           </span>
         </label>
       )}

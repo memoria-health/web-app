@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { getBrowserNemara } from '@/lib/api/client';
 import { CURRENT_TOS_VERSION } from '@/lib/legal';
 import { passwordProblem, passwordValid } from '@/lib/auth/password';
+import { countryOptions } from '@/lib/countries';
 import { PasswordChecklist } from '@/app/_components/PasswordChecklist';
 import { TermsConsentModal } from '@/app/_components/TermsConsentModal';
 
@@ -14,6 +15,8 @@ export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [country, setCountry] = useState('US');
+  const countries = useMemo(() => countryOptions(), []);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -52,7 +55,10 @@ export default function SignupPage() {
     const { data, error } = await supa.auth.signUp({
       email,
       password,
-      options: { data: { display_name: name } },
+      // Stash country in user_metadata so the lazy-provision path (email-
+      // confirmation flow, where no session lands here) can still set it when
+      // the (app) layout provisions the caregiver row on first load.
+      options: { data: { display_name: name, country } },
     });
     if (error) {
       setError(error.message);
@@ -67,6 +73,7 @@ export default function SignupPage() {
       try {
         await getBrowserNemara().createMe({
           display_name: name,
+          country,
           tos_version: CURRENT_TOS_VERSION,
         });
       } catch {
@@ -118,6 +125,22 @@ export default function SignupPage() {
             autoComplete="email"
             className="rounded-md border border-line bg-paper-dim px-3 py-2 text-sm text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
           />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">
+            Country
+          </span>
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="rounded-md border border-line bg-paper-dim px-3 py-2 text-sm text-ink focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
+          >
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-[11px] uppercase tracking-wider text-ink3">

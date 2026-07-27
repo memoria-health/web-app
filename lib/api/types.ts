@@ -8,9 +8,13 @@ export type Relation =
   | 'sibling'
   | 'client'
   | 'other';
-// Data-residency region for a patient's data. The onboarding country picker
-// (United States / India) maps to these. Set at creation, immutable after.
+// Data-residency region for a patient's data — the residency contract, only
+// two homes today. DERIVED server-side from the picked `country`. Immutable.
 export type Region = 'US' | 'IN';
+// ISO 3166-1 alpha-2 country picked at onboarding/signup (e.g. 'US', 'IN',
+// 'GB'). Recorded verbatim; the residency `region` is derived from it. Any
+// valid ISO code — the picker offers the full country list.
+export type Country = string;
 export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
 // 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
@@ -64,6 +68,10 @@ export interface Caregiver {
   // caregivers columns; the timestamp is server-stamped, never client-set.
   tos_accepted_at: string | null;
   tos_version: string | null;
+  // Country picked at signup (ISO alpha-2) + the residency `region` derived
+  // from it. Both set once at signup, immutable after. Mirror of the backend.
+  country: Country;
+  region: Region;
 }
 
 /// A caregiver's membership on a patient (patient sharing). `role` is present
@@ -84,7 +92,9 @@ export interface Patient {
   gender: string | null;
   relation: Relation;
   home_address: string | null;
-  // Data-residency region for this patient's data ('US' | 'IN').
+  // Country this home is in (ISO alpha-2), picked at onboarding.
+  country: Country;
+  // Data-residency region ('US' | 'IN'), derived from `country`.
   region: Region;
   state: PatientState;
   status_line: string;
@@ -349,6 +359,9 @@ export interface LiveKitTokenResponse {
 export interface CreateCaregiverRequest {
   display_name: string;
   phone?: string;
+  // Country the caregiver signed up from (ISO alpha-2). Optional on the wire
+  // (backend defaults 'US'); the residency region is derived from it server-side.
+  country?: Country;
   // Document version the caregiver accepted at signup. The backend stamps
   // tos_accepted_at server-side when present, so consent captured at signup
   // isn't re-prompted by the (app) gate. Mirrors backend CreateCaregiverRequest.
@@ -362,9 +375,10 @@ export interface CreatePatientRequest {
   date_of_birth?: string;
   gender?: string;
   home_address?: string;
-  // Data-residency region for this patient's data. Optional on the wire
-  // (backend defaults 'US'); the onboarding form always sends it.
-  region?: Region;
+  // Country this home is in (ISO alpha-2). Optional on the wire (backend
+  // defaults 'US'); the onboarding form always sends it. The residency region
+  // is derived from it server-side — the client never sends region directly.
+  country?: Country;
 }
 
 export interface UpdatePatientRequest {
