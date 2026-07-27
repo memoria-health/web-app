@@ -11,6 +11,15 @@ const backendUrl =
   process.env.NEXT_PUBLIC_NEMARA_BACKEND_URL ?? 'http://127.0.0.1:8002';
 
 const nextConfig: NextConfig = {
+  // pose-detection (used by SkeletonView) statically imports `@mediapipe/pose`
+  // for BlazePose, which we never use (MoveNet only). That package is a non-ESM
+  // UMD bundle Turbopack can't resolve, so alias it to an empty stub. Safe: the
+  // BlazePose path is never invoked.
+  turbopack: {
+    resolveAlias: {
+      '@mediapipe/pose': './lib/stubs/mediapipe-pose.ts',
+    },
+  },
   async rewrites() {
     return [
       {

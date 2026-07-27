@@ -8,6 +8,9 @@ export type Relation =
   | 'sibling'
   | 'client'
   | 'other';
+// Data-residency region for a patient's data. The onboarding country picker
+// (United States / India) maps to these. Set at creation, immutable after.
+export type Region = 'US' | 'IN';
 export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
 // 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
@@ -63,6 +66,15 @@ export interface Caregiver {
   tos_version: string | null;
 }
 
+/// A caregiver's membership on a patient (patient sharing). `role` is present
+/// for future per-patient permission levels; in the MVP every member has full
+/// access and only 'owner' is meaningful (can share/remove, can't be removed).
+export interface PatientMember {
+  caregiver_id: string;
+  email: string;
+  role: string;
+}
+
 export interface Patient {
   id: string;
   caregiver_id: string;
@@ -72,6 +84,8 @@ export interface Patient {
   gender: string | null;
   relation: Relation;
   home_address: string | null;
+  // Data-residency region for this patient's data ('US' | 'IN').
+  region: Region;
   state: PatientState;
   status_line: string;
   last_event_at: string | null;
@@ -348,6 +362,9 @@ export interface CreatePatientRequest {
   date_of_birth?: string;
   gender?: string;
   home_address?: string;
+  // Data-residency region for this patient's data. Optional on the wire
+  // (backend defaults 'US'); the onboarding form always sends it.
+  region?: Region;
 }
 
 export interface UpdatePatientRequest {

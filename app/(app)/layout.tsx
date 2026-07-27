@@ -7,13 +7,16 @@ import { OnboardingModal } from '@/app/_components/OnboardingModal';
 import { TermsGate } from '@/app/_components/TermsGate';
 import { CURRENT_TOS_VERSION } from '@/lib/legal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
+import { SessionSync } from '@/app/_components/SessionSync';
 import { PatientProvider } from '@/app/_components/PatientProvider';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
 import { AlertsFirstRunPrompt } from '@/app/_components/alerts/AlertsFirstRunPrompt';
+import { PreloadVision } from '@/app/_components/PreloadVision';
 import { Toaster } from 'sonner';
 import { patientSession } from '@/lib/server/patientSession';
 
 async function ensureCaregiver(): Promise<{
+  id: string;
   email: string | null;
   onboardedWeb: boolean;
   timezone: string;
@@ -61,7 +64,7 @@ async function ensureCaregiver(): Promise<{
 
   // Hard gate: never accepted, or accepted an older document version.
   const needsTerms = !tosAcceptedAt || tosVersion !== CURRENT_TOS_VERSION;
-  return { email: user.email ?? null, onboardedWeb, timezone, needsTerms };
+  return { id: user.id, email: user.email ?? null, onboardedWeb, timezone, needsTerms };
 }
 
 export default async function AppLayout({
@@ -69,7 +72,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { email, onboardedWeb, timezone, needsTerms } = await ensureCaregiver();
+  const { id: userId, email, onboardedWeb, timezone, needsTerms } = await ensureCaregiver();
   // Resolve the caregiver's patient list + current selection from
   // cookie. Pages downstream consume this via the PatientProvider's
   // `usePatient()` (throws if no patient — for pages that require
@@ -85,6 +88,9 @@ export default async function AppLayout({
             page. See app/_components/alerts/AlertsProvider.tsx. */}
         <AlertsProvider patients={patients}>
           <TopNav email={email} />
+          {/* Reconcile the tab if the browser's auth session changes to a
+              different account or signs out (shared session across tabs). */}
+          <SessionSync userId={userId} />
           <main className="flex-1 flex flex-col">{children}</main>
           {/* Terms gate takes precedence over onboarding: no dashboard
               access until the current Terms + Privacy version is accepted. */}
@@ -94,6 +100,9 @@ export default async function AppLayout({
           <Toaster position="top-right" richColors closeButton />
           {/* One-time first-visit offer to turn alerts on (gesture-safe). */}
           <AlertsFirstRunPrompt />
+          {/* Deferred warm-up of the "Blur people" person detector (idle,
+              after first paint) so toggling blur is instant. No-op if unused. */}
+          <PreloadVision />
         </AlertsProvider>
       </PatientProvider>
     </div>

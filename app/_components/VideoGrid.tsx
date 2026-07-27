@@ -18,6 +18,7 @@ import type {
 } from '@supabase/supabase-js';
 import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
+import { SkeletonView } from '@/app/_components/SkeletonView';
 
 interface EnabledCamera {
   id: string;        // backend cameras.id — needed for the menu API calls
@@ -44,9 +45,11 @@ interface EnabledCamera {
 function GridInner({
   enabledCameras,
   privacyMode = false,
+  skeletonMode = false,
 }: {
   enabledCameras: EnabledCamera[];
   privacyMode?: boolean;
+  skeletonMode?: boolean;
 }) {
   // The LiveKit room — used to resume the browser AudioContext on a user
   // gesture (see toggleAudio). GridInner only renders inside <LiveKitRoom>
@@ -162,6 +165,7 @@ function GridInner({
                   trackRef={trackRef}
                   roomLive={roomLive}
                   privacyMode={privacyMode}
+                  skeletonMode={skeletonMode}
                 />
                 {/* Per-tile audio — the ONLY audio sink now that
                     RoomAudioRenderer is removed (see LiveRoomProvider). `volume`
@@ -212,6 +216,7 @@ function CameraTileBody({
   trackRef,
   roomLive,
   privacyMode,
+  skeletonMode,
 }: {
   paired: boolean;
   disabled: boolean;
@@ -230,6 +235,9 @@ function CameraTileBody({
   // Privacy mode — when on, the feed is severed server-side; show the
   // dignity placard instead of any video/spinner.
   privacyMode: boolean;
+  // Client-side "skeleton mode": render the pose/box-blur canvas instead of the
+  // raw video. Distinct from privacyMode (which shows no feed at all).
+  skeletonMode: boolean;
 }) {
   // Privacy mode beats everything — the live feed is intentionally
   // hidden (and severed at the SFU), regardless of pairing/connection.
@@ -300,12 +308,16 @@ function CameraTileBody({
     // `TrackReference` (publication required) is safe.
     return (
       <div className="relative h-full w-full">
-        <VideoTrack
-          trackRef={trackRef as Parameters<typeof VideoTrack>[0]['trackRef']}
-          className={`h-full w-full object-cover ${
-            roomLive ? '' : 'opacity-20 grayscale'
-          }`}
-        />
+        {skeletonMode ? (
+          <SkeletonView trackRef={trackRef} />
+        ) : (
+          <VideoTrack
+            trackRef={trackRef as Parameters<typeof VideoTrack>[0]['trackRef']}
+            className={`h-full w-full object-cover ${
+              roomLive ? '' : 'opacity-20 grayscale'
+            }`}
+          />
+        )}
         {/* AI-paused badge only matters while the feed is actually live. */}
         {aiPaused && roomLive && (
           <div className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt/90 px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-warning backdrop-blur">
@@ -622,6 +634,29 @@ export function VideoGrid({
   // through this subscription, not through a page refresh.
   const [cameras, setCameras] = useState<EnabledCamera[]>(enabledCameras);
 
+  // Client-side "blur people" mode for this patient — no backend, persisted in
+  // localStorage per patient. When on, every tile renders the pose-mask blur
+  // canvas instead of raw video. The TOGGLE lives on the patient Settings page
+  // (BlurPeopleSettings) which writes this same key; here we only READ it, on
+  // mount + on cross-tab storage events, and apply it to the grid.
+  const [skeletonMode, setSkeletonMode] = useState(false);
+  useEffect(() => {
+    const read = () => {
+      try {
+        setSkeletonMode(localStorage.getItem(`skeleton-mode:${patientId}`) === '1');
+      } catch {
+        /* localStorage unavailable — leave off */
+      }
+    };
+    read();
+    // Keep the live grid in sync if the setting is flipped in another tab.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === `skeleton-mode:${patientId}`) read();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [patientId]);
+
   // Mirror server-rendered prop changes back into state (covers an SSR
   // re-render landing while the user is on the page — a hard nav or a
   // router.refresh() after a privacy/settings toggle). Uses React's
@@ -792,5 +827,11 @@ export function VideoGrid({
   // context via useTracks(). That preserves the room connection across
   // sub-tab navigation; previously this component owned the wrapper,
   // which tore down the room every time the user left the Live tab.
-  return <GridInner enabledCameras={cameras} privacyMode={privacyMode} />;
+  return (
+    <GridInner
+      enabledCameras={cameras}
+      privacyMode={privacyMode}
+      skeletonMode={skeletonMode}
+    />
+  );
 }
