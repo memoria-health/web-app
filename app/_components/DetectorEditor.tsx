@@ -62,9 +62,14 @@ function initialRooms(detector: Detector): { all: boolean; set: Set<string> } {
 export function DetectorEditor({
   detector: initial,
   cameras,
+  onFinish,
 }: {
   detector: Detector;
   cameras: Camera[];
+  // Set only in the create flow: the draft is already saved, so "finish" is
+  // always available (accept the AI's picks as-is, or save tweaks first, then
+  // leave). Absent on the detail page, where Save is the change-gated action.
+  onFinish?: () => void;
 }) {
   const router = useRouter();
   const [detector, setDetector] = useState<Detector>(initial);
@@ -116,8 +121,14 @@ export function DetectorEditor({
     if (detector.identifier !== null) return;
     let cancelled = false;
     let tries = 0;
+    // The background compile (LLM prompt-writing) can take 60-90s+, well past
+    // the old 22.5s budget — poll every 2s for up to ~3.5min so the criteria
+    // actually land in the UI when the backend finishes, instead of the
+    // "Writing the instructions…" spinner sticking forever.
+    const MAX_TRIES = 105;
+    const POLL_MS = 2000;
     const tick = async () => {
-      if (cancelled || tries >= 15) return;
+      if (cancelled || tries >= MAX_TRIES) return;
       tries += 1;
       try {
         const list = await getBrowserNemara().listDetectors(detector.patient_id);
@@ -129,9 +140,9 @@ export function DetectorEditor({
       } catch {
         // transient — keep polling
       }
-      if (!cancelled) setTimeout(tick, 1500);
+      if (!cancelled) setTimeout(tick, POLL_MS);
     };
-    const t = setTimeout(tick, 1500);
+    const t = setTimeout(tick, POLL_MS);
     return () => {
       cancelled = true;
       clearTimeout(t);
@@ -197,6 +208,19 @@ export function DetectorEditor({
         preview: true,
       });
       setPreview(previewed.user_criteria ?? []);
+      // The refine can re-infer the alert TYPE (e.g. "alert when he finishes"
+      // -> trailing) AND the when/where scope ("only at night", "in the
+      // kitchen"). Reflect all of it so the whole change shows in the preview,
+      // before the caregiver commits with Save.
+      setAlertTrigger(previewed.alert_trigger);
+      setDurationSeconds(previewed.duration_seconds ?? null);
+      const w = parseWhenScope(previewed.when_scope);
+      setWhenMode(w.mode);
+      setWhenStart(w.start);
+      setWhenEnd(w.end);
+      const r = initialRooms(previewed);
+      setAllRooms(r.all);
+      setRooms(r.set);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -327,7 +351,7 @@ export function DetectorEditor({
               What you asked for
             </h2>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink2">
-              {detector.custom_prompt || '—'}
+              {detector.custom_prompt || '(none)'}
             </p>
             <p className="mt-2 text-xs text-ink4">
               This is what the detector was built from. To change how it
@@ -335,10 +359,15 @@ export function DetectorEditor({
             </p>
           </section>
 
-          {/* ── What Memoria looks for (the compiled result) ──────── */}
-          <section className="rounded-lg border border-line bg-card p-5">
+          {/* ── What Memoria looks for (the compiled result) — the one
+              AI-generated surface, given a terra outline + glow + sparkle so
+              it reads as intelligent, distinct from the plain setting cards. */}
+          <section className="rounded-lg border border-terra/40 bg-card p-5 shadow-[0_0_24px_-10px_var(--color-terra)]">
             <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
+              <h2 className="flex items-center gap-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
+                <span className="text-terra" aria-hidden>
+                  ✦
+                </span>
                 What Memoria looks for
               </h2>
               {preview !== null && (
@@ -372,7 +401,7 @@ export function DetectorEditor({
               // Compiled but no bulleted summary yet — a neutral note (don't
               // echo "what you asked for" above; that read as repetition).
               <p className="text-sm italic text-ink3">
-                Memoria is finalizing this detector&apos;s details — check back
+                Memoria is finalizing this detector&apos;s details. Check back
                 in a moment.
               </p>
             )}
@@ -620,7 +649,7 @@ export function DetectorEditor({
           </div>
           {roomOptions.length === 0 && (
             <p className="text-xs text-ink4">
-              No cameras yet — this runs everywhere once you pair one.
+              No cameras yet. This runs everywhere once you pair one.
             </p>
           )}
         </div>
@@ -713,17 +742,41 @@ export function DetectorEditor({
           )}
         </div>
         <div className="flex items-center gap-3">
-          {savedAt > 0 && !dirty && (
+          {savedAt > 0 && !dirty && !onFinish && (
             <span className="text-sm text-ink3">Saved ✓</span>
           )}
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving || !dirty || timingInvalid}
-            className="rounded-md bg-action px-5 py-2 text-sm font-semibold text-action-ink transition-colors hover:bg-ink2 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          {onFinish ? (
+            // Create context: accept the AI's generated picks unchanged (or
+            // save any tweaks first), then finish. Always enabled — no
+            // throwaway edit required just to "save" the detector.
+            <button
+              type="button"
+              onClick={async () => {
+                if (dirty && !timingInvalid) await save();
+                // Create is the moment the detector goes live — Generate only
+                // drafts it (OFF). Turn it on here, then finish.
+                if (!detector.is_on) {
+                  await getBrowserNemara().updateDetector(detector.id, {
+                    is_on: true,
+                  });
+                }
+                onFinish();
+              }}
+              disabled={saving || timingInvalid}
+              className="rounded-md bg-action px-5 py-2 text-sm font-semibold text-action-ink transition-colors hover:bg-ink2 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Create detector'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving || !dirty || timingInvalid}
+              className="rounded-md bg-action px-5 py-2 text-sm font-semibold text-action-ink transition-colors hover:bg-ink2 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          )}
         </div>
       </div>
     </div>

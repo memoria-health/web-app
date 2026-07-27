@@ -80,6 +80,10 @@
     Roboto, sans-serif;
   --font-serif: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype',
     Palatino, serif;
+  /* SOFT-75 cut of Fraunces (matches iOS). Tailwind v4 applies this on every
+   * `font-serif` utility via the `--font-*--font-variation-settings` modifier,
+   * which beats the default reset that a plain `.font-serif` rule loses to. */
+  --font-serif--font-variation-settings: 'SOFT' 75;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo,
     monospace;
 

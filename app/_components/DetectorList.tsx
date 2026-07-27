@@ -11,23 +11,19 @@ import type {
 import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
-import type { Detector, DetectorSensitivity } from '@/lib/api/types';
+import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
-import { triggerLabelShort, roomsLabel } from '@/lib/detectors/labels';
+import { roomsLabel, scalarWhereScope } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
 
-const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high'];
 
 export function DetectorList({
   initial,
   patientId,
-  totalCameras,
   cameraCount,
 }: {
   initial: Detector[];
   patientId: string;
-  // Total cameras for this patient — used to render the "N / total" chip.
-  totalCameras: number;
   // detector_id → number of cameras currently assigned. Computed
   // server-side. Missing key = 0 cameras (custom detectors default
   // to this until the caregiver opts them in per camera).
@@ -62,7 +58,12 @@ export function DetectorList({
             filter: `patient_id=eq.${patientId}`,
           },
           (payload: RealtimePostgresInsertPayload<Detector>) => {
-            const next = payload.new;
+            // Raw DB row: derive where_scope (dropped column) so it matches
+            // the API shape the rest of the UI reads.
+            const next: Detector = {
+              ...payload.new,
+              where_scope: scalarWhereScope(payload.new.where_rooms),
+            };
             setDetectors((prev) => {
               if (prev.some((d) => d.id === next.id)) return prev;
               return [...prev, next];
@@ -78,7 +79,10 @@ export function DetectorList({
             filter: `patient_id=eq.${patientId}`,
           },
           (payload: RealtimePostgresUpdatePayload<Detector>) => {
-            const updated = payload.new;
+            const updated: Detector = {
+              ...payload.new,
+              where_scope: scalarWhereScope(payload.new.where_rooms),
+            };
             setDetectors((prev) =>
               prev.map((d) => (d.id === updated.id ? updated : d)),
             );
@@ -177,7 +181,6 @@ export function DetectorList({
         pending={pending}
         patch={patch}
         remove={remove}
-        totalCameras={totalCameras}
         cameraCount={cameraCount}
       />
       <Section
@@ -186,7 +189,6 @@ export function DetectorList({
         pending={pending}
         patch={patch}
         remove={remove}
-        totalCameras={totalCameras}
         cameraCount={cameraCount}
         emptyHint={
           <>
@@ -208,18 +210,18 @@ function Section({
   patch,
   remove,
   emptyHint,
-  totalCameras,
   cameraCount,
 }: {
   title: string;
   detectors: Detector[];
   pending: Set<string>;
-  patch: (id: string, body: { is_on?: boolean; sensitivity?: DetectorSensitivity }) => void;
+  patch: (id: string, body: { is_on?: boolean }) => void;
   remove: (id: string, name: string) => void;
   emptyHint?: React.ReactNode;
-  totalCameras: number;
   cameraCount: Record<string, number>;
 }) {
+  // Which row's ⋯ overflow menu is open (Edit + Delete live in here now).
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
   return (
     <section className="mt-6 first:mt-0">
       <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
@@ -236,60 +238,51 @@ function Section({
             return (
               <li key={d.id} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-paper-dim text-ink2">
+                  {/* Icon tint carries the category (safety vs routine), so
+                      the separate category pill is gone. */}
+                  <div
+                    className={cn(
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border',
+                      d.category === 'safety'
+                        ? 'border-terra/30 bg-terra-soft text-terra-deep'
+                        : 'border-sky/30 bg-sky-soft text-sky',
+                    )}
+                    title={d.category === 'safety' ? 'Safety' : 'Routine'}
+                  >
                     <DetectorIcon name={d.icon_name} className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-serif text-xl text-ink">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-serif text-xl text-ink">
                         {d.name}
                       </span>
-                      <span
-                        className={cn(
-                          'rounded-sm border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider',
-                          d.category === 'safety'
-                            ? 'border-terra/40 bg-terra-soft text-terra-deep'
-                            : 'border-sky/40 bg-sky-soft text-sky',
-                        )}
-                      >
-                        {d.category}
-                      </span>
-                      {d.source === 'custom' && (
-                        <span className="rounded-sm border border-action/30 bg-action-soft px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-ink2">
-                          custom
-                        </span>
-                      )}
                       {d.source === 'custom' && d.identifier === null && (
-                        // Background compile still in progress — the
-                        // tick pipeline silently skips this detector
-                        // until the UPDATE arrives via Realtime and
-                        // identifier becomes non-null.
+                        // Background compile still in progress — the tick
+                        // pipeline skips this detector until identifier lands.
+                        // Kept as a bare dot so the row stays minimal.
                         <span
-                          className="inline-flex items-center gap-1 rounded-sm border border-warning/40 bg-card-alt px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-warning"
-                          title="Generating the LLM prompt for this detector. Usually takes 3–5 seconds. Until compile finishes, this detector won't run on any camera ticks."
+                          className="inline-flex shrink-0 items-center rounded-sm border border-warning/40 bg-card-alt px-1 py-0.5"
+                          title="Generating this detector's instructions. Until it finishes, it won't run on any camera."
                         >
                           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning" />
-                          compiling…
                         </span>
                       )}
-                      <span
-                        className={cn(
-                          'rounded-sm border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider',
-                          (cameraCount[d.id] ?? 0) === 0
-                            ? 'border-line bg-paper-dim text-ink4'
-                            : 'border-line bg-paper-dim text-ink2',
-                        )}
-                        title="Cameras this detector is currently assigned to"
-                      >
-                        {cameraCount[d.id] ?? 0} / {totalCameras} cameras
-                      </span>
                     </div>
-                    <p className="mt-1 text-base text-ink2">
-                      {d.description}
-                    </p>
-                    <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink4">
-                      {triggerLabelShort(d.alert_trigger)} · {roomsLabel(d.where_rooms, d.where_scope)} · {d.when_scope}
-                    </p>
+                    <p className="mt-0.5 text-base text-ink2">{d.description}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-ink3">
+                        {roomsLabel(d.where_rooms, d.where_scope)} ·{' '}
+                        {d.when_scope === 'ALWAYS' ? 'Always' : d.when_scope}
+                      </span>
+                      {(cameraCount[d.id] ?? 0) === 0 && (
+                        <span
+                          className="font-mono text-xs uppercase tracking-wider text-ink4"
+                          title="Not assigned to any camera yet"
+                        >
+                          no cameras
+                        </span>
+                      )}
+                    </div>
                     {d.accuracy_caveat && (
                       <div className="mt-1.5">
                         <AccuracyCaveatNotice compact />
@@ -297,14 +290,8 @@ function Section({
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {d.source === 'custom' && (
-                      <Link
-                        href={`/patients/${d.patient_id}/detectors/${d.id}`}
-                        className="text-base text-ink3 hover:text-ink underline-offset-2 hover:underline"
-                      >
-                        Edit
-                      </Link>
-                    )}
+                    {/* Edit reaches every detector now, presets included, so
+                        their where/when can be changed from the editor. */}
                     <button
                       onClick={() => patch(d.id, { is_on: !d.is_on })}
                       disabled={busy}
@@ -318,38 +305,54 @@ function Section({
                     >
                       {d.is_on ? 'ON' : 'OFF'}
                     </button>
-                    <button
-                      onClick={() => remove(d.id, d.name)}
-                      disabled={busy}
-                      title="Delete detector"
-                      className="rounded-md border border-terra/40 bg-terra-soft/60 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-terra-deep hover:bg-terra-soft disabled:opacity-50 transition-colors"
-                    >
-                      Delete
-                    </button>
+                    {/* ⋯ overflow: Edit + Delete (both here now, per design). */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMenuOpen(menuOpen === d.id ? null : d.id)
+                        }
+                        disabled={busy}
+                        aria-label="More actions"
+                        aria-haspopup="menu"
+                        aria-expanded={menuOpen === d.id}
+                        className="rounded-md border border-line bg-paper-dim px-2.5 py-1.5 text-ink3 hover:text-ink disabled:opacity-50 transition-colors"
+                      >
+                        <span className="text-base leading-none">⋯</span>
+                      </button>
+                      {menuOpen === d.id && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setMenuOpen(null)}
+                          />
+                          <div
+                            role="menu"
+                            className="absolute right-0 top-full z-20 mt-1 w-32 overflow-hidden rounded-md border border-line bg-card shadow-lg"
+                          >
+                            <Link
+                              href={`/patients/${d.patient_id}/detectors/${d.id}`}
+                              onClick={() => setMenuOpen(null)}
+                              className="block px-3 py-2 text-sm text-ink hover:bg-paper-dim"
+                            >
+                              Edit
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMenuOpen(null);
+                                remove(d.id, d.name);
+                              }}
+                              className="block w-full px-3 py-2 text-left text-sm text-terra-deep hover:bg-terra-soft"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-                {d.is_on && (
-                  <div className="flex items-center gap-2 pl-1">
-                    <span className="font-mono text-xs uppercase tracking-wider text-ink3">
-                      sensitivity
-                    </span>
-                    {SENSITIVITY.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => patch(d.id, { sensitivity: s })}
-                        disabled={busy || d.sensitivity === s}
-                        className={cn(
-                          'rounded-sm px-2 py-0.5 font-mono text-xs uppercase tracking-wider transition-colors',
-                          d.sensitivity === s
-                            ? 'bg-ink text-paper'
-                            : 'border border-line bg-card text-ink3 hover:text-ink',
-                        )}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </li>
             );
           })}

@@ -29,14 +29,6 @@ export const TRIGGER_LABEL_SHORT: Record<AlertTrigger, string> = {
   absence: "If it doesn't happen",
 };
 
-export function triggerLabel(trigger: AlertTrigger): string {
-  return TRIGGER_LABEL[trigger] ?? trigger;
-}
-
-export function triggerLabelShort(trigger: AlertTrigger): string {
-  return TRIGGER_LABEL_SHORT[trigger] ?? trigger;
-}
-
 // The "ALL ROOMS" sentinel means every room; anything else is a real name.
 const ALL_ROOMS = 'ALL ROOMS';
 
@@ -49,11 +41,27 @@ export function roomsMeanAll(rooms: string[] | null | undefined): boolean {
 // and falling back to the legacy scalar where_scope.
 export function roomsLabel(
   whereRooms: string[] | null | undefined,
-  whereScope: string,
+  whereScope?: string | null,
 ): string {
   if (whereRooms && whereRooms.length > 0) {
     if (roomsMeanAll(whereRooms)) return 'All rooms';
     return whereRooms.join(', ');
   }
+  // No room list = every room (the canonical default). where_scope is only a
+  // legacy scalar fallback and is absent on realtime rows (the column was
+  // dropped and is derived on the API serialize), so never assume it's set.
+  if (!whereScope) return 'All rooms';
   return whereScope.trim().toUpperCase() === ALL_ROOMS ? 'All rooms' : whereScope;
+}
+
+// Mirror of the backend's _scalar_where_scope: derive the legacy scalar from
+// the canonical where_rooms. Used to normalize Supabase realtime rows, which
+// are the raw DB row and no longer carry the derived where_scope column.
+export function scalarWhereScope(
+  whereRooms: string[] | null | undefined,
+): string {
+  if (!whereRooms || whereRooms.length === 0 || roomsMeanAll(whereRooms)) {
+    return 'ALL ROOMS';
+  }
+  return whereRooms.join(', ');
 }

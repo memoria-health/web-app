@@ -48,7 +48,6 @@ export default async function DetectorsPage({
       <DetectorList
         initial={detectors}
         patientId={patient.id}
-        totalCameras={cameras.length}
         cameraCount={cameraCount}
       />
     </div>

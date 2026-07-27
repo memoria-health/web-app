@@ -16,6 +16,10 @@ export default async function NewDetectorPage({
   const patient = patients.find((p) => p.id === patientId);
   if (!patient) notFound();
 
+  // Rooms for the "Where it runs" picker come from the patient's paired
+  // cameras — fetched here so the create card is fully self-contained.
+  const cameras = await api.listCameras(patientId);
+
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center gap-3">
@@ -27,7 +31,7 @@ export default async function NewDetectorPage({
           New detector
         </h1>
       </header>
-      <DetectorCreateFlow patientId={patient.id} />
+      <DetectorCreateFlow patientId={patient.id} cameras={cameras} />
     </div>
   );
 }

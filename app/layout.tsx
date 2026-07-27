@@ -6,15 +6,17 @@ import '@livekit/components-styles/components/participant';
 import '@livekit/components-styles/components/layout';
 import '@livekit/components-styles/themes/default';
 
-// Fraunces (serif) — display + titles. The iOS app uses a pre-baked
-// SOFT-75 / opsz-144 cut; on web we use the static weights served by
-// Google Fonts. Specifying the axes here would force `weight:
-// 'variable'`, which removes the static-weight shortcut and bumps
-// payload — not worth it for the small SOFT-axis nuance.
+// Fraunces (serif) — display + titles, matched to the iOS app's pre-baked
+// SOFT-75 cut. Loaded as the variable font so the SOFT axis is available
+// (applied as `font-variation-settings: 'SOFT' 75` on .font-serif in
+// globals.css); opsz follows `font-optical-sizing: auto` per text size,
+// and wght is still driven by the normal font-weight utilities. This costs
+// more than the three static weights, but the softer letterforms are the
+// intended, iOS-matching look.
 const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-fraunces',
-  weight: ['400', '500', '600'],
+  axes: ['opsz', 'SOFT', 'WONK'],
   display: 'swap',
 });
 
