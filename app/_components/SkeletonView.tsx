@@ -24,8 +24,8 @@ type LooseTrackRef =
   | { publication?: { track?: { attach: (el: HTMLMediaElement) => void; detach: (el: HTMLMediaElement) => void } | null } }
   | undefined;
 
-const DETECT_INTERVAL_MS = 120; // ~8 detections/sec; canvas still paints every frame
-const PERSON_SCORE = 0.35; // min detector confidence (lower = catches turned-away, more false positives)
+const DETECT_INTERVAL_MS = 90; // ~11 detections/sec; canvas still paints every frame
+const PERSON_SCORE = 0.25; // min detector confidence (matches iOS Vision floor; lower = catches turned-away, more false positives)
 const MAX_BOXES = 20;
 const BLUR_PX = 26;
 // Padding around the detector box (fraction of box w/h). Detector boxes are
@@ -35,7 +35,7 @@ const PAD_TOP = 0.14;
 const PAD_BOTTOM = 0.06;
 // PRIVACY-CRITICAL: keep blurring a person's last-known box this long after the
 // last confident sighting. A momentary miss must NOT un-hide them.
-const HOLD_MS = 1600;
+const HOLD_MS = 2500;
 // Sticky coverage for the single-person box: the blur GROWS instantly to cover
 // (snap outward) but SHRINKS slowly (ease inward at SHRINK per detection). So a
 // jittery/undersized detection frame can never momentarily uncover the person
