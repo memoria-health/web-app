@@ -12,6 +12,8 @@ import { getBrowserNemara } from '@/lib/api/client';
 import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector, DetectorSensitivity } from '@/lib/api/types';
+import { DetectorIcon } from '@/lib/icons/detectorIcons';
+import { triggerLabelShort, roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
 
 const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high'];
@@ -234,6 +236,9 @@ function Section({
             return (
               <li key={d.id} className="flex flex-col gap-2 px-4 py-3">
                 <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-paper-dim text-ink2">
+                    <DetectorIcon name={d.icon_name} className="h-4 w-4" />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-serif text-xl text-ink">
@@ -283,7 +288,7 @@ function Section({
                       {d.description}
                     </p>
                     <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink4">
-                      {d.shape} · {d.where_scope} · {d.when_scope}
+                      {triggerLabelShort(d.alert_trigger)} · {roomsLabel(d.where_rooms, d.where_scope)} · {d.when_scope}
                     </p>
                     {d.accuracy_caveat && (
                       <div className="mt-1.5">

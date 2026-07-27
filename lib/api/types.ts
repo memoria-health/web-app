@@ -12,9 +12,14 @@ export type DetectorCategory = 'safety' | 'routine';
 export type DetectorSource = 'preset' | 'custom';
 // 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
 // whole session into one event via rising-edge episodes.
-// 'scheduled' = absence detector that fires if a signal is missing
-// from a recurring time window.
-export type DetectorShape = 'point_in_time' | 'state' | 'scheduled';
+// Alert trigger — which moment fires the alert (mirrors backend AlertTrigger):
+//   leading   = the moment it starts / happens
+//   trailing  = when a sustained activity ends
+//   duration  = once it's persisted >= duration_seconds
+//   absence   = NOT detected within its active window (when_scope)
+// `is_sustained` (instant vs sustained) is internal; `duration_seconds` is the
+// "too long" threshold for the duration trigger.
+export type AlertTrigger = 'leading' | 'trailing' | 'duration' | 'absence';
 export type DetectorSensitivity = 'low' | 'standard' | 'high';
 export type ScheduleCadence = 'daily' | 'weekly';
 
@@ -220,8 +225,15 @@ export interface Detector {
   description: string;
   category: DetectorCategory;
   source: DetectorSource;
-  shape: DetectorShape;
+  // Alerting spine — the trigger + internal temporal nature + duration bar.
+  alert_trigger: AlertTrigger;
+  is_sustained: boolean;
+  duration_seconds: number | null;
   where_scope: string;
+  // Rooms the detector is scoped to (multi-select). Null/absent → every
+  // room (back-compat with rows created before multi-room). where_scope is
+  // the synced scalar fallback. Mirrors backend Detector.where_rooms.
+  where_rooms?: string[] | null;
   when_scope: string;
   sensitivity: DetectorSensitivity;
   is_on: boolean;
@@ -323,6 +335,10 @@ export interface LiveKitTokenResponse {
 export interface CreateCaregiverRequest {
   display_name: string;
   phone?: string;
+  // Document version the caregiver accepted at signup. The backend stamps
+  // tos_accepted_at server-side when present, so consent captured at signup
+  // isn't re-prompted by the (app) gate. Mirrors backend CreateCaregiverRequest.
+  tos_version?: string | null;
 }
 
 export interface CreatePatientRequest {
@@ -390,14 +406,23 @@ export interface CreateDetectorRequest {
   // inferred + reviewed values on the create flow.
   description?: string;
   category?: DetectorCategory;
-  shape?: DetectorShape;
+  alert_trigger?: AlertTrigger;
+  is_sustained?: boolean;
+  duration_seconds?: number | null;
   icon_name?: string;
   where_scope?: string;
+  // Rooms the caregiver picked (multi-select). Null/["ALL ROOMS"] = every
+  // room. Drives camera auto-assignment; where_scope is kept in sync.
+  where_rooms?: string[] | null;
   when_scope?: string;
   sensitivity?: DetectorSensitivity;
   schedule_config?: ScheduleConfig | null;
-  // Set only when shape === 'state'; the rising-edge episode gap (seconds).
+  // Set only when is_sustained; the rising-edge episode gap (seconds).
   episode_gap_seconds?: number | null;
+  // Create-as-draft: create the detector OFF so the caregiver reviews the
+  // compiled criteria on the detail editor, then turns it on. Omit/true to
+  // create it enabled immediately.
+  is_on?: boolean;
 }
 
 export interface InferDetectorRequest {
@@ -410,20 +435,21 @@ export interface InferDetectorRequest {
 // it exists. Mirrors backend DetectorPlan (Aryaman 2026-07-18: customs
 // visibility).
 export interface DetectorPlan {
-  watches: string; // who: "Your patient only" / "Anyone in view" / a room
-  media: string; // what pixels: whole-room view vs a per-person crop
+  watches: string; // who: "Only the person you care for" / "Anyone in view" / a room
   fires: string; // the fire rule as a sentence
   checks: string; // look cadence as a sentence
   listens: boolean; // whether audio evidence is used
 }
 
 export interface InferDetectorResponse {
-  shape: DetectorShape;
+  alert_trigger: AlertTrigger;
+  is_sustained: boolean;
+  duration_seconds: number | null;
   category: DetectorCategory;
   icon_name: string;
   sensitivity: DetectorSensitivity;
   schedule_config: ScheduleConfig | null;
-  // Set when the model classified the activity as 'state'; null otherwise.
+  // Set when the activity is sustained; null otherwise.
   episode_gap_seconds: number | null;
   // Plain-English preview of the compiled behavior. Null (or absent on
   // older backends) when composition failed — the review screen then hides
@@ -436,8 +462,13 @@ export interface UpdateDetectorRequest {
   icon_name?: string;
   description?: string;
   category?: DetectorCategory;
-  shape?: DetectorShape;
+  alert_trigger?: AlertTrigger;
+  is_sustained?: boolean;
+  duration_seconds?: number | null;
   where_scope?: string;
+  // Re-scope the detector's rooms; the backend replaces its camera
+  // assignments to match. ["ALL ROOMS"] = every room.
+  where_rooms?: string[] | null;
   when_scope?: string;
   sensitivity?: DetectorSensitivity;
   is_on?: boolean;
@@ -450,7 +481,13 @@ export interface UpdateDetectorRequest {
 // safety bias. Mirrors backend RefineDetectorRequest.
 export interface RefineDetectorRequest {
   feedback: string;
+  // Dry-run: compile WITH this feedback and return the resulting criteria,
+  // but persist nothing (no refinement stored, detector keeps running its
+  // current instructions). Backs the "Re-generate" preview; a real submit
+  // on Save omits this (or sends false) to commit. Mirrors backend.
+  preview?: boolean;
 }
+
 
 export interface MintTokenRequest {
   room: string;

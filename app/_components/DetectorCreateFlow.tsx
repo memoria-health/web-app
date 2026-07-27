@@ -4,30 +4,29 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserNemara } from '@/lib/api/client';
 import type {
+  AlertTrigger,
   DetectorCategory,
   DetectorPlan,
-  DetectorShape,
   ScheduleCadence,
   ScheduleConfig,
 } from '@/lib/api/types';
 import { cn } from '@/lib/utils/cn';
+import {
+  DETECTOR_ICON_NAMES,
+  DETECTOR_ICON_LABEL,
+  DetectorIcon,
+} from '@/lib/icons/detectorIcons';
+import { TRIGGER_LABEL, TRIGGER_SUB } from '@/lib/detectors/labels';
 
 /// Two-stage custom-detector creation:
 ///   Stage 1 (entry)  — name + optional note + a plain-English prompt.
-///   Stage 2 (review) — the LLM-inferred fields (shape, category, icon,
+///   Stage 2 (review) — the LLM-inferred fields (trigger, category, icon,
 ///                      and a schedule window for absence detectors),
 ///                      editable, with blanks the model couldn't infer
 ///                      highlighted for the user to complete.
 /// Sensitivity is inferred + sent silently (adjustable later on the
 /// detail page), and where/when default server-side — none of that
 /// clutters the create form.
-
-const ICON_OPTIONS = [
-  'eye', 'figure.fall', 'figure.walk.motion', 'door.left.hand.open',
-  'pills', 'fork.knife', 'bed.double', 'shower', 'tv', 'drop', 'flame',
-  'exclamationmark.triangle', 'heart', 'person', 'cup.and.saucer',
-  'moon', 'sun.max', 'clock', 'bell', 'car',
-];
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; // 0=Mon..6=Sun
 
@@ -45,7 +44,9 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
   const [prompt, setPrompt] = useState('');
 
   // Inferred + editable review fields
-  const [shape, setShape] = useState<DetectorShape>('point_in_time');
+  const [alertTrigger, setAlertTrigger] = useState<AlertTrigger>('leading');
+  const [isSustained, setIsSustained] = useState(false);
+  const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   const [category, setCategory] = useState<DetectorCategory>('safety');
   const [icon, setIcon] = useState('eye');
   const [sensitivity, setSensitivity] = useState<string>('standard');
@@ -74,7 +75,9 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
         name: name.trim() || undefined,
         prompt: prompt.trim(),
       });
-      setShape(inf.shape);
+      setAlertTrigger(inf.alert_trigger);
+      setIsSustained(inf.is_sustained);
+      setDurationSeconds(inf.duration_seconds);
       setPlan(inf.plan ?? null);
       setEpisodeGapSeconds(inf.episode_gap_seconds);
       setCategory(inf.category);
@@ -97,7 +100,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
   // What's still missing for a scheduled detector — drives the
   // highlight + disables Create until filled.
   const scheduleIncomplete =
-    shape === 'scheduled' &&
+    alertTrigger === 'absence' &&
     (!windowStart ||
       !windowEnd ||
       !deadline ||
@@ -108,7 +111,7 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
     setError(null);
     try {
       const schedule_config: ScheduleConfig | null =
-        shape === 'scheduled'
+        alertTrigger === 'absence'
           ? {
               cadence,
               days_of_week: cadence === 'weekly' ? days : null,
@@ -117,18 +120,25 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
               deadline,
             }
           : null;
-      await getBrowserNemara().createDetector(patientId, {
+      // Create-as-draft (item C2): the detector is created OFF and we land
+      // on its editor so the caregiver can read the compiled criteria (and
+      // refine / pick rooms) before turning it on — instead of shipping it
+      // live sight-unseen.
+      const created = await getBrowserNemara().createDetector(patientId, {
         name: name.trim() || 'Custom detector',
         custom_prompt: prompt.trim(),
         description: note.trim() || 'Custom detector',
         category,
-        shape,
+        alert_trigger: alertTrigger,
+        is_sustained: isSustained,
+        duration_seconds: alertTrigger === 'duration' ? durationSeconds : null,
         icon_name: icon,
         sensitivity: sensitivity as never,
         schedule_config,
-        episode_gap_seconds: shape === 'state' ? episodeGapSeconds : null,
+        episode_gap_seconds: isSustained ? episodeGapSeconds : null,
+        is_on: false,
       });
-      router.push(`/patients/${patientId}/detectors`);
+      router.push(`/patients/${patientId}/detectors/${created.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setBusy(false); // only reset on error; success navigates away
@@ -205,7 +215,6 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
               </p>
               <dl className="flex flex-col gap-2">
                 <PlanRow label="Watches" value={plan.watches} />
-                <PlanRow label="Sees" value={plan.media} />
                 <PlanRow label="Alerts" value={plan.fires} />
                 <PlanRow label="Checks" value={plan.checks} />
                 {plan.listens && (
@@ -220,31 +229,59 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
               ✦ Inferred — adjust anything
             </p>
 
-            {/* Type */}
-            <Label>Type</Label>
+            {/* How it alerts — derived from your words. Sustained activities
+                can pick the edge (as it happens / when it's over / too long);
+                instant + absence detectors have no edge to choose. */}
+            <Label>How it alerts</Label>
             <div className="mb-4 flex flex-col gap-1.5">
-              <Radio
-                checked={shape === 'point_in_time'}
-                onClick={() => setShape('point_in_time')}
-                label="Live detection"
-                sub="fires the moment it's seen"
-              />
-              <Radio
-                checked={shape === 'state'}
-                onClick={() => setShape('state')}
-                label="Ongoing activity"
-                sub="one alert per session, not every moment"
-              />
-              <Radio
-                checked={shape === 'scheduled'}
-                onClick={() => setShape('scheduled')}
-                label="Scheduled check"
-                sub="alerts if it DOESN'T happen in a time window"
-              />
+              {isSustained && alertTrigger !== 'absence' ? (
+                <>
+                  <Radio
+                    checked={alertTrigger === 'leading'}
+                    onClick={() => setAlertTrigger('leading')}
+                    label={TRIGGER_LABEL.leading}
+                    sub={TRIGGER_SUB.leading}
+                  />
+                  <Radio
+                    checked={alertTrigger === 'trailing'}
+                    onClick={() => setAlertTrigger('trailing')}
+                    label={TRIGGER_LABEL.trailing}
+                    sub={TRIGGER_SUB.trailing}
+                  />
+                  <Radio
+                    checked={alertTrigger === 'duration'}
+                    onClick={() => setAlertTrigger('duration')}
+                    label={TRIGGER_LABEL.duration}
+                    sub={TRIGGER_SUB.duration}
+                  />
+                  {alertTrigger === 'duration' && (
+                    <label className="mt-1 flex items-center gap-2 text-sm text-ink3">
+                      <span>Alert once it&apos;s continued past</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={1440}
+                        value={durationSeconds ? Math.round(durationSeconds / 60) : ''}
+                        onChange={(e) => {
+                          const m = parseInt(e.target.value, 10);
+                          setDurationSeconds(Number.isFinite(m) && m > 0 ? m * 60 : null);
+                        }}
+                        aria-label="duration in minutes"
+                        className="w-16 rounded border border-line bg-paper-dim px-2 py-1 text-sm outline-none focus:border-action"
+                      />
+                      <span>minutes</span>
+                    </label>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-ink2">
+                  {TRIGGER_LABEL[alertTrigger]}. {TRIGGER_SUB[alertTrigger]}
+                </p>
+              )}
             </div>
 
-            {/* Schedule (scheduled only) */}
-            {shape === 'scheduled' && (
+            {/* Schedule window (absence only) */}
+            {alertTrigger === 'absence' && (
               <div className="mb-4 rounded-md border border-line bg-paper-dim/50 p-3">
                 <Label>Cadence</Label>
                 <div className="mb-3 flex gap-4">
@@ -293,30 +330,41 @@ export function DetectorCreateFlow({ patientId }: { patientId: string }) {
               </div>
             )}
 
-            {/* Category + icon */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Category</Label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as DetectorCategory)}
-                  className="w-full rounded-md border border-line bg-card px-3 py-2 text-base text-ink outline-none focus:border-action/50"
-                >
-                  <option value="safety">Safety</option>
-                  <option value="routine">Routine</option>
-                </select>
-              </div>
-              <div>
-                <Label>Icon</Label>
-                <select
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  className="w-full rounded-md border border-line bg-card px-3 py-2 text-base text-ink outline-none focus:border-action/50"
-                >
-                  {ICON_OPTIONS.map((ic) => (
-                    <option key={ic} value={ic}>{ic}</option>
-                  ))}
-                </select>
+            {/* Category */}
+            <div>
+              <Label>Category</Label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as DetectorCategory)}
+                className="w-full rounded-md border border-line bg-card px-3 py-2 text-base text-ink outline-none focus:border-action/50"
+              >
+                <option value="safety">Safety</option>
+                <option value="routine">Routine</option>
+              </select>
+            </div>
+
+            {/* Icon — real glyphs, not raw symbol strings (item E3). */}
+            <div className="mt-4">
+              <Label>Icon</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {DETECTOR_ICON_NAMES.map((ic) => (
+                  <button
+                    key={ic}
+                    type="button"
+                    onClick={() => setIcon(ic)}
+                    title={DETECTOR_ICON_LABEL[ic]}
+                    aria-label={DETECTOR_ICON_LABEL[ic]}
+                    aria-pressed={icon === ic}
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-md border transition-colors',
+                      icon === ic
+                        ? 'border-action bg-action-soft text-ink'
+                        : 'border-line bg-paper-dim text-ink3 hover:text-ink',
+                    )}
+                  >
+                    <DetectorIcon name={ic} className="h-4 w-4" />
+                  </button>
+                ))}
               </div>
             </div>
           </div>
