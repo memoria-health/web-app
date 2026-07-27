@@ -177,7 +177,9 @@ export function EventsFeed({
                 {e.narrative}
               </p>
             )}
-            <p className="mt-1.5 font-mono text-xs text-ink4 tracking-wide">
+            {/* timeAgo is clock-dependent, so SSR and hydration can disagree
+                by a second — scope hydration tolerance to this line's text. */}
+            <p className="mt-1.5 font-mono text-xs text-ink4 tracking-wide" suppressHydrationWarning>
               {e.location} · {timeAgo(e.occurred_at)} ·{' '}
               <code>{formatLocalTime(e.occurred_at)}</code>
               {e.reviewed && <> · reviewed</>}

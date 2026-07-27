@@ -6,7 +6,7 @@
 // server. Text + annotation layers are disabled — these docs are read-only,
 // so a canvas render is enough and avoids the extra CSS + layers.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { LEGAL_DOCS } from '@/lib/legal';
 
@@ -14,11 +14,30 @@ import { LEGAL_DOCS } from '@/lib/legal';
 // PR). Static path avoids Turbopack worker-URL resolution quirks.
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-export default function TermsPdfStack({ width }: { width: number }) {
+export default function TermsPdfStack({
+  width,
+  onReady,
+}: {
+  width: number;
+  // Fired once EVERY document has loaded — the gate uses this so "I agree"
+  // can't unlock before there's actually anything to read.
+  onReady?: () => void;
+}) {
+  const loaded = useRef(0);
+  const handleLoaded = () => {
+    loaded.current += 1;
+    if (loaded.current >= LEGAL_DOCS.length) onReady?.();
+  };
   return (
     <div className="flex flex-col items-center gap-8">
       {LEGAL_DOCS.map((doc) => (
-        <DocBlock key={doc.key} title={doc.title} url={doc.url} width={width} />
+        <DocBlock
+          key={doc.key}
+          title={doc.title}
+          url={doc.url}
+          width={width}
+          onLoaded={handleLoaded}
+        />
       ))}
     </div>
   );
@@ -28,10 +47,12 @@ function DocBlock({
   title,
   url,
   width,
+  onLoaded,
 }: {
   title: string;
   url: string;
   width: number;
+  onLoaded: () => void;
 }) {
   const [numPages, setNumPages] = useState(0);
   return (
@@ -41,7 +62,10 @@ function DocBlock({
       </h3>
       <Document
         file={url}
-        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+        onLoadSuccess={({ numPages }) => {
+          setNumPages(numPages);
+          onLoaded();
+        }}
         loading={
           <div className="py-10 text-center text-sm text-ink3">Loading {title}…</div>
         }

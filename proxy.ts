@@ -13,6 +13,15 @@ const PUBLIC_PATHS = [
   '/auth/callback',
   '/privacy',
   '/terms',
+  // Legal PDFs shown in the signup consent modal must load BEFORE auth —
+  // the caregiver reviews + agrees to them to create an account. Same class
+  // of problem as `/backend` below: proxy must NOT 307 these to /login, or
+  // react-pdf fetches the login-page HTML instead of the document and the
+  // gate shows the "couldn't load" error (which also makes the scroll-to-
+  // agree sentinel visible immediately, unlocking Agree with nothing to read).
+  '/legal',
+  // The pdf.js worker for that same modal (react-pdf), also fetched pre-auth.
+  '/pdf.worker',
   // `/backend/*` is the client-side rewrite to the FastAPI backend.
   // Those requests carry an Authorization: Bearer header (set by
   // NemaraAPI.request via getBrowserSupabase().auth.getSession().access_token)

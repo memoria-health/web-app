@@ -433,7 +433,13 @@ function AnalysisRow({
     >
       {/* metadata row */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono text-ink3 tracking-wide">
+        {/* Relative time is clock-dependent: the server renders "12s ago"
+            and the client hydrates a couple seconds later at "14s ago",
+            which trips React's hydration check on this Live page (reads as
+            "cameras broke"). suppressHydrationWarning scopes the tolerance
+            to THIS text node — React keeps the client value, and any other
+            mismatch on the page still surfaces. */}
+        <span className="font-mono text-ink3 tracking-wide" suppressHydrationWarning>
           {timeAgo(a.created_at)}
         </span>
         <span className="font-mono text-ink4 truncate max-w-[12rem] tracking-wide">
