@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
-import { DetectorForm } from '@/app/_components/DetectorForm';
-import { DetectorInsight } from '@/app/_components/DetectorInsight';
+import { DetectorEditor } from '@/app/_components/DetectorEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +36,7 @@ export default async function EditDetectorPage({
           {detector.source}
         </span>
       </header>
-      <DetectorInsight detector={detector} />
-      <DetectorForm mode="edit" detector={detector} cameras={cameras} />
+      <DetectorEditor detector={detector} cameras={cameras} />
     </div>
   );
 }
