@@ -7,6 +7,7 @@ import { OnboardingModal } from '@/app/_components/OnboardingModal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { SessionSync } from '@/app/_components/SessionSync';
 import { PatientProvider } from '@/app/_components/PatientProvider';
+import { PersonProvider } from '@/app/_components/PersonContext';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
 import { AlertsFirstRunPrompt } from '@/app/_components/alerts/AlertsFirstRunPrompt';
 import { PreloadVision } from '@/app/_components/PreloadVision';
@@ -72,6 +73,7 @@ export default async function AppLayout({
   return (
     <div className="flex flex-1 flex-col">
       <PatientProvider patients={patients} selected={selected}>
+        <PersonProvider>
         {/* AlertsProvider wraps TopNav (which hosts the bell) + children so
             the global browser-alert subscription runs on every signed-in
             page. See app/_components/alerts/AlertsProvider.tsx. */}
@@ -91,6 +93,7 @@ export default async function AppLayout({
               after first paint) so toggling blur is instant. No-op if unused. */}
           <PreloadVision />
         </AlertsProvider>
+        </PersonProvider>
       </PatientProvider>
     </div>
   );

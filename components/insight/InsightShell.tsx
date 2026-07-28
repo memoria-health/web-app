@@ -5,6 +5,7 @@ import { DefaultChatTransport } from 'ai';
 import ReactMarkdown from 'react-markdown';
 import { ArrowUp, ChevronDown, House, LayoutDashboard, MessageCircle, PanelLeft, Pin, Sparkles, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePatients } from '@/app/_components/PatientProvider';
 import {
   ActivityTrendCard,
@@ -106,12 +107,11 @@ function ToolCard({ toolName, input, output }: { toolName: string; input: any; o
   );
 }
 
-export function InsightShell() {
+export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scope: string }) {
+  const router = useRouter();
   const { messages, sendMessage, status } = useChat({ transport: new DefaultChatTransport({ api: '/api/insight/chat' }) });
   const [input, setInput] = useState('');
   const [patients, setPatients] = useState<{ id: string; name: string; preferred: string; room?: string }[]>([]);
-  const [scope, setScope] = useState<string>(''); // '' = all patients
-  const [view, setView] = useState<'home' | 'chat' | 'dashboard'>('chat'); // Home lives at the app's top level now
   const [navOpen, setNavOpen] = useState(false);
   // widget being configured via the SIDE drawer (set by dropping a shape or a
   // widget's chat icon) — the user never leaves the dashboard
@@ -159,64 +159,11 @@ export function InsightShell() {
     });
   };
 
-  const selector = (
-    <label className="relative flex items-center">
-      <Users size={14} className="pointer-events-none absolute left-3 text-terra" />
-      <select
-        value={scope}
-        onChange={(e) => setScope(e.target.value)}
-        className={`appearance-none rounded-full border py-1.5 pl-8 pr-8 text-[12px] outline-none transition-colors ${
-          scope ? 'border-terra bg-terra-soft text-terra-deep' : 'border-line bg-card text-ink2'
-        }`}
-      >
-        <option value="">All patients</option>
-        {patients.map((p) => {
-          const label = p.preferred || p.name;
-          const dup = patients.filter((q) => (q.preferred || q.name) === label).length > 1;
-          return (
-            <option key={p.id} value={p.id}>
-              {dup ? `${label} · ${p.room ?? p.id.slice(0, 4)}` : label}
-            </option>
-          );
-        })}
-      </select>
-      <ChevronDown size={13} className="pointer-events-none absolute right-2.5 text-ink4" />
-    </label>
-  );
 
-  const NAV = [
-    { k: 'chat' as const, icon: MessageCircle, label: 'Chat' },
-    { k: 'dashboard' as const, icon: LayoutDashboard, label: 'Explore' },
-  ];
 
   return (
     <div className="flex h-full">
       {/* left navbar — collapsed icon rail, expandable for labels */}
-      <nav className={`flex h-full shrink-0 flex-col border-r border-line bg-card transition-[width] duration-200 ${navOpen ? 'w-44' : 'w-14'}`}>
-        <button
-          onClick={() => setNavOpen((v) => !v)}
-          className="m-2 flex h-9 w-9 items-center justify-center rounded-xl text-ink4 hover:bg-card-alt hover:text-ink2"
-          aria-label="Toggle navigation"
-        >
-          <PanelLeft size={17} />
-        </button>
-        <div className="mt-2 flex flex-col gap-1 px-2">
-          {NAV.map(({ k, icon: Icon, label }) => (
-            <button
-              key={k}
-              onClick={() => setView(k)}
-              className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] transition-colors ${
-                view === k ? 'bg-terra-soft text-terra-deep' : 'text-ink3 hover:bg-card-alt'
-              }`}
-            >
-              <Icon size={17} className="shrink-0" />
-              {navOpen && <span>{label}</span>}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1" />
-        {navOpen && <div className="px-4 pb-4 font-serif text-[13px] font-semibold text-ink4">Memoria</div>}
-      </nav>
 
       {/* chat pane (default view; stays mounted so the conversation survives switching) */}
       <div className={view === 'chat' ? 'mx-auto flex h-full w-full max-w-3xl flex-col px-4' : 'hidden'}>
@@ -226,7 +173,7 @@ export function InsightShell() {
           <p className="text-[13px] text-ink3">Ask anything about your loved one’s day.</p>
         </div>
         <div className="flex items-center gap-2">
-          {selector}
+          <span />
           <span className="rounded-full border border-line bg-card px-3 py-1 text-[11px] text-ink4">
             prototype
           </span>
@@ -315,7 +262,7 @@ export function InsightShell() {
                             <button
                               onClick={() => {
                                 saveWidget({ title: spec.title, source: spec.source, viz: spec.viz, expanded: false, size: 'm' });
-                                setView('dashboard');
+                                router.push('/explore');
                               }}
                               className="rounded-full bg-action px-3.5 py-1.5 text-[12px] font-medium text-terra-ink hover:opacity-85"
                             >
@@ -425,7 +372,7 @@ export function InsightShell() {
       <section className={view === 'dashboard' ? 'flex h-full flex-1 flex-col' : 'hidden'}>
           <div className="flex items-center justify-between border-b border-line px-6 py-3.5">
             <h1 className="font-serif text-xl font-semibold text-ink">Memoria Insight</h1>
-            {selector}
+            <span />
           </div>
           <div className="flex min-h-0 flex-1">
             <div className="min-w-0 flex-1">

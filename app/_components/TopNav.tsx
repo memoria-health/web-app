@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
-import { PatientSwitcher } from './PatientSwitcher';
+import { PersonChip } from './PersonChip';
 import { AlertsBell } from './alerts/AlertsBell';
 
 /// Top of every page. Two stacked rows:
@@ -23,33 +23,21 @@ export function TopNav({ email }: { email: string | null }) {
   const patientIdMatch = pathname.match(/^\/patients\/([0-9a-f-]+)/i);
   const inPatient = patientIdMatch !== null;
   const base = patientIdMatch ? `/patients/${patientIdMatch[1]}` : '';
+  // ONE tab row for every account shape — the person chip carries the
+  // patient dimension, so the tabs never change with patient count.
+  const inPatientSetup = inPatient && /\/(cameras|detectors|settings)/.test(pathname);
 
-  const tabs = inPatient
-    ? [
-        { href: base, label: 'Live', isActive: pathname === base },
-        {
-          href: `${base}/cameras`,
-          label: 'Sensors',
-          isActive: pathname.startsWith(`${base}/cameras`),
-        },
-        {
-          href: `${base}/detectors`,
-          label: 'Detectors',
-          isActive: pathname.startsWith(`${base}/detectors`),
-        },
-        {
-          href: `${base}/settings`,
-          label: 'Settings',
-          isActive: pathname.startsWith(`${base}/settings`),
-        },
-      ]
-    : [
-        // Global shell: reassurance-first Home, the operational roster,
-        // and the AI chat + widget dashboard.
-        { href: '/home', label: 'Home', isActive: pathname.startsWith('/home') },
-        { href: '/patients', label: 'Patients', isActive: pathname === '/patients' || pathname.startsWith('/patients/new') },
-        { href: '/insights', label: 'Insights', isActive: pathname.startsWith('/insights') },
-      ];
+  const tabs = [
+    { href: '/home', label: 'Home', isActive: pathname.startsWith('/home') },
+    { href: '/live', label: 'Live', isActive: pathname.startsWith('/live') || (inPatient && !inPatientSetup) },
+    { href: '/ask', label: 'Ask', isActive: pathname.startsWith('/ask') },
+    { href: '/explore', label: 'Explore', isActive: pathname.startsWith('/explore') },
+    {
+      href: '/settings',
+      label: 'Settings',
+      isActive: pathname.startsWith('/settings') || pathname === '/patients' || pathname.startsWith('/patients/new') || inPatientSetup,
+    },
+  ];
 
   return (
     <>
@@ -62,7 +50,7 @@ export function TopNav({ email }: { email: string | null }) {
         </Link>
 
         <div className="justify-self-center">
-          <PatientSwitcher />
+          <PersonChip />
         </div>
 
         <div className="flex items-center gap-3 justify-self-end">

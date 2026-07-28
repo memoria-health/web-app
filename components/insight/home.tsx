@@ -25,8 +25,8 @@ const STATUS_STYLE = {
   red: { dot: 'bg-terra', ring: 'ring-terra/30', bg: 'bg-terra-soft/70' },
 } as const;
 
-export function FamilyHome({ patients }: { patients: { id: string; name: string; preferred: string }[] }) {
-  const [pid, setPid] = useState<string | null>(null);
+export function FamilyHome({ patients, fixedPatient }: { patients: { id: string; name: string; preferred: string }[]; fixedPatient?: string }) {
+  const [pid, setPid] = useState<string | null>(fixedPatient ?? null);
   const [data, setData] = useState<any>(null);
   const [openItem, setOpenItem] = useState<string | null>(null);
   const lastFetch = useRef(0);
@@ -41,6 +41,8 @@ export function FamilyHome({ patients }: { patients: { id: string; name: string;
     document.addEventListener('visibilitychange', bump);
     return () => { clearInterval(iv); window.removeEventListener('focus', bump); document.removeEventListener('visibilitychange', bump); };
   }, []);
+
+  useEffect(() => { if (fixedPatient && pid !== fixedPatient) { setPid(fixedPatient); setData(null); } }, [fixedPatient, pid]);
 
   // briefing is cached per patient+day — data refreshes shouldn't re-write prose
   const briefKey = useRef('');
@@ -91,7 +93,7 @@ export function FamilyHome({ patients }: { patients: { id: string; name: string;
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-xl px-6 pb-16 pt-8">
         {/* whose home — only a control at all when there's more than one */}
-        {patients.length > 1 ? (
+        {patients.length > 1 && !fixedPatient ? (
           <label className="relative mb-5 inline-flex items-center">
             <select
               value={pid ?? ''}
