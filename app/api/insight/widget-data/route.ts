@@ -143,7 +143,10 @@ export async function GET(req: Request) {
   try {
     const s = new URL(req.url).searchParams.get('s');
     const res = await run(s ? JSON.parse(s) : null);
-    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=240');
+    // PRIVATE cache only: responses are tenant-scoped now — a shared (CDN)
+    // cache would leak one caregiver's data into another's dashboard. The
+    // browser still absorbs the 2-min auto-refresh per user.
+    res.headers.set('Cache-Control', 'private, max-age=60');
     return res;
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message ?? e) }, { status: 400 });

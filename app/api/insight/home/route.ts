@@ -215,7 +215,7 @@ export async function GET(req: Request) {
       preview,
     });
     // fast path is CDN-cacheable: same answer for every viewer of a patient
-    if (fast) res.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120');
+    if (fast) res.headers.set('Cache-Control', 'private, max-age=30'); // tenant-scoped — never shared-cache
     return res;
   } catch (e: any) {
     return NextResponse.json({ error: String(e?.message ?? e) }, { status: 500 });
