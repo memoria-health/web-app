@@ -43,7 +43,13 @@ export function TopNav({ email }: { email: string | null }) {
           isActive: pathname.startsWith(`${base}/settings`),
         },
       ]
-    : [];
+    : [
+        // Global shell: reassurance-first Home, the operational roster,
+        // and the AI chat + widget dashboard.
+        { href: '/home', label: 'Home', isActive: pathname.startsWith('/home') },
+        { href: '/patients', label: 'Patients', isActive: pathname === '/patients' || pathname.startsWith('/patients/new') },
+        { href: '/insights', label: 'Insights', isActive: pathname.startsWith('/insights') },
+      ];
 
   return (
     <>
