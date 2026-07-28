@@ -75,6 +75,10 @@ export default async function PatientLivePage({
     // app-closed from ever shadowing a live feed.
     online: c.online,
     app_present: c.app_present ?? true,
+    // Room-derived per-camera privacy. Tolerant defaults for a backend
+    // that hasn't migrated yet: absent → not private / unclassified.
+    privacy_enabled: c.privacy_enabled ?? false,
+    room_class: c.room_class ?? null,
   }));
   // Analyses feeds mount as soon as a camera is paired + meant-to-be-on
   // (`desired_state === 'connected'`), WITHOUT requiring `online`. `online`
@@ -159,11 +163,6 @@ export default async function PatientLivePage({
           <h2 className="font-serif text-3xl tracking-tight text-ink">
             Live grid
           </h2>
-          {patient.privacy_mode_enabled && (
-            <span className="inline-flex items-center gap-1 rounded-sm border border-action/40 bg-action-soft px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-action">
-              Privacy mode on
-            </span>
-          )}
         </header>
         {lkError ? (
           <div className="rounded-lg border border-terra/40 bg-terra-soft px-4 py-3 text-sm text-terra-deep">
@@ -174,7 +173,6 @@ export default async function PatientLivePage({
             patientId={patient.id}
             hasLivekitToken={true}
             enabledCameras={gridCameras}
-            privacyMode={patient.privacy_mode_enabled}
           />
         )}
       </section>

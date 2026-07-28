@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { PatientForm } from '@/app/_components/PatientForm';
 import { EmailAlertsSettings } from '@/app/_components/EmailAlertsSettings';
 import { DataCollectionSettings } from '@/app/_components/DataCollectionSettings';
-import { PrivacyModeSettings } from '@/app/_components/PrivacyModeSettings';
 import { BlurPeopleSettings } from '@/app/_components/BlurPeopleSettings';
 import { PatientAccessSettings } from '@/app/_components/PatientAccessSettings';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
@@ -97,27 +96,20 @@ export default async function PatientSettingsPage({
       </section>
 
       <section className="rounded-lg border border-line bg-card px-5 py-5">
-        <h2 className="mb-1 font-serif text-2xl text-ink">Privacy mode</h2>
+        <h2 className="mb-1 font-serif text-2xl text-ink">Privacy</h2>
         <p className="mb-4 text-sm text-ink3">
-          Hide {firstName}&apos;s live video and audio and stop all recording.
-          No one can watch or listen to the live feed, and nothing is stored.
-          You still receive insights. This preserves {firstName}&apos;s dignity
-          at all times. While on, it overrides Data collection below.
+          Cameras in bathrooms and bedrooms are detected automatically and get
+          privacy protections by default: no live view, and sensitive moments
+          in clips are always censored. The setting below is an extra,
+          display-only filter on top.
         </p>
-        <PrivacyModeSettings
-          patientId={patient.id}
-          initialEnabled={patient.privacy_mode_enabled}
-        />
-      </section>
-
-      <section className="rounded-lg border border-line bg-card px-5 py-5">
-        <h2 className="mb-1 font-serif text-2xl text-ink">Blur people</h2>
+        <h3 className="mb-1 text-base font-medium text-ink">Blur people</h3>
         <p className="mb-4 text-sm text-ink3">
           Blur anyone who appears in {firstName}&apos;s live feed while keeping
           the room in view — helpful for extra dignity or when your screen is
-          visible to others. This is a display-only filter that runs in your
-          browser: it doesn&apos;t change recording, insights, or what anyone
-          else sees, and it applies to this device only.
+          visible to others. This runs in your browser: it doesn&apos;t change
+          recording, insights, or what anyone else sees, and it applies to
+          this browser only.
         </p>
         <BlurPeopleSettings patientId={patient.id} />
       </section>
@@ -133,7 +125,6 @@ export default async function PatientSettingsPage({
         <DataCollectionSettings
           patientId={patient.id}
           initialEnabled={patient.data_collection_enabled}
-          suspendedByPrivacy={patient.privacy_mode_enabled}
         />
       </section>
     </div>

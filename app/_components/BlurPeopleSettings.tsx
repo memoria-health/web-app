@@ -7,8 +7,9 @@ import { cn } from '@/lib/utils/cn';
 /// localStorage per patient) — it only changes how THIS browser renders the
 /// live grid: a MoveNet pose mask blurs people on-canvas while the room stays
 /// visible. It touches no backend state and doesn't affect recording or what
-/// anyone else sees. Distinct from Privacy mode, which severs the feed for
-/// everyone at the SFU. VideoGrid reads the same key on mount.
+/// anyone else sees. Distinct from per-camera room-derived privacy
+/// (`Camera.privacy_enabled`), which withholds the feed for everyone at the
+/// SFU. VideoGrid reads the same key on mount.
 const keyFor = (patientId: string) => `skeleton-mode:${patientId}`;
 
 export function BlurPeopleSettings({ patientId }: { patientId: string }) {

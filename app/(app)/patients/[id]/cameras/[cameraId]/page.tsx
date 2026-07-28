@@ -68,7 +68,32 @@ export default async function CameraDetailPage({
             AI PAUSED
           </span>
         )}
+        {camera.privacy_enabled && (
+          <span className="inline-flex items-center rounded-sm border border-action/40 bg-action-soft px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider text-action">
+            PRIVATE ROOM
+          </span>
+        )}
       </header>
+
+      {/* Room-derived privacy explainer. privacy_enabled is locked
+          server-side (derived from the AI room classification) — there is
+          deliberately no toggle here. */}
+      {camera.privacy_enabled && (
+        <section className="rounded-lg border border-action/40 bg-action-soft px-4 py-4">
+          <h2 className="mb-1 font-mono text-xs font-semibold uppercase tracking-wider text-action">
+            Privacy is on for this camera
+          </h2>
+          <p className="text-sm text-ink2">
+            Set automatically because this looks like a{' '}
+            {camera.room_class === 'bathroom' || camera.room_class === 'bedroom'
+              ? camera.room_class
+              : 'bathroom/bedroom'}
+            . There&apos;s no live video or audio for this room. Events and
+            clips still work, and sensitive moments in clips are always
+            censored.
+          </p>
+        </section>
+      )}
 
       <section className="rounded-lg border border-line bg-card px-4 py-4">
         <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">

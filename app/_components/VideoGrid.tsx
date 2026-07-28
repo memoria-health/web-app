@@ -40,15 +40,21 @@ interface EnabledCamera {
   // !online → "app closed" (open the app), distinct from a reconnectable
   // "Disconnected". Only false for iPhone sensors; Pi stays true.
   app_present: boolean;
+  // Per-camera privacy, derived server-side from room_class (bathroom/
+  // bedroom → true, locked — no user toggle). When true the tile shows
+  // the "Private room" placard, never attaches the video track, and the
+  // audio unmute control is hidden.
+  privacy_enabled: boolean;
+  // AI room classification — picks the one-time private-room notice copy
+  // (the notice itself keys on privacy_enabled).
+  room_class: 'bathroom' | 'bedroom' | 'other' | null;
 }
 
 function GridInner({
   enabledCameras,
-  privacyMode = false,
   skeletonMode = false,
 }: {
   enabledCameras: EnabledCamera[];
-  privacyMode?: boolean;
   skeletonMode?: boolean;
 }) {
   // The LiveKit room — used to resume the browser AudioContext on a user
@@ -162,28 +168,33 @@ function GridInner({
                   aiPaused={cam.ai_paused}
                   desiredState={cam.desired_state}
                   appClosed={appClosed}
-                  trackRef={trackRef}
+                  trackRef={cam.privacy_enabled ? undefined : trackRef}
                   roomLive={roomLive}
-                  privacyMode={privacyMode}
+                  privacyEnabled={cam.privacy_enabled}
                   skeletonMode={skeletonMode}
                 />
                 {/* Per-tile audio — the ONLY audio sink now that
                     RoomAudioRenderer is removed (see LiveRoomProvider). `volume`
-                    gates audibility from the per-tile mute toggle. Privacy mode
-                    forces it silent (the server also severs the track). */}
-                {audioRef && (
+                    gates audibility from the per-tile mute toggle. Private-room
+                    cameras never mount an audio sink at all (the server also
+                    withholds the track). */}
+                {audioRef && !cam.privacy_enabled && (
                   <AudioTrack
                     trackRef={audioRef as Parameters<typeof AudioTrack>[0]['trackRef']}
-                    volume={isAudible && !privacyMode ? 1.0 : 0.0}
+                    volume={isAudible ? 1.0 : 0.0}
                   />
                 )}
               </div>
-              <CameraTileAudioButton
-                cameraRoom={cam.room}
-                hasAudioTrack={!!audioRef}
-                isAudible={isAudible}
-                onToggle={() => toggleAudio(cam.identity)}
-              />
+              {/* Audio unmute control is hidden entirely for private-room
+                  tiles — there is nothing to listen to. */}
+              {!cam.privacy_enabled && (
+                <CameraTileAudioButton
+                  cameraRoom={cam.room}
+                  hasAudioTrack={!!audioRef}
+                  isAudible={isAudible}
+                  onToggle={() => toggleAudio(cam.identity)}
+                />
+              )}
               <CameraTileMenu
                 cameraId={cam.id}
                 cameraRoom={cam.room}
@@ -215,7 +226,7 @@ function CameraTileBody({
   appClosed,
   trackRef,
   roomLive,
-  privacyMode,
+  privacyEnabled,
   skeletonMode,
 }: {
   paired: boolean;
@@ -232,21 +243,22 @@ function CameraTileBody({
   // False while the browser's LiveKit connection is down/reconnecting — any
   // held track is stale, so we overlay "Signal lost" instead of trusting it.
   roomLive: boolean;
-  // Privacy mode — when on, the feed is severed server-side; show the
-  // dignity placard instead of any video/spinner.
-  privacyMode: boolean;
+  // Per-camera privacy (room-derived, locked). When on, this camera's
+  // live feed is withheld server-side; show the dignity placard instead
+  // of any video/spinner.
+  privacyEnabled: boolean;
   // Client-side "skeleton mode": render the pose/box-blur canvas instead of the
-  // raw video. Distinct from privacyMode (which shows no feed at all).
+  // raw video. Distinct from privacyEnabled (which shows no feed at all).
   skeletonMode: boolean;
 }) {
-  // Privacy mode beats everything — the live feed is intentionally
-  // hidden (and severed at the SFU), regardless of pairing/connection.
-  if (privacyMode) {
+  // Per-camera privacy beats everything — the live feed is intentionally
+  // hidden (and withheld at the SFU), regardless of pairing/connection.
+  if (privacyEnabled) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-1 px-4 text-center text-ink3">
-        <span className="font-serif text-xl text-ink2">Privacy mode</span>
+        <span className="font-serif text-xl text-ink2">Private room</span>
         <span className="text-xs text-ink4">
-          Live video and audio are hidden. Insights are still active.
+          Live view is off for this room.
         </span>
       </div>
     );
@@ -608,11 +620,94 @@ function CameraTileMenu({
   );
 }
 
+/// One-time dismissible notice for cameras with per-camera privacy on.
+/// Keyed on `privacy_enabled` (not `room_class`) so fail-closed
+/// classifications — privacy on with room_class other/null — get the
+/// notice too; the copy adapts when the classifier's room call is known.
+/// Shown on the live grid until the caregiver dismisses it; the ack is
+/// persisted in localStorage PER CAMERA (`private-room-ack:<cameraId>`)
+/// so it never re-appears on this browser.
+function PrivateRoomNotices({ cameras }: { cameras: EnabledCamera[] }) {
+  const sensitive = cameras.filter((c) => c.privacy_enabled === true);
+  // localStorage isn't available during SSR — start with "all acked"
+  // (render nothing) and hydrate the real un-acked set in an effect,
+  // mirroring how skeletonMode reads its key.
+  const [unacked, setUnacked] = useState<Set<string>>(new Set());
+  // Keyed on the joined ids, not the array identity, so unrelated camera
+  // updates don't re-run this — only a change to the sensitive set does
+  // (e.g. a realtime room_class update landing).
+  const sensitiveIds = sensitive.map((c) => c.id).join(',');
+  useEffect(() => {
+    const read = () => {
+      try {
+        setUnacked(
+          new Set(
+            sensitiveIds
+              .split(',')
+              .filter(
+                (id) =>
+                  id !== ''
+                  && localStorage.getItem(`private-room-ack:${id}`) !== '1',
+              ),
+          ),
+        );
+      } catch {
+        /* localStorage unavailable — leave the notice hidden */
+      }
+    };
+    read();
+  }, [sensitiveIds]);
+
+  const dismiss = (cameraId: string) => {
+    try {
+      localStorage.setItem(`private-room-ack:${cameraId}`, '1');
+    } catch {
+      /* noop — dismissal still applies for this render */
+    }
+    setUnacked((prev) => {
+      const next = new Set(prev);
+      next.delete(cameraId);
+      return next;
+    });
+  };
+
+  const toShow = sensitive.filter((c) => unacked.has(c.id));
+  if (toShow.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {toShow.map((c) => (
+        <div
+          key={c.id}
+          className="flex items-start justify-between gap-3 rounded-lg border border-action/40 bg-action-soft px-4 py-3"
+        >
+          <p className="text-sm text-ink2">
+            <span className="font-medium text-ink">{c.room}:</span>{' '}
+            {c.room_class === 'bathroom' || c.room_class === 'bedroom'
+              ? "This camera looks like it's in a private room. Privacy is"
+                + ' on by default: no live view, and sensitive moments in'
+                + ' clips are always censored.'
+              : "This camera is in a private room. Privacy is on: no live"
+                + ' view, and sensitive moments in clips are always'
+                + ' censored.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => dismiss(c.id)}
+            aria-label={`Dismiss private room notice for ${c.room}`}
+            className="shrink-0 rounded border border-line px-2 py-1 text-xs text-ink2 hover:border-line hover:bg-card"
+          >
+            Got it
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function VideoGrid({
   patientId,
   hasLivekitToken,
   enabledCameras,
-  privacyMode = false,
 }: {
   patientId: string;
   // Whether the patient layout successfully minted a LiveKit token.
@@ -621,10 +716,6 @@ export function VideoGrid({
   // empty grid so the caregiver knows the upstream mint failed.
   hasLivekitToken: boolean;
   enabledCameras: EnabledCamera[];
-  // Privacy mode for this patient. While on, the backend severs the
-  // caregiver's media at the SFU (no track arrives), so every tile shows
-  // the privacy placard instead of a feed.
-  privacyMode?: boolean;
 }) {
   // Own the camera list as client state so realtime updates from
   // OTHER surfaces (iOS PATCH of `disabled`, wall-phone PATCH of
@@ -712,6 +803,11 @@ export function VideoGrid({
             // tile updates live with no refresh.
             online: boolean;
             app_present: boolean;
+            // Room-derived privacy. Optional so a backend that hasn't
+            // migrated the columns yet doesn't break the tile mapping —
+            // absent falls back to the current client value.
+            privacy_enabled?: boolean;
+            room_class?: EnabledCamera['room_class'];
           }>) => {
             const next = payload.new;
             setCameras((prev) =>
@@ -729,6 +825,8 @@ export function VideoGrid({
                         || next.ingest_token_hash !== null,
                       online: next.online,
                       app_present: next.app_present,
+                      privacy_enabled: next.privacy_enabled ?? c.privacy_enabled,
+                      room_class: next.room_class ?? c.room_class,
                     }
                   : c,
               ),
@@ -754,6 +852,8 @@ export function VideoGrid({
             ingest_token_hash: string | null;
             online: boolean;
             app_present: boolean;
+            privacy_enabled?: boolean;
+            room_class?: EnabledCamera['room_class'];
           }>) => {
             const fresh = payload.new;
             // No livekit_identity yet = backend hasn't reserved one.
@@ -778,6 +878,8 @@ export function VideoGrid({
                     || fresh.ingest_token_hash !== null,
                   online: fresh.online,
                   app_present: fresh.app_present ?? true,
+                  privacy_enabled: fresh.privacy_enabled ?? false,
+                  room_class: fresh.room_class ?? null,
                 },
               ];
             });
@@ -828,10 +930,12 @@ export function VideoGrid({
   // sub-tab navigation; previously this component owned the wrapper,
   // which tore down the room every time the user left the Live tab.
   return (
-    <GridInner
-      enabledCameras={cameras}
-      privacyMode={privacyMode}
-      skeletonMode={skeletonMode}
-    />
+    <div className="flex flex-col gap-4">
+      <PrivateRoomNotices cameras={cameras} />
+      <GridInner
+        enabledCameras={cameras}
+        skeletonMode={skeletonMode}
+      />
+    </div>
   );
 }

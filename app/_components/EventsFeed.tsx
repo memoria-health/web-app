@@ -171,7 +171,17 @@ export function EventsFeed({
             {e.category}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-serif text-xl text-ink">{e.title}</p>
+            <p className="font-serif text-xl text-ink">
+              {e.title}
+              {/* Server-censored clip (blurred, audio stripped) — e.g. a
+                  sensitive moment from a private-room camera. The web feed
+                  is text-only for clips, so this is badge + copy only. */}
+              {e.clip_censored && (
+                <span className="ml-2 inline-flex translate-y-[-2px] items-center rounded-sm border border-action/40 bg-action-soft px-2 py-0.5 font-sans text-xs font-medium text-action">
+                  Sensitive moment — censored
+                </span>
+              )}
+            </p>
             {e.narrative && (
               <p className="mt-1 text-base leading-relaxed text-ink2">
                 {e.narrative}

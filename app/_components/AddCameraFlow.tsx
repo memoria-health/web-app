@@ -228,6 +228,10 @@ function PhoneCameraTab({ patientId }: { patientId: string }) {
           required
           className="rounded border border-line bg-paper-dim px-3 py-2 text-base text-ink placeholder-zinc-600 focus:border-action focus:ring-1 focus:ring-action/20 focus:outline-none"
         />
+        <span className="text-xs text-ink3">
+          Room type is detected automatically — cameras in bathrooms and
+          bedrooms get privacy protections by default.
+        </span>
       </label>
       <IconPicker icon={icon} onChange={setIcon} />
       {error && <ErrorBanner message={error} />}

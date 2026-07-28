@@ -117,12 +117,17 @@ export interface Patient {
   // first-open consent banner; non-null ⇒ never auto-show again.
   data_collection_enabled: boolean;
   data_collection_decided_at: string | null;
-  // Privacy mode (dignity override). When true: no clips are stored, the
-  // live video+audio feed is severed server-side, and event clips are
-  // stripped from insights — text insights keep flowing. Suspends
-  // data_collection_enabled without changing it.
+  // LEGACY patient-wide privacy mode. Superseded by per-camera
+  // `Camera.privacy_enabled` (room-derived); no web UI reads or writes
+  // this anymore except the LiveRoomProvider reconnect wiring. Kept on
+  // the type because the backend still returns it during the transition.
   privacy_mode_enabled: boolean;
 }
+
+// AI room classification for a camera. Bathroom/bedroom rooms are
+// treated as private (privacy_enabled locks on, no user toggle);
+// everything else is 'other'. Null = not yet classified.
+export type RoomClass = 'bathroom' | 'bedroom' | 'other';
 
 // Which physical device class a camera row represents. Backend
 // returns both shapes from the same /cameras endpoint. The two
@@ -180,6 +185,21 @@ export interface Camera {
   // true. Optional/defaulted true on older backends — undefined is
   // treated as present (never falsely shows "app closed").
   app_present?: boolean;
+  // AI room classification (server-side, from camera frames). Optional on
+  // the wire so older backends that omit the fields don't break the type —
+  // treat absent as null / not classified.
+  room_class?: RoomClass | null;
+  // Classifier confidence in [0,1] for `room_class`; null until classified.
+  room_class_confidence?: number | null;
+  // ISO timestamp of the last classification pass; null until classified.
+  room_classified_at?: string | null;
+  // Per-camera privacy, DERIVED from room_class (bathroom/bedroom → true).
+  // Locked server-side — there is no user toggle. When true: no live
+  // video/audio for this camera (placard tile, talk n/a on web); events
+  // and clips still exist, with sensitive clips server-censored
+  // (see DetectionEvent.clip_censored). Optional on the wire; treat
+  // absent (older backend) as false.
+  privacy_enabled?: boolean;
 }
 
 // Canonical "this camera is currently producing a live feed the
@@ -310,6 +330,14 @@ export interface DetectionEvent {
   // processing). The web events feed is text-only so this isn't rendered
   // yet, but it's kept in sync with the backend EventResponse.
   clip_suppressed: boolean;
+  // True when the clip was server-censored for privacy (blurred, audio
+  // stripped) because it contains a sensitive moment — e.g. it came from
+  // a private-room camera. The clip still exists and plays; it is never
+  // raw. Optional on the wire; treat absent (older backend) as false.
+  clip_censored?: boolean;
+  // Which sensitivity categories the censor matched (server-defined
+  // strings). Null/absent when the clip isn't censored.
+  sensitivity_categories?: string[] | null;
   created_at: string;
 }
 
@@ -398,9 +426,9 @@ export interface UpdatePatientRequest {
   // (so both true and false record a decision). Never send
   // `data_collection_decided_at` from the client.
   data_collection_enabled?: boolean;
-  // Privacy mode toggle. Suspends data collection + severs the live feed
-  // server-side; does not touch the stored consent decision.
-  privacy_mode_enabled?: boolean;
+  // NOTE: the legacy `privacy_mode_enabled` toggle was removed — privacy
+  // is now per-camera (`Camera.privacy_enabled`), derived from room_class
+  // server-side and not client-settable.
 }
 
 export interface UpdateCameraRequest {
