@@ -113,7 +113,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
         ) : (
           <>
             {/* ① the verdict — the only thing many visits will ever need */}
-            <div className={`rounded-3xl ${style.bg} px-7 py-6 ring-1 ${style.ring}`}>
+            <div className={`anim-up rounded-3xl ${style.bg} px-7 py-6 ring-1 ${style.ring}`}>
               <div className="flex items-center gap-3.5">
                 <span className={`h-4 w-4 shrink-0 rounded-full ${style.dot} ${st.level === 'green' ? 'animate-pulse [animation-duration:3s]' : ''}`} />
                 <h1 className="font-serif text-[26px] font-semibold leading-tight text-ink">{st.line}</h1>
@@ -124,7 +124,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
 
             {/* ② the briefing — what you'd tell your sibling on the phone */}
             {data.briefing ? (
-              <p className="mt-7 font-serif text-[19px] leading-[1.65] text-ink2">{data.briefing}</p>
+              <p className="anim-up mt-7 font-serif text-[19px] leading-[1.65] text-ink2" style={{ animationDelay: '60ms' }}>{data.briefing}</p>
             ) : (
               <div className="mt-7 space-y-2.5" aria-hidden>
                 <div className="h-[15px] w-11/12 animate-pulse rounded bg-card-alt" />
@@ -133,7 +133,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             )}
 
             {/* ③ streaks — the numbers families actually quote */}
-            <div className="mt-7 grid grid-cols-2 gap-4">
+            <div className="anim-up mt-7 grid grid-cols-2 gap-4" style={{ animationDelay: '120ms' }}>
               {data.streaks.map((s: any) => (
                 <div key={s.label} className="rounded-2xl bg-card px-5 py-4 ring-1 ring-line/60">
                   <div className="font-serif text-[34px] font-semibold leading-none text-ink">{s.value}</div>
@@ -153,7 +153,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             )}
 
             {/* ④ previews — the shape of what's coming, labeled honestly */}
-            <div className="mt-8">
+            <div className="anim-up mt-8" style={{ animationDelay: '180ms' }}>
               <div className="flex items-baseline justify-between">
                 <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink4">Coming soon</h2>
                 <span className="text-[12px] text-ink4">example numbers — not live yet</span>
@@ -170,7 +170,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             </div>
 
             {/* ⑤ the feed — what happened, in sentences */}
-            <div className="mt-9">
+            <div className="anim-up mt-9" style={{ animationDelay: '240ms' }}>
               <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink4">Recent moments</h2>
               {days.length === 0 && (
                 <p className="mt-3 text-[16px] text-ink3">A quiet stretch — nothing unusual to report.</p>
@@ -185,7 +185,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
                         <button
                           key={k}
                           onClick={() => setOpenItem(openItem === k ? null : k)}
-                          className={`block w-full rounded-2xl px-5 py-3.5 text-left ring-1 transition-colors ${
+                          className={`lift block w-full rounded-2xl px-5 py-3.5 text-left ring-1 ${
                             f.serious ? 'bg-terra-soft/50 ring-terra/25' : 'bg-card ring-line/60 hover:ring-line'
                           }`}
                         >

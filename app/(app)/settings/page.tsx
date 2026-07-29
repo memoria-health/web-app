@@ -13,7 +13,7 @@ export default async function SettingsPage() {
       <h2 className="mt-6 text-[13px] font-semibold uppercase tracking-wide text-ink4">People</h2>
       <div className="mt-2 space-y-3">
         {patients.map((p) => (
-          <div key={p.id} className="rounded-2xl border border-line bg-card px-6 py-4">
+          <div key={p.id} className="lift rounded-2xl border border-line bg-card px-6 py-4">
             <div className="font-serif text-[18px] font-semibold text-ink">{p.preferred_name || p.full_name}</div>
             <div className="mt-2 flex gap-4 text-[14px]">
               <Link href={`/patients/${p.id}/cameras`} className="text-terra underline">Cameras</Link>

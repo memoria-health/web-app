@@ -59,7 +59,8 @@ export function EveryoneHome({ patients }: { patients: { id: string; name: strin
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id)}
-                className={`block w-full rounded-3xl px-6 py-5 text-left ring-1 transition-transform hover:scale-[1.01] ${s.bg} ${s.ring}`}
+                style={{ animationDelay: `${sorted.indexOf(p) * 70}ms` }}
+                className={`anim-up lift block w-full rounded-3xl px-6 py-5 text-left ring-1 ${s.bg} ${s.ring}`}
               >
                 <div className="flex items-center gap-3">
                   <span className={`h-3.5 w-3.5 shrink-0 rounded-full ${s.dot}`} />

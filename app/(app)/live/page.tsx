@@ -26,7 +26,7 @@ export default function LivePage() {
           <button
             key={p.id}
             onClick={() => { setSelected(p.id); router.push(`/patients/${p.id}`); }}
-            className="block w-full rounded-2xl border border-line bg-card px-6 py-4 text-left font-serif text-[18px] font-semibold text-ink hover:border-terra/50"
+            className="anim-up lift block w-full rounded-2xl border border-line bg-card px-6 py-4 text-left font-serif text-[18px] font-semibold text-ink"
           >
             {p.preferred_name || p.full_name}
           </button>

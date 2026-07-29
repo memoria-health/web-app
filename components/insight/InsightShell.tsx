@@ -22,12 +22,20 @@ import { WidgetBody, WidgetConfigChat } from '@/components/insight/widgets';
 import { saveWidget, updateWidget, type Widget } from '@/lib/insight/widgets';
 import { pinView } from '@/lib/insight/pins';
 
-const SUGGESTIONS = [
-  'How has Maggie’s activity changed over the last 2 weeks?',
-  'Show me Joey’s detections this week',
-  'Any wandering events for Margaret this month?',
-  'Are all of Maggie’s cameras healthy?',
-];
+const suggestionsFor = (name: string | null) =>
+  name
+    ? [
+        `How has ${name}’s activity changed over the last 2 weeks?`,
+        `Any falls for ${name} this month?`,
+        `What time does ${name} usually get up?`,
+        `Are ${name}’s cameras healthy?`,
+      ]
+    : [
+        'Who had the most events this week?',
+        'Any night activity across everyone last night?',
+        'Compare activity between everyone this month',
+        'Are all cameras healthy?',
+      ];
 
 /* How each tool derives its data — shown to the caregiver so the method is
  * never a black box. Descriptions are FIXED text tied to the actual query. */
@@ -181,11 +189,12 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
               Type a question — I’ll pull the data and build the view for you.
             </p>
             <div className="mx-auto flex max-w-md flex-col gap-2">
-              {SUGGESTIONS.map((s) => (
+              {suggestionsFor(scope ? (patients.find((p) => p.id === scope)?.preferred || patients.find((p) => p.id === scope)?.name || null) : null).map((s, si) => (
                 <button
                   key={s}
                   onClick={() => ask(s)}
-                  className="rounded-xl border border-line bg-card px-4 py-2.5 text-left text-[13px] text-ink2 transition-colors hover:border-terra hover:bg-terra-soft"
+                  style={{ animationDelay: `${80 + si * 60}ms` }}
+                  className="anim-up rounded-xl border border-line bg-card px-4 py-2.5 text-left text-[13px] text-ink2 transition-all duration-200 hover:-translate-y-0.5 hover:border-terra hover:bg-terra-soft hover:shadow-md active:scale-[0.98]"
                 >
                   {s}
                 </button>
@@ -195,7 +204,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
         )}
 
         {messages.map((m) => (
-          <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
+          <div key={m.id} className={`anim-up ${m.role === 'user' ? 'flex justify-end' : ''}`}>
             {m.role === 'user' ? (
               <div className="max-w-[85%] rounded-2xl rounded-br-md bg-action px-4 py-2.5 text-[14px] text-terra-ink">
                 {m.parts.map((p, i) => (p.type === 'text' ? <span key={i}>{p.text}</span> : null))}
@@ -341,7 +350,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
             placeholder={
               scope
                 ? `Asking about ${patients.find((p) => p.id === scope)?.preferred || 'this patient'} — e.g. “How was activity this week?”`
-                : 'e.g. “Show me the change in Maggie’s activity this month”'
+                : 'e.g. “Who had the most falls this month?”'
             }
             className="flex-1 resize-none overflow-y-hidden bg-transparent text-[14px] leading-relaxed text-ink outline-none placeholder:text-ink4"
           />

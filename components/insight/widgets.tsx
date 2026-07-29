@@ -639,7 +639,7 @@ export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, on
         const id = e.dataTransfer.getData('text/widget-id');
         if (id && id !== w.id) reorderWidgets(id, w.id);
       }}
-      className={`rounded-2xl border bg-card p-4 transition-all ${dragging ? 'opacity-40' : ''} ${
+      className={`anim-up rounded-2xl border bg-card p-4 transition-all ${dragging ? 'opacity-40' : ''} ${
         over && dragKind ? 'border-terra outline-dashed outline-2 outline-terra/60 outline-offset-2' : 'border-line'
       } ${SIZE_CLASS[clampSize(w.viz.type, w.size)]}`}
     >
