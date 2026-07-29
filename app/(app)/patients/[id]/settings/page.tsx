@@ -5,6 +5,7 @@ import { DataCollectionSettings } from '@/app/_components/DataCollectionSettings
 import { BlurPeopleSettings } from '@/app/_components/BlurPeopleSettings';
 import { PatientAccessSettings } from '@/app/_components/PatientAccessSettings';
 import { PatientIdentityStatus } from '@/app/_components/PatientIdentityStatus';
+import { AudioCaptureToggle } from '@/app/_components/AudioCaptureToggle';
 import { PauseMonitoringToggle } from '@/app/_components/PauseMonitoringToggle';
 import { patientSession } from '@/lib/server/patientSession';
 import { getServerSupabase } from '@/lib/supabase/server';
@@ -62,6 +63,19 @@ export default async function PatientSettingsPage({
         <PauseMonitoringToggle
           patientId={patient.id}
           initialPaused={patient.cameras_paused}
+        />
+      </section>
+
+      <section className="rounded-lg border border-line bg-card px-5 py-5">
+        <h2 className="mb-1 font-serif text-2xl text-ink">Audio</h2>
+        <p className="mb-4 text-sm text-ink3">
+          When off, {firstName}&apos;s cameras never capture sound. No live
+          audio, no audio in clips, no speech alerts. Required for care
+          facilities where audio recording is not permitted.
+        </p>
+        <AudioCaptureToggle
+          patientId={patient.id}
+          initialEnabled={patient.audio_capture_enabled}
         />
       </section>
 

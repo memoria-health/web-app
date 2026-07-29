@@ -101,6 +101,8 @@ export interface Patient {
   last_event_at: string | null;
   battery_percent: number | null;
   cameras_paused: boolean;
+  /** Facilities audio kill: false = no audio track is ever published. */
+  audio_capture_enabled: boolean;
   photo_storage_key: string | null;
   created_at: string;
   updated_at: string;
@@ -421,6 +423,7 @@ export interface UpdatePatientRequest {
   // the live grid + analyses feed). Per-camera disable lives on
   // the Camera row instead.
   cameras_paused?: boolean;
+  audio_capture_enabled?: boolean;
   // Per-patient data-collection consent. When present in the PATCH
   // body, the backend stamps `data_collection_decided_at` server-side
   // (so both true and false record a decision). Never send
