@@ -155,10 +155,6 @@ body {
 .lift { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
 .lift:hover { transform: translateY(-2px); box-shadow: 0 6px 20px -8px rgb(28 26 20 / 0.18); }
 .lift:active { transform: translateY(0) scale(0.985); }
-/* Reduce Motion ≠ remove polish: movement goes away (vestibular safety),
-   gentle cross-fades stay — nothing should ever just pop into place. */
-@media (prefers-reduced-motion: reduce) {
-  .anim-up  { animation: fade-in 0.25s ease-out forwards; }
-  .anim-page { animation: fade-in 0.18s ease-out; }
-  .lift, .lift:hover, .lift:active { transform: none; box-shadow: none; }
-}
+/* Product decision (Sunny, 2026-07-28): the motion language shows for
+   EVERYONE — no prefers-reduced-motion branch. Revisit if an accessibility
+   audit or a facility procurement checklist ever flags it. */
