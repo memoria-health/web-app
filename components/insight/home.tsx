@@ -124,7 +124,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
 
             {/* ② the briefing — what you'd tell your sibling on the phone */}
             {data.briefing ? (
-              <p className="anim-up mt-7 font-serif text-[19px] leading-[1.65] text-ink2" style={{ animationDelay: '60ms' }}>{data.briefing}</p>
+              <p className="anim-up mt-7 font-serif text-[19px] leading-[1.65] text-ink2" style={{ animationDelay: '30ms' }}>{data.briefing}</p>
             ) : (
               <div className="mt-7 space-y-2.5" aria-hidden>
                 <div className="h-[15px] w-11/12 animate-pulse rounded bg-card-alt" />
@@ -133,7 +133,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             )}
 
             {/* ③ streaks — the numbers families actually quote */}
-            <div className="anim-up mt-7 grid grid-cols-2 gap-4" style={{ animationDelay: '120ms' }}>
+            <div className="anim-up mt-7 grid grid-cols-2 gap-4" style={{ animationDelay: '60ms' }}>
               {data.streaks.map((s: any) => (
                 <div key={s.label} className="rounded-2xl bg-card px-5 py-4 ring-1 ring-line/60">
                   <div className="font-serif text-[34px] font-semibold leading-none text-ink">{s.value}</div>
@@ -153,7 +153,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             )}
 
             {/* ④ previews — the shape of what's coming, labeled honestly */}
-            <div className="anim-up mt-8" style={{ animationDelay: '180ms' }}>
+            <div className="anim-up mt-8" style={{ animationDelay: '90ms' }}>
               <div className="flex items-baseline justify-between">
                 <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink4">Coming soon</h2>
                 <span className="text-[12px] text-ink4">example numbers — not live yet</span>
@@ -170,7 +170,7 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
             </div>
 
             {/* ⑤ the feed — what happened, in sentences */}
-            <div className="anim-up mt-9" style={{ animationDelay: '240ms' }}>
+            <div className="anim-up mt-9" style={{ animationDelay: '120ms' }}>
               <h2 className="text-[13px] font-semibold uppercase tracking-wide text-ink4">Recent moments</h2>
               {days.length === 0 && (
                 <p className="mt-3 text-[16px] text-ink3">A quiet stretch — nothing unusual to report.</p>

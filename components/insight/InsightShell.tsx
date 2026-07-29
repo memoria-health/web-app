@@ -18,7 +18,7 @@ import {
   UptimeCard,
 } from '@/components/insight/charts';
 import { Dashboard } from '@/components/insight/dashboard';
-import { WidgetBody, WidgetConfigChat } from '@/components/insight/widgets';
+import { WidgetBody } from '@/components/insight/widgets';
 import { saveWidget, updateWidget, type Widget } from '@/lib/insight/widgets';
 import { pinView } from '@/lib/insight/pins';
 
@@ -193,7 +193,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
                 <button
                   key={s}
                   onClick={() => ask(s)}
-                  style={{ animationDelay: `${80 + si * 60}ms` }}
+                  style={{ animationDelay: `${30 + si * 35}ms` }}
                   className="anim-up rounded-xl border border-line bg-card px-4 py-2.5 text-left text-[13px] text-ink2 transition-all duration-200 hover:-translate-y-0.5 hover:border-terra hover:bg-terra-soft hover:shadow-md active:scale-[0.98]"
                 >
                   {s}
@@ -298,8 +298,8 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
                       const name = p.type.slice(5);
                       if (p.state === 'output-available') {
                         if (hasCustomView)
-                          return <Provenance key={i} toolName={name} input={p.input} output={p.output} />;
-                        return <ToolCard key={i} toolName={name} input={p.input} output={p.output} />;
+                          return <div key={i} className="anim-in"><Provenance toolName={name} input={p.input} output={p.output} /></div>;
+                        return <div key={i} className="anim-in"><ToolCard toolName={name} input={p.input} output={p.output} /></div>;
                       }
                       if (p.state === 'input-available' || p.state === 'input-streaming')
                         return (
@@ -374,20 +374,21 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
       <section className={view === 'dashboard' ? 'flex h-full flex-1 flex-col' : 'hidden'}>
           <div className="flex min-h-0 flex-1">
             <div className="min-w-0 flex-1">
-              <Dashboard patients={patients} scope={scope} onEditWidget={(w: Widget) => { setConfiguring(w); setDrawerClosed(false); }} />
-            </div>
-            {configuring && (
-              <WidgetConfigChat
-                key={configuring.id}
-                widget={configuring}
-                scope={scope || undefined}
-                scopeLabel={patients.find((p) => p.id === scope)?.preferred || patients.find((p) => p.id === scope)?.name}
-                hidden={drawerClosed || view !== 'dashboard'}
-                finishWhenClosed={drawerClosed}
-                onClose={() => setDrawerClosed(true)}
-                onFinished={() => { setConfiguring(null); setDrawerClosed(false); }}
+              {/* the config chat now lives IN the widget's own card (configPanel) */}
+              <Dashboard
+                patients={patients}
+                scope={scope}
+                onEditWidget={(w: Widget) => { setConfiguring(w); setDrawerClosed(false); }}
+                config={{
+                  configuring,
+                  drawerClosed,
+                  onClose: () => setDrawerClosed(true),
+                  onFinished: () => { setConfiguring(null); setDrawerClosed(false); },
+                  scope: scope || undefined,
+                  scopeLabel: patients.find((p) => p.id === scope)?.preferred || patients.find((p) => p.id === scope)?.name,
+                }}
               />
-            )}
+            </div>
           </div>
         </section>
     </div>

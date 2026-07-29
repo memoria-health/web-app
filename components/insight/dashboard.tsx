@@ -15,10 +15,12 @@ export function Dashboard({
   patients,
   onEditWidget,
   scope,
+  config,
 }: {
   patients: { id: string; name: string; preferred: string }[];
   onEditWidget: (w: Widget) => void;
   scope?: string; // person chip: show only this patient's widgets
+  config?: import('@/components/insight/widgets').WidgetConfigState;
 }) {
   const [pins, setPins] = useState<Pin[]>([]);
   useEffect(() => {
@@ -30,7 +32,7 @@ export function Dashboard({
 
   return (
     <div className="h-full overflow-y-auto px-6 py-5">
-      <WidgetsSection patients={patients} onEdit={onEditWidget} scope={scope || undefined} />
+      <WidgetsSection patients={patients} onEdit={onEditWidget} scope={scope || undefined} config={config} />
 
       {pins.length > 0 && (
         <div className="mt-6">

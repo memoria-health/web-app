@@ -612,7 +612,7 @@ function placeholderFor(type: Widget['viz']['type']): Omit<Widget, 'id' | 'ts'> 
   };
 }
 
-export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, onDragKind }: { w: Widget; onEdit: (w: Widget) => void; onShapeDrop?: (shape: Widget['viz']['type']) => void; onLibraryDrop?: (libId: string) => void; dragKind?: 'shape' | 'library' | 'widget' | null; onDragKind?: (k: 'shape' | 'library' | 'widget' | null) => void }) {
+export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, onDragKind, configPanel }: { w: Widget; onEdit: (w: Widget) => void; onShapeDrop?: (shape: Widget['viz']['type']) => void; onLibraryDrop?: (libId: string) => void; dragKind?: 'shape' | 'library' | 'widget' | null; onDragKind?: (k: 'shape' | 'library' | 'widget' | null) => void; configPanel?: React.ReactNode }) {
   const grouped = (w.source.terms?.length ?? 0) > 1;
   const [dragging, setDragging] = useState(false);
   const [over, setOver] = useState(false);
@@ -641,7 +641,7 @@ export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, on
       }}
       className={`anim-up rounded-2xl border bg-card p-4 transition-all ${dragging ? 'opacity-40' : ''} ${
         over && dragKind ? 'border-terra outline-dashed outline-2 outline-terra/60 outline-offset-2' : 'border-line'
-      } ${SIZE_CLASS[clampSize(w.viz.type, w.size)]}`}
+      } ${SIZE_CLASS[configPanel ? (clampSize(w.viz.type, w.size) === 's' ? 'm' : clampSize(w.viz.type, w.size)) : clampSize(w.viz.type, w.size)]}`}
     >
       <div className="mb-1.5 flex items-center gap-1">
         <span
@@ -719,6 +719,9 @@ export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, on
           <WidgetBody source={w.source} viz={w.viz} expanded={w.expanded} />
         </>
       )}
+      {/* in-place configuration: the chat lives ON the widget it's building,
+          live preview above, conversation below */}
+      {configPanel}
     </div>
   );
 }
@@ -826,12 +829,22 @@ export function WidgetBuilder({
 }
 
 /* ── the whole dashboard body: one unified draggable grid ──────────────── */
+export type WidgetConfigState = {
+  configuring: Widget | null;
+  drawerClosed: boolean;
+  onClose: () => void;
+  onFinished: () => void;
+  scope?: string;
+  scopeLabel?: string;
+};
+
 export function WidgetsSection({
-  patients, onEdit, scope,
+  patients, onEdit, scope, config,
 }: {
   patients: { id: string; name: string; preferred: string }[];
   onEdit: (w: Widget) => void;
   scope?: string; // person chip: only this patient's widgets (fresh ones stay visible while being configured)
+  config?: WidgetConfigState;
 }) {
   const [allWidgets, setWidgets] = useState<Widget[]>([]);
   const widgets = scope ? allWidgets.filter((w) => w.unconfigured || w.source.patient === scope) : allWidgets;
@@ -970,6 +983,18 @@ export function WidgetsSection({
               onDragKind={setDragKind}
               onShapeDrop={(shape) => createFromShape(shape, w.id)}
               onLibraryDrop={(libId) => addFromLibrary(libId, w.id)}
+              configPanel={config?.configuring && config.configuring.id === w.id ? (
+                <WidgetConfigChat
+                  key={config.configuring.id}
+                  widget={config.configuring}
+                  hidden={config.drawerClosed}
+                  finishWhenClosed={config.drawerClosed}
+                  onClose={config.onClose}
+                  onFinished={config.onFinished}
+                  scope={config.scope}
+                  scopeLabel={config.scopeLabel}
+                />
+              ) : undefined}
             />
           ))}
           {/* explicit landing slot while dragging (drops before/after cards work too) */}
@@ -1073,7 +1098,7 @@ export function WidgetConfigChat({
   };
 
   return (
-    <aside className={`h-full w-[360px] shrink-0 flex-col border-l border-line bg-card ${hidden ? 'hidden' : 'flex'}`}>
+    <aside className={`anim-in mt-3 flex-col overflow-hidden rounded-xl border border-line bg-paper/60 ${hidden ? 'hidden' : 'flex'}`}>
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
         <MessageCircle size={14} className="shrink-0 text-terra" />
         <div className="min-w-0 flex-1">
@@ -1085,7 +1110,7 @@ export function WidgetConfigChat({
         </button>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+      <div className="max-h-[300px] min-h-[120px] flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 && (
           <div className="rounded-xl bg-card-alt/60 p-3 text-[12.5px] leading-relaxed text-ink3">
             Describe what this should show, in plain language.

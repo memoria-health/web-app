@@ -59,7 +59,7 @@ export function EveryoneHome({ patients }: { patients: { id: string; name: strin
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id)}
-                style={{ animationDelay: `${sorted.indexOf(p) * 70}ms` }}
+                style={{ animationDelay: `${sorted.indexOf(p) * 45}ms` }}
                 className={`anim-up lift block w-full rounded-3xl px-6 py-5 text-left ring-1 ${s.bg} ${s.ring}`}
               >
                 <div className="flex items-center gap-3">
@@ -67,8 +67,8 @@ export function EveryoneHome({ patients }: { patients: { id: string; name: strin
                   <span className="font-serif text-[19px] font-semibold text-ink">{p.preferred || p.name}</span>
                   <span className="ml-auto text-[14px] text-ink4">{d ? '' : 'checking…'}</span>
                 </div>
-                {st && <p className="mt-1.5 pl-[26px] text-[15px] leading-relaxed text-ink3">{st.line} — {st.sub}</p>}
-                {streak && <p className="mt-1 pl-[26px] text-[13.5px] text-ink4">{streak}</p>}
+                {st && <p className="anim-in mt-1.5 pl-[26px] text-[15px] leading-relaxed text-ink3">{st.line} — {st.sub}</p>}
+                {streak && <p className="anim-in mt-1 pl-[26px] text-[13.5px] text-ink4">{streak}</p>}
               </button>
             );
           })}
