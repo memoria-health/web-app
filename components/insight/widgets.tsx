@@ -613,7 +613,12 @@ function placeholderFor(type: Widget['viz']['type']): Omit<Widget, 'id' | 'ts'> 
 }
 
 export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, onDragKind, configPanel }: { w: Widget; onEdit: (w: Widget) => void; onShapeDrop?: (shape: Widget['viz']['type']) => void; onLibraryDrop?: (libId: string) => void; dragKind?: 'shape' | 'library' | 'widget' | null; onDragKind?: (k: 'shape' | 'library' | 'widget' | null) => void; configPanel?: React.ReactNode }) {
-  const grouped = (w.source.terms?.length ?? 0) > 1;
+  // combine/split only exists for TIME-SERIES with 2+ terms — on breakdowns,
+  // pies, heatmaps etc. the toggle is meaningless, so it must not render
+  const s: any = w.source;
+  const grouped = (s.terms?.length ?? 0) > 1
+    && ['bar', 'line'].includes(w.viz.type)
+    && !s.breakdown && !s.byRoom && !s.byHour && !s.byDow && !s.heatmap && !s.ratio;
   const [dragging, setDragging] = useState(false);
   const [over, setOver] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -686,6 +691,7 @@ export function WidgetCard({ w, onEdit, onShapeDrop, onLibraryDrop, dragKind, on
             }`}
           >
             <Layers size={12} />
+            <span className="text-[10.5px] font-medium">{w.expanded ? 'combined' : 'split'}</span>
           </button>
         )}
         <button onClick={() => onEdit(w)} title="Edit this widget in chat" className="shrink-0 rounded-md p-1.5 text-ink4 hover:bg-card-alt hover:text-terra">
