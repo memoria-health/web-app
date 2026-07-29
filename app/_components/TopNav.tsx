@@ -78,6 +78,7 @@ export function TopNav({ email }: { email: string | null }) {
               <li key={t.href}>
                 <Link
                   href={t.href}
+                  prefetch
                   className={cn(
                     'rounded-md px-5 py-2 text-base transition-colors',
                     t.isActive

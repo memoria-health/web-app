@@ -9,11 +9,11 @@ export default async function SettingsPage() {
   const { patients } = await patientSession();
   return (
     <div className="mx-auto w-full max-w-xl px-6 pb-16 pt-8">
-      <h1 className="font-serif text-[24px] font-semibold text-ink">Settings</h1>
+      <h1 className="anim-up font-serif text-[24px] font-semibold text-ink">Settings</h1>
       <h2 className="mt-6 text-[13px] font-semibold uppercase tracking-wide text-ink4">People</h2>
       <div className="mt-2 space-y-3">
-        {patients.map((p) => (
-          <div key={p.id} className="lift rounded-2xl border border-line bg-card px-6 py-4">
+        {patients.map((p, i) => (
+          <div key={p.id} style={{ animationDelay: `${i * 50}ms` }} className="anim-up lift rounded-2xl border border-line bg-card px-6 py-4">
             <div className="font-serif text-[18px] font-semibold text-ink">{p.preferred_name || p.full_name}</div>
             <div className="mt-2 flex gap-4 text-[14px]">
               <Link href={`/patients/${p.id}/cameras`} className="text-terra underline">Cameras</Link>

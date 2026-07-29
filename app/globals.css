@@ -142,16 +142,24 @@ body {
    Rules: entrances 300-400ms ease-out; hovers lift 2px with shadow;
    presses scale to .98; respect prefers-reduced-motion. */
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-.anim-up  { opacity: 0; animation: rise-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.anim-up  { opacity: 0; animation: rise-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .anim-in  { animation: fade-in 0.22s ease-out; }
-.anim-page { animation: rise-in 0.16s ease-out; }
+.anim-page { animation: rise-in 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+/* EVERY interactive element responds — one global rule, total cohesion:
+   hovers ease, presses compress. No element may "just happen". */
+button:not(:disabled), [role='button'], a, select, input[type='checkbox'] {
+  transition: transform 0.15s ease, background-color 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease, box-shadow 0.2s ease, opacity 0.18s ease;
+}
+button:not(:disabled):active, [role='button']:active { transform: scale(0.97); }
+
 .lift { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
 .lift:hover { transform: translateY(-2px); box-shadow: 0 6px 20px -8px rgb(28 26 20 / 0.18); }
 .lift:active { transform: translateY(0) scale(0.985); }

@@ -21,7 +21,7 @@ export function SetupBreadcrumb() {
   if (!m || !patient) return null;
   const name = patient.preferred_name || patient.full_name;
   return (
-    <div className="border-b border-line bg-card-alt/60 px-6 py-2.5">
+    <div className="anim-in border-b border-line bg-card-alt/60 px-6 py-2.5">
       <div className="mx-auto flex max-w-7xl items-center gap-2 text-[14px]">
         <Link href="/settings" className="flex items-center gap-1 rounded-md px-1.5 py-1 text-ink3 hover:bg-paper-dim hover:text-ink">
           <ChevronLeft size={15} /> Settings
