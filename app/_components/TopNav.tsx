@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
 import { PersonChip } from './PersonChip';
+import { usePerson } from './PersonContext';
 import { AlertsBell } from './alerts/AlertsBell';
 
 /// Top of every page. Two stacked rows:
@@ -20,6 +21,7 @@ import { AlertsBell } from './alerts/AlertsBell';
 /// On non-patient routes (`/`, `/patients/new`) only Row 1 renders.
 export function TopNav({ email }: { email: string | null }) {
   const pathname = usePathname();
+  const { selected: person } = usePerson();
   const patientIdMatch = pathname.match(/^\/patients\/([0-9a-f-]+)/i);
   const inPatient = patientIdMatch !== null;
   const base = patientIdMatch ? `/patients/${patientIdMatch[1]}` : '';
@@ -29,7 +31,7 @@ export function TopNav({ email }: { email: string | null }) {
 
   const tabs = [
     { href: '/home', label: 'Home', isActive: pathname.startsWith('/home') },
-    { href: '/live', label: 'Live', isActive: pathname.startsWith('/live') || (inPatient && !inPatientSetup) },
+    { href: person && person !== 'all' ? `/patients/${person}` : '/live', label: 'Live', isActive: pathname.startsWith('/live') || (inPatient && !inPatientSetup) },
     { href: '/ask', label: 'Ask', isActive: pathname.startsWith('/ask') },
     { href: '/explore', label: 'Explore', isActive: pathname.startsWith('/explore') },
     {
