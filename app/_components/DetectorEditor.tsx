@@ -37,13 +37,22 @@ import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
 const SENSITIVITY: DetectorSensitivity[] = ['low', 'standard', 'high'];
 
 function parseWhenScope(raw: string): {
-  mode: 'always' | 'specific';
+  mode: 'always' | 'specific' | 'other';
   start: string;
   end: string;
 } {
   const m = raw.match(/^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/);
   if (m) return { mode: 'specific', start: `${m[1]}:${m[2]}`, end: `${m[3]}:${m[4]}` };
-  return { mode: 'always', start: '08:00', end: '20:00' };
+  // Fail-HONEST (2026-07-28): only genuinely always-flavored scopes may
+  // display as Always. Anything else the editor can't parse (multi-window
+  // presets like "8 AM, 8 PM ±1H", weekday grammars) is shown as-is in a
+  // read-only 'other' state — the editor must never claim "All day" for a
+  // schedule it merely failed to read. The backend honors these fully.
+  const alwaysFlavored = /^(always|all[- ]?day|24\/?7|24x7|any ?time|)$/i;
+  if (alwaysFlavored.test(raw.trim())) {
+    return { mode: 'always', start: '08:00', end: '20:00' };
+  }
+  return { mode: 'other', start: '08:00', end: '20:00' };
 }
 
 function initialRooms(detector: Detector): { all: boolean; set: Set<string> } {
@@ -156,7 +165,11 @@ export function DetectorEditor({
 
   const computedRooms = allRooms ? ['ALL ROOMS'] : Array.from(rooms);
   const computedWhen =
-    whenMode === 'always' ? 'ALWAYS' : `${whenStart}-${whenEnd}`;
+    whenMode === 'always'
+      ? 'ALWAYS'
+      : whenMode === 'other'
+        ? detector.when_scope           // untouched — preserve the schedule verbatim
+        : `${whenStart}-${whenEnd}`;
 
   // Something is staged to persist?
   const roomsChanged =
@@ -687,6 +700,13 @@ export function DetectorEditor({
               Specific hours
             </button>
           </div>
+          {whenMode === 'other' && (
+            <p className="mt-1 text-sm text-ink3">
+              Custom schedule: <span className="font-mono">{detector.when_scope}</span>
+              {' '}— shown exactly as configured. Choosing Always or Specific
+              hours above will replace it.
+            </p>
+          )}
           {whenMode === 'specific' && (
             <div className="mt-1 flex items-center gap-2 text-sm text-ink3">
               <input

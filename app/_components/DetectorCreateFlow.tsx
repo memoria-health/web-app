@@ -55,8 +55,12 @@ export function DetectorCreateFlow({
         inf.alert_trigger === 'absence' ? inf.schedule_config ?? null : null;
       // 2. Create it OFF. The backend compiles the criteria asynchronously;
       //    the editor polls for them (identifier === null → still compiling).
+      // Alert-meaning naming (2026-07-28): event titles read
+      // "Possible <name>", so absence detectors must be named as the
+      // MISS. Prefer the compiler's suggested name whenever it offers
+      // one — it echoes a fine user name and rewrites a misleading one.
       const created = await api.createDetector(patientId, {
-        name: name.trim() || 'Custom detector',
+        name: inf.suggested_name?.trim() || name.trim() || 'Custom detector',
         custom_prompt: prompt.trim(),
         description: 'Custom detector',
         category: inf.category,

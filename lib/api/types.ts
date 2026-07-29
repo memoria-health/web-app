@@ -522,6 +522,8 @@ export interface InferDetectorResponse {
   // older backends) when composition failed — the review screen then hides
   // the card rather than blocking creation.
   plan?: DetectorPlan | null;
+  /** Compiler's alert-meaning name (absence => miss-phrased). */
+  suggested_name?: string | null;
 }
 
 export interface UpdateDetectorRequest {
