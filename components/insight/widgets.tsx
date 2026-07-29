@@ -18,7 +18,7 @@ import {
 
 const INK3 = '#4a4539';
 const LINE = '#c9c0ab';
-const PALETTE = ['#a04331', '#6b8aa0', '#6f7f5c', '#c68a3d', '#8a6f9e', '#4a4539'];
+const PALETTE = ['#D55E00', '#0072B2', '#009E73', '#E69F00', '#CC79A7', '#56B4E9']; // Okabe–Ito: colorblind-safe, vivid on the warm paper theme
 const shortDate = (d: string) => (/^\d{4}-\d{2}-\d{2}/.test(d) ? d.slice(5).replace('-', '/') : d);
 
 export function useWidgetData(source: WidgetSource) {
@@ -827,12 +827,14 @@ export function WidgetBuilder({
 
 /* ── the whole dashboard body: one unified draggable grid ──────────────── */
 export function WidgetsSection({
-  patients, onEdit,
+  patients, onEdit, scope,
 }: {
   patients: { id: string; name: string; preferred: string }[];
   onEdit: (w: Widget) => void;
+  scope?: string; // person chip: only this patient's widgets (fresh ones stay visible while being configured)
 }) {
-  const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [allWidgets, setWidgets] = useState<Widget[]>([]);
+  const widgets = scope ? allWidgets.filter((w) => w.unconfigured || w.source.patient === scope) : allWidgets;
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [libOpen, setLibOpen] = useState(false);
   // what's being dragged right now → drives the drop-zone outlines
@@ -993,13 +995,15 @@ export function WidgetsSection({
  * widget's chat icon is pressed. Own mini-conversation; every completed
  * designWidget spec applies to the widget IN PLACE — the grid is the preview. */
 export function WidgetConfigChat({
-  widget, onClose, hidden = false, finishWhenClosed = false, onFinished,
+  widget, onClose, hidden = false, finishWhenClosed = false, onFinished, scope, scopeLabel,
 }: {
   widget: Widget;
   onClose: () => void;
   hidden?: boolean;          // visually hidden but MOUNTED — builds keep running
   finishWhenClosed?: boolean; // user pressed done: unmount once idle
   onFinished?: () => void;
+  scope?: string;            // person chip: hard-scopes the build to this patient
+  scopeLabel?: string;
 }) {
   const specRef = useRef<any>({ title: widget.title, source: widget.source, viz: widget.viz, fresh: widget.unconfigured === true });
   const [title, setTitle] = useState(widget.title);
@@ -1027,7 +1031,12 @@ export function WidgetConfigChat({
     const spec = dws[dws.length - 1]?.input;
     if (!spec?.source) return;
     appliedRef.current.add(key);
-    specRef.current = { title: spec.title, source: spec.source, viz: spec.viz, fresh: false };
+    // chip-scoped Explore: a spec without an explicit patient belongs to the
+    // selected person — otherwise the finished widget would be filtered away
+    const src = scope && !spec.source?.patient
+      ? { ...spec.source, patient: scope, patientLabel: scopeLabel ?? spec.source?.patientLabel }
+      : spec.source;
+    specRef.current = { title: spec.title, source: src, viz: spec.viz, fresh: false };
     setTitle(spec.title);
     // a shape change can invalidate the current size (e.g. bar→heatmap on a small card)
     updateWidget(widget.id, { ...specRef.current, size: clampSize(spec.viz.type, widget.size), unconfigured: false });
@@ -1055,7 +1064,7 @@ export function WidgetConfigChat({
 
   const send = () => {
     if (!input.trim() || busy) return;
-    sendMessage({ text: input }, { body: { patient: null, editingWidget: specRef.current } });
+    sendMessage({ text: input }, { body: { patient: scope ?? null, editingWidget: specRef.current } });
     setInput('');
     requestAnimationFrame(() => {
       const ta = taRef.current;
@@ -1112,7 +1121,7 @@ export function WidgetConfigChat({
                               key={opt}
                               onClick={() => {
                                 if (busy) return;
-                                sendMessage({ text: opt }, { body: { patient: null, editingWidget: specRef.current } });
+                                sendMessage({ text: opt }, { body: { patient: scope ?? null, editingWidget: specRef.current } });
                               }}
                               className="rounded-full border border-line bg-card px-2.5 py-1 text-[12px] text-ink2 transition-colors hover:border-terra hover:bg-terra-soft"
                             >

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { PatientProvider } from '@/app/_components/PatientProvider';
+import { SetupBreadcrumb } from '@/app/_components/SetupBreadcrumb';
 import { LiveRoomProvider } from '@/app/_components/LiveRoomProvider';
 import { patientSession } from '@/lib/server/patientSession';
 import { getServerNemara } from '@/lib/api/server';
@@ -69,6 +70,7 @@ export default async function PatientLayout({
         serverUrl={env.LIVEKIT_URL}
         privacyMode={patient.privacy_mode_enabled}
       >
+        <SetupBreadcrumb />
         {children}
       </LiveRoomProvider>
     </PatientProvider>

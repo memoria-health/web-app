@@ -33,7 +33,7 @@ const TYPE_COLOR: Record<string, string> = {
   safety: TERRA,   // prod categories
   routine: SKY,
 };
-const PALETTE = [TERRA, SKY, SAGE, WARN, '#8a6f9e', '#4a4539'];
+const PALETTE = ['#D55E00', '#0072B2', '#009E73', '#E69F00', '#CC79A7', '#56B4E9']; // Okabe–Ito: colorblind-safe, vivid on the warm paper theme
 const MUTED = '#d8d0bd';
 const TYPE_ICON: Record<string, React.ReactNode> = {
   fall: <CircleAlert size={14} />,

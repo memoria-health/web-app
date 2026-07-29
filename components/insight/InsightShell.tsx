@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import { ArrowUp, ChevronDown, House, LayoutDashboard, MessageCircle, PanelLeft, Pin, Sparkles, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { usePatients } from '@/app/_components/PatientProvider';
 import {
   ActivityTrendCard,
@@ -167,17 +168,9 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
 
       {/* chat pane (default view; stays mounted so the conversation survives switching) */}
       <div className={view === 'chat' ? 'mx-auto flex h-full w-full max-w-3xl flex-col px-4' : 'hidden'}>
-      <header className="flex items-center justify-between gap-3 py-5">
-        <div>
-          <h1 className="font-serif text-2xl font-semibold text-ink">Memoria Insight</h1>
-          <p className="text-[13px] text-ink3">Ask anything about your loved one’s day.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span />
-          <span className="rounded-full border border-line bg-card px-3 py-1 text-[11px] text-ink4">
-            prototype
-          </span>
-        </div>
+      <header className="py-5">
+        <h1 className="font-serif text-2xl font-semibold text-ink">Ask</h1>
+        <p className="mt-0.5 text-[14px] text-ink3">Anything about your loved one’s days — answered from their monitoring data.</p>
       </header>
 
       <main ref={mainRef} className="relative flex-1 space-y-5 overflow-y-auto pb-4">
@@ -213,7 +206,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
                   // when the assistant composed a custom view, the raw data
                   // cards would duplicate it — show only their provenance
                   const hasCustomView = m.parts.some(
-                    (p: any) => p.type === 'tool-renderView' && (p.state === 'output-available' || p.state === 'input-available'),
+                    (p: any) => p.type === 'tool-renderView' && p.state === 'output-available',
                   );
                   return m.parts.map((p: any, i) => {
                     if (p.type === 'text' && p.text.trim())
@@ -262,7 +255,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
                             <button
                               onClick={() => {
                                 saveWidget({ title: spec.title, source: spec.source, viz: spec.viz, expanded: false, size: 'm' });
-                                router.push('/explore');
+                                toast.success('Added to Explore', { description: 'It’s live on your Explore tab now.' });
                               }}
                               className="rounded-full bg-action px-3.5 py-1.5 text-[12px] font-medium text-terra-ink hover:opacity-85"
                             >
@@ -284,7 +277,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
                         <div key={i}>
                           <GenerativeView spec={p.input} />
                           <button
-                            onClick={() => pinView(p.input)}
+                            onClick={() => { pinView(p.input); toast.success('Pinned to Explore', { description: 'Saved at the bottom of your Explore tab.' }); }}
                             className="mt-1 flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-[11px] text-ink3 transition-colors hover:border-terra hover:bg-terra-soft"
                           >
                             <Pin size={11} /> Pin to dashboard
@@ -362,7 +355,7 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
           </button>
         </form>
         <p className="mt-2 text-center text-[11px] text-ink4">
-          Numbers come only from the data tools — the assistant never invents figures. Demo data, no real patients.
+          Answers come straight from the monitoring data — nothing is ever made up.
         </p>
       </footer>
       </div>
@@ -370,18 +363,16 @@ export function InsightShell({ view, scope }: { view: 'chat' | 'dashboard'; scop
       {/* dashboard — full view (stays MOUNTED when you switch to chat, so
           widget builds keep running) */}
       <section className={view === 'dashboard' ? 'flex h-full flex-1 flex-col' : 'hidden'}>
-          <div className="flex items-center justify-between border-b border-line px-6 py-3.5">
-            <h1 className="font-serif text-xl font-semibold text-ink">Memoria Insight</h1>
-            <span />
-          </div>
           <div className="flex min-h-0 flex-1">
             <div className="min-w-0 flex-1">
-              <Dashboard patients={patients} onEditWidget={(w: Widget) => { setConfiguring(w); setDrawerClosed(false); }} />
+              <Dashboard patients={patients} scope={scope} onEditWidget={(w: Widget) => { setConfiguring(w); setDrawerClosed(false); }} />
             </div>
             {configuring && (
               <WidgetConfigChat
                 key={configuring.id}
                 widget={configuring}
+                scope={scope || undefined}
+                scopeLabel={patients.find((p) => p.id === scope)?.preferred || patients.find((p) => p.id === scope)?.name}
                 hidden={drawerClosed || view !== 'dashboard'}
                 finishWhenClosed={drawerClosed}
                 onClose={() => setDrawerClosed(true)}

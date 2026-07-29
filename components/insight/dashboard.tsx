@@ -14,9 +14,11 @@ import type { Widget } from '@/lib/insight/widgets';
 export function Dashboard({
   patients,
   onEditWidget,
+  scope,
 }: {
   patients: { id: string; name: string; preferred: string }[];
   onEditWidget: (w: Widget) => void;
+  scope?: string; // person chip: show only this patient's widgets
 }) {
   const [pins, setPins] = useState<Pin[]>([]);
   useEffect(() => {
@@ -28,7 +30,7 @@ export function Dashboard({
 
   return (
     <div className="h-full overflow-y-auto px-6 py-5">
-      <WidgetsSection patients={patients} onEdit={onEditWidget} />
+      <WidgetsSection patients={patients} onEdit={onEditWidget} scope={scope || undefined} />
 
       {pins.length > 0 && (
         <div className="mt-6">

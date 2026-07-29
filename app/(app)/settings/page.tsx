@@ -16,9 +16,9 @@ export default async function SettingsPage() {
           <div key={p.id} className="rounded-2xl border border-line bg-card px-6 py-4">
             <div className="font-serif text-[18px] font-semibold text-ink">{p.preferred_name || p.full_name}</div>
             <div className="mt-2 flex gap-4 text-[14px]">
-              <Link href={`/patients/${p.id}/cameras`} className="text-terra underline">Sensors</Link>
+              <Link href={`/patients/${p.id}/cameras`} className="text-terra underline">Cameras</Link>
               <Link href={`/patients/${p.id}/detectors`} className="text-terra underline">Detectors</Link>
-              <Link href={`/patients/${p.id}/settings`} className="text-terra underline">Details</Link>
+              <Link href={`/patients/${p.id}/settings`} className="text-terra underline">Advanced settings</Link>
             </div>
           </div>
         ))}

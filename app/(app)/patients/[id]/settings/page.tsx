@@ -34,7 +34,7 @@ export default async function PatientSettingsPage({
     <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-3xl w-full mx-auto">
       <header>
         <h1 className="font-serif text-3xl tracking-tight text-ink">
-          Patient settings
+          Advanced settings
         </h1>
       </header>
 
