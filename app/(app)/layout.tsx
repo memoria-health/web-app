@@ -6,6 +6,7 @@ import { TopNav } from '@/app/_components/TopNav';
 import { OnboardingModal } from '@/app/_components/OnboardingModal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { SessionSync } from '@/app/_components/SessionSync';
+import { WarmLiveChunks } from '@/app/_components/WarmLiveChunks';
 import { PatientProvider } from '@/app/_components/PatientProvider';
 import { PersonProvider } from '@/app/_components/PersonContext';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
@@ -82,6 +83,7 @@ export default async function AppLayout({
           {/* Reconcile the tab if the browser's auth session changes to a
               different account or signs out (shared session across tabs). */}
           <SessionSync userId={userId} />
+          <WarmLiveChunks />
           <main className="flex-1 flex flex-col">{children}</main>
           {!onboardedWeb && <OnboardingModal />}
           <TimezoneSync current={timezone} />
