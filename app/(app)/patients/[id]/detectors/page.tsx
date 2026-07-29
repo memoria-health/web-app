@@ -35,7 +35,7 @@ export default async function DetectorsPage({
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
+    <div className="anim-stagger flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center justify-between gap-3">
         <h1 className="font-serif text-4xl tracking-tight text-ink">Detectors</h1>
         <Link

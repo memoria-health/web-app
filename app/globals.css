@@ -166,3 +166,15 @@ button:not(:disabled):active, [role='button']:active { transform: scale(0.97); }
 /* Product decision (Sunny, 2026-07-28): the motion language shows for
    EVERYONE — no prefers-reduced-motion branch. Revisit if an accessibility
    audit or a facility procurement checklist ever flags it. */
+
+/* Drop-in cascade: direct children of an .anim-stagger container rise in
+   sequence — gives any server-rendered page the same entrance language as
+   Home without hand-animating each element. */
+.anim-stagger > * { opacity: 0; animation: rise-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.anim-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.anim-stagger > *:nth-child(2) { animation-delay: 45ms; }
+.anim-stagger > *:nth-child(3) { animation-delay: 90ms; }
+.anim-stagger > *:nth-child(4) { animation-delay: 135ms; }
+.anim-stagger > *:nth-child(5) { animation-delay: 180ms; }
+.anim-stagger > *:nth-child(6) { animation-delay: 225ms; }
+.anim-stagger > *:nth-child(n+7) { animation-delay: 260ms; }

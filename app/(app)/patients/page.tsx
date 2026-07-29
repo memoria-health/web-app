@@ -16,7 +16,7 @@ export default async function HomePage() {
 
   if (patients.length === 0) {
     return (
-      <div className="flex min-h-[60vh] flex-1 flex-col items-center justify-center px-6 py-12 text-center">
+      <div className="anim-stagger flex min-h-[60vh] flex-1 flex-col items-center justify-center px-6 py-12 text-center">
         <h1 className="font-serif text-4xl tracking-tight text-ink">
           Welcome to Memoria
         </h1>
