@@ -26,7 +26,12 @@ export type DetectorSource = 'preset' | 'custom';
 //   absence   = NOT detected within its active window (when_scope)
 // `is_sustained` (instant vs sustained) is internal; `duration_seconds` is the
 // "too long" threshold for the duration trigger.
-export type AlertTrigger = 'leading' | 'trailing' | 'duration' | 'absence';
+export type AlertTrigger =
+  | 'leading'
+  | 'trailing'
+  | 'duration'
+  | 'absence'
+  | 'record_only'; // never alerts — feeds daily summaries (sleep/activity)
 export type DetectorSensitivity = 'low' | 'standard' | 'high';
 export type ScheduleCadence = 'daily' | 'weekly';
 

@@ -11,6 +11,7 @@ export const TRIGGER_LABEL: Record<AlertTrigger, string> = {
   trailing: "Alerts when the activity's finished",
   duration: "Alerts once it's gone on too long",
   absence: "Alerts if it doesn't happen in your time window",
+  record_only: 'Never alerts — tracked quietly for daily insights',
 };
 
 // One-line "why" under the label.
@@ -19,6 +20,7 @@ export const TRIGGER_SUB: Record<AlertTrigger, string> = {
   trailing: 'A single alert once the whole activity is over.',
   duration: 'Fires only after it has continued past your time limit.',
   absence: "Fires when the thing you're expecting is missing by your deadline.",
+  record_only: 'Builds daily summaries (like sleep) without ever notifying anyone.',
 };
 
 // Compact form for dense list captions where space is tight.
@@ -27,6 +29,7 @@ export const TRIGGER_LABEL_SHORT: Record<AlertTrigger, string> = {
   trailing: 'When it ends',
   duration: 'If it lasts too long',
   absence: "If it doesn't happen",
+  record_only: 'Tracked quietly',
 };
 
 // The "ALL ROOMS" sentinel means every room; anything else is a real name.
