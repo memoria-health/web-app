@@ -1098,7 +1098,7 @@ export function WidgetConfigChat({
   };
 
   return (
-    <aside className={`anim-in mt-3 flex-col overflow-hidden rounded-xl border border-line bg-paper/60 ${hidden ? 'hidden' : 'flex'}`}>
+    <aside className={`anim-up mt-3 flex-col overflow-hidden rounded-xl border border-line bg-paper/60 ${hidden ? 'hidden' : 'flex'}`}>
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
         <MessageCircle size={14} className="shrink-0 text-terra" />
         <div className="min-w-0 flex-1">
