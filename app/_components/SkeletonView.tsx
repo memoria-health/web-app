@@ -24,30 +24,39 @@ type LooseTrackRef =
   | { publication?: { track?: { attach: (el: HTMLMediaElement) => void; detach: (el: HTMLMediaElement) => void } | null } }
   | undefined;
 
-const DETECT_INTERVAL_MS = 90; // ~11 detections/sec; canvas still paints every frame
-const PERSON_SCORE = 0.25; // min detector confidence (matches iOS Vision floor; lower = catches turned-away, more false positives)
+const DETECT_INTERVAL_MS = 130; // ~7-8 detections/sec. mobilenet_v2 is heavier than lite; the IoU tracker + hold below bridge the gaps so coverage stays smooth at a lower rate.
+// LOW confidence floor on purpose. This is a privacy filter: the ONLY hard
+// requirement is never to miss a person (over-blur is fine). We accept more
+// false positives to catch turned-away / seated / partial / far people that a
+// higher floor drops.
+const PERSON_SCORE = 0.15;
 const MAX_BOXES = 20;
-const BLUR_PX = 26;
-// Padding around the detector box (fraction of box w/h). Detector boxes are
-// tight; a little extra covers hair/edges. Slightly more on top for the head.
-const PAD_X = 0.1;
-const PAD_TOP = 0.14;
-const PAD_BOTTOM = 0.06;
-// PRIVACY-CRITICAL: keep blurring a person's last-known box this long after the
-// last confident sighting. A momentary miss must NOT un-hide them.
-const HOLD_MS = 2500;
-// Sticky coverage for the single-person box: the blur GROWS instantly to cover
-// (snap outward) but SHRINKS slowly (ease inward at SHRINK per detection). So a
-// jittery/undersized detection frame can never momentarily uncover the person
-// (the flicker fix) — coverage only ever contracts gradually once they've truly
-// moved/left. Applied per box edge (left/top/right/bottom).
-const SHRINK = 0.12; // fraction the box eases inward per detection when a person shrinks
+const BLUR_PX = 36;
+// Uniform padding (fraction of box w/h) on all four sides. The blur sits well
+// proud of the body so a slightly-undersized/lagging box never leaves a sliver
+// visible. This margin is what lets us low-pass the box (below) for a calm feed
+// without risking an uncover.
+const PAD = 0.26;
+// PRIVACY-CRITICAL: keep blurring a track this long after its last confident
+// sighting, to bridge brief detection gaps. Kept short so a person who has left
+// un-blurs quickly.
+const HOLD_MS = 1500;
+// Symmetric low-pass (EMA) factor: the box eases toward each new detection this
+// fraction per detection, in BOTH directions. COCO-SSD's boxes jitter frame to
+// frame; easing (rather than snapping to every frame) filters that into a calm,
+// steady box like the iOS feed. Lower = calmer but slower to follow motion;
+// the generous padding above covers the lag so easing never uncovers.
+const SMOOTH = 0.3;
+// Min IoU for a new detection to count as the SAME person as an existing track
+// (otherwise it spawns a new track). Low, because boxes jump frame-to-frame.
+const IOU_MATCH = 0.2;
 
 // On-tile status HUD — a dev/diagnostic aid, off in prod. Flip true locally to
 // watch the pipeline (model load, detections, blurred count).
 const SHOW_STATUS = false;
 
 type Box = [number, number, number, number]; // x, y, w, h
+type Edges = [number, number, number, number]; // l, t, r, b
 
 export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,11 +71,10 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
     let model: any = null;
     let lastDetectTs = 0;
     let personCount = 0;
-    // Persisted blur boxes with expiry — the privacy hold. A 0-person frame
-    // never clears these; they lapse HOLD_MS after the last sighting.
-    let held: { box: Box; exp: number }[] = [];
-    // Sticky edges [left, top, right, bottom] for the single-person case.
-    let smoothEdges: [number, number, number, number] | null = null;
+    // Active person tracks with per-track expiry — the privacy hold. Each track
+    // is an axis-aligned box in [left, top, right, bottom] pixels. A 0-person
+    // frame clears nothing; a track lapses HOLD_MS after its last sighting.
+    let tracks: { edges: Edges; exp: number }[] = [];
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -92,11 +100,20 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
       }
     })();
 
-    function pad([x, y, w, h]: Box): Box {
-      const px = w * PAD_X;
-      const pt = h * PAD_TOP;
-      const pb = h * PAD_BOTTOM;
-      return [x - px, y - pt, w + px * 2, h + pt + pb];
+    // Pad the raw detector box uniformly and return it as edges [l, t, r, b].
+    function padEdges([x, y, w, h]: Box): Edges {
+      const px = w * PAD, py = h * PAD;
+      return [x - px, y - py, x + w + px, y + h + py];
+    }
+    // Intersection-over-union of two edge-boxes.
+    function iou(a: Edges, b: Edges): number {
+      const iw = Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0]));
+      const ih = Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+      const inter = iw * ih;
+      const areaA = (a[2] - a[0]) * (a[3] - a[1]);
+      const areaB = (b[2] - b[0]) * (b[3] - b[1]);
+      const union = areaA + areaB - inter;
+      return union > 0 ? inter / union : 0;
     }
 
     function render() {
@@ -105,12 +122,12 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
       ctx!.filter = 'none';
       ctx!.drawImage(video, 0, 0, W, H);
       const now = performance.now();
-      for (const h of held) {
-        if (h.exp <= now) continue;
-        const [x, y, w, hh] = h.box;
+      for (const tr of tracks) {
+        if (tr.exp <= now) continue;
+        const [l, t, r, b] = tr.edges;
         ctx!.save();
         ctx!.beginPath();
-        ctx!.rect(x, y, w, hh);
+        ctx!.rect(l, t, r - l, b - t);
         ctx!.clip();
         ctx!.filter = `blur(${BLUR_PX}px)`;
         ctx!.drawImage(video, 0, 0, W, H);
@@ -134,32 +151,44 @@ export function SkeletonView({ trackRef }: { trackRef: LooseTrackRef }) {
             const preds: any[] = await model.detect(video, MAX_BOXES, PERSON_SCORE);
             const people = preds.filter((p) => p.class === 'person');
             personCount = people.length;
-            const boxes: Box[] = people.map((p) => pad(p.bbox as Box));
-            // Only REPLACE the hold when we actually found someone; a 0-person
-            // result leaves the previous boxes to persist (fail-safe).
-            if (boxes.length === 1) {
-              const [x, y, w, h] = boxes[0];
-              const nl = x, nt = y, nr = x + w, nb = y + h; // new edges
-              if (smoothEdges) {
-                const [l, t, r, b] = smoothEdges;
-                // Grow instantly outward; ease inward slowly (grow-fast/shrink-slow).
-                smoothEdges = [
-                  nl < l ? nl : l + (nl - l) * SHRINK, // left
-                  nt < t ? nt : t + (nt - t) * SHRINK, // top
-                  nr > r ? nr : r + (nr - r) * SHRINK, // right
-                  nb > b ? nb : b + (nb - b) * SHRINK, // bottom
-                ];
-              } else {
-                smoothEdges = [nl, nt, nr, nb];
+            const detections: Edges[] = people.map((p) => padEdges(p.bbox as Box));
+            // Greedy IoU tracking. Match each detection to the best-overlapping
+            // existing track: matched → move that track (grow-fast/shrink-slow)
+            // and refresh its hold; unmatched detection → spawn a new track;
+            // unmatched track → left untouched so it persists until its hold
+            // lapses (a 0-person frame therefore un-covers nobody — fail-safe).
+            const usedTracks = new Set<number>();
+            for (const d of detections) {
+              let best = -1;
+              let bestIou = IOU_MATCH;
+              for (let i = 0; i < tracks.length; i++) {
+                if (usedTracks.has(i)) continue;
+                const v = iou(d, tracks[i].edges);
+                if (v > bestIou) {
+                  bestIou = v;
+                  best = i;
+                }
               }
-              const [l, t, r, b] = smoothEdges;
-              held = [{ box: [l, t, r - l, b - t], exp: now + HOLD_MS }];
-            } else if (boxes.length > 1) {
-              smoothEdges = null;
-              held = boxes.map((b) => ({ box: b, exp: now + HOLD_MS }));
+              if (best >= 0) {
+                usedTracks.add(best);
+                const [l, t, r, b] = tracks[best].edges;
+                const [nl, nt, nr, nb] = d;
+                // Symmetric low-pass toward the new detection on every edge —
+                // filters COCO-SSD's per-frame jitter into a steady box.
+                tracks[best].edges = [
+                  l + (nl - l) * SMOOTH, // left
+                  t + (nt - t) * SMOOTH, // top
+                  r + (nr - r) * SMOOTH, // right
+                  b + (nb - b) * SMOOTH, // bottom
+                ];
+                tracks[best].exp = now + HOLD_MS;
+              } else {
+                tracks.push({ edges: d, exp: now + HOLD_MS });
+              }
             }
-            const live = held.filter((h) => h.exp > now).length;
-            setStatus(`running · ${personCount} seen · ${live} blurred`);
+            // Drop lapsed tracks (held past HOLD_MS since their last sighting).
+            tracks = tracks.filter((t) => t.exp > now);
+            setStatus(`running · ${personCount} seen · ${tracks.length} blurred`);
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             console.error('[SkeletonView] detect threw:', e);

@@ -280,7 +280,6 @@ export interface Detector {
   alert_trigger: AlertTrigger;
   is_sustained: boolean;
   duration_seconds: number | null;
-  where_scope: string;
   // Rooms the detector is scoped to (multi-select). Null/absent → every
   // room (back-compat with rows created before multi-room). where_scope is
   // the synced scalar fallback. Mirrors backend Detector.where_rooms.
@@ -477,7 +476,6 @@ export interface CreateDetectorRequest {
   is_sustained?: boolean;
   duration_seconds?: number | null;
   icon_name?: string;
-  where_scope?: string;
   // Rooms the caregiver picked (multi-select). Null/["ALL ROOMS"] = every
   // room. Drives camera auto-assignment; where_scope is kept in sync.
   where_rooms?: string[] | null;
@@ -534,7 +532,6 @@ export interface UpdateDetectorRequest {
   alert_trigger?: AlertTrigger;
   is_sustained?: boolean;
   duration_seconds?: number | null;
-  where_scope?: string;
   // Re-scope the detector's rooms; the backend replaces its camera
   // assignments to match. ["ALL ROOMS"] = every room.
   where_rooms?: string[] | null;

@@ -56,16 +56,14 @@ function parseWhenScope(raw: string): {
 }
 
 function initialRooms(detector: Detector): { all: boolean; set: Set<string> } {
+  // where_rooms is the ONLY truth (where_scope deleted 2026-07-28);
+  // no list = every room.
   const wr = detector.where_rooms;
   if (wr && wr.length > 0) {
     if (roomsMeanAll(wr)) return { all: true, set: new Set() };
     return { all: false, set: new Set(wr) };
   }
-  // Legacy rows carry only the scalar where_scope.
-  if (detector.where_scope.trim().toUpperCase() === 'ALL ROOMS') {
-    return { all: true, set: new Set() };
-  }
-  return { all: false, set: new Set([detector.where_scope]) };
+  return { all: true, set: new Set() };
 }
 
 export function DetectorEditor({

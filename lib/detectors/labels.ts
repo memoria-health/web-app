@@ -40,31 +40,13 @@ export function roomsMeanAll(rooms: string[] | null | undefined): boolean {
   return rooms.some((r) => r.trim().toUpperCase() === ALL_ROOMS);
 }
 
-// Human label for a detector's room scope, preferring the multi-room list
-// and falling back to the legacy scalar where_scope.
-export function roomsLabel(
-  whereRooms: string[] | null | undefined,
-  whereScope?: string | null,
-): string {
+// Human label for a detector's room scope. where_rooms is the ONLY truth
+// (where_scope deleted 2026-07-28); no list = every room.
+export function roomsLabel(whereRooms: string[] | null | undefined): string {
   if (whereRooms && whereRooms.length > 0) {
     if (roomsMeanAll(whereRooms)) return 'All rooms';
     return whereRooms.join(', ');
   }
-  // No room list = every room (the canonical default). where_scope is only a
-  // legacy scalar fallback and is absent on realtime rows (the column was
-  // dropped and is derived on the API serialize), so never assume it's set.
-  if (!whereScope) return 'All rooms';
-  return whereScope.trim().toUpperCase() === ALL_ROOMS ? 'All rooms' : whereScope;
+  return 'All rooms';
 }
 
-// Mirror of the backend's _scalar_where_scope: derive the legacy scalar from
-// the canonical where_rooms. Used to normalize Supabase realtime rows, which
-// are the raw DB row and no longer carry the derived where_scope column.
-export function scalarWhereScope(
-  whereRooms: string[] | null | undefined,
-): string {
-  if (!whereRooms || whereRooms.length === 0 || roomsMeanAll(whereRooms)) {
-    return 'ALL ROOMS';
-  }
-  return whereRooms.join(', ');
-}

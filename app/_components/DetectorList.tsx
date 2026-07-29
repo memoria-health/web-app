@@ -13,7 +13,7 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
-import { roomsLabel, scalarWhereScope } from '@/lib/detectors/labels';
+import { roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
 
 
@@ -62,7 +62,6 @@ export function DetectorList({
             // the API shape the rest of the UI reads.
             const next: Detector = {
               ...payload.new,
-              where_scope: scalarWhereScope(payload.new.where_rooms),
             };
             setDetectors((prev) => {
               if (prev.some((d) => d.id === next.id)) return prev;
@@ -81,7 +80,6 @@ export function DetectorList({
           (payload: RealtimePostgresUpdatePayload<Detector>) => {
             const updated: Detector = {
               ...payload.new,
-              where_scope: scalarWhereScope(payload.new.where_rooms),
             };
             setDetectors((prev) =>
               prev.map((d) => (d.id === updated.id ? updated : d)),
@@ -271,7 +269,7 @@ function Section({
                     <p className="mt-0.5 text-base text-ink2">{d.description}</p>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <span className="inline-flex items-center rounded-sm border border-line bg-paper-dim px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider text-ink3">
-                        {roomsLabel(d.where_rooms, d.where_scope)} ·{' '}
+                        {roomsLabel(d.where_rooms)} ·{' '}
                         {d.when_scope === 'ALWAYS' ? 'Always' : d.when_scope}
                       </span>
                       {(cameraCount[d.id] ?? 0) === 0 && (
