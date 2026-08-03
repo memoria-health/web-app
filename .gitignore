@@ -36,11 +36,17 @@ yarn-error.log*
 .dev-next.log
 .prod-server.log
 
-# env files (default to ignored, but .env.local is checked in
-# because this is a small private repo and the local dev values
-# are useful for new developers)
+# env files — secrets stay OUT of git, no exceptions.
+#
+# `!.env.local` used to sit here ("small private repo, useful for new
+# developers"). It put a live DATABASE_URL, GOOGLE_GENERATIVE_AI_API_KEY
+# and OPENAI_API_KEY on origin/main and six other branches (added
+# 2026-07-28 by 253aa7c, found 2026-08-03). Private repo is not a
+# security boundary, and git history keeps a secret forever — the only
+# remedy once it lands is rotating the credential.
+#
+# New developers get .env.example. Nothing else is checked in.
 .env*
-!.env.local
 !.env.example
 
 # vercel
