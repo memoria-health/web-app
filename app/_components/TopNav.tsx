@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { SignOutButton } from './SignOutButton';
-import { PatientSwitcher } from './PatientSwitcher';
+import { PersonChip } from './PersonChip';
+import { usePerson } from './PersonContext';
 import { AlertsBell } from './alerts/AlertsBell';
 
 /// Top of every page. Two stacked rows:
@@ -20,30 +21,25 @@ import { AlertsBell } from './alerts/AlertsBell';
 /// On non-patient routes (`/`, `/patients/new`) only Row 1 renders.
 export function TopNav({ email }: { email: string | null }) {
   const pathname = usePathname();
+  const { selected: person } = usePerson();
   const patientIdMatch = pathname.match(/^\/patients\/([0-9a-f-]+)/i);
   const inPatient = patientIdMatch !== null;
   const base = patientIdMatch ? `/patients/${patientIdMatch[1]}` : '';
+  // ONE tab row for every account shape — the person chip carries the
+  // patient dimension, so the tabs never change with patient count.
+  const inPatientSetup = inPatient && /\/(cameras|detectors|settings)/.test(pathname);
 
-  const tabs = inPatient
-    ? [
-        { href: base, label: 'Live', isActive: pathname === base },
-        {
-          href: `${base}/cameras`,
-          label: 'Sensors',
-          isActive: pathname.startsWith(`${base}/cameras`),
-        },
-        {
-          href: `${base}/detectors`,
-          label: 'Detectors',
-          isActive: pathname.startsWith(`${base}/detectors`),
-        },
-        {
-          href: `${base}/settings`,
-          label: 'Settings',
-          isActive: pathname.startsWith(`${base}/settings`),
-        },
-      ]
-    : [];
+  const tabs = [
+    { href: '/home', label: 'Home', isActive: pathname.startsWith('/home') },
+    { href: person && person !== 'all' ? `/patients/${person}` : '/live', label: 'Live', isActive: pathname.startsWith('/live') || (inPatient && !inPatientSetup) },
+    { href: '/ask', label: 'Ask', isActive: pathname.startsWith('/ask') },
+    { href: '/explore', label: 'Explore', isActive: pathname.startsWith('/explore') },
+    {
+      href: '/settings',
+      label: 'Settings',
+      isActive: pathname.startsWith('/settings') || pathname === '/patients' || pathname.startsWith('/patients/new') || inPatientSetup,
+    },
+  ];
 
   return (
     <>
@@ -56,7 +52,7 @@ export function TopNav({ email }: { email: string | null }) {
         </Link>
 
         <div className="justify-self-center">
-          <PatientSwitcher />
+          <PersonChip />
         </div>
 
         <div className="flex items-center gap-3 justify-self-end">
@@ -82,6 +78,7 @@ export function TopNav({ email }: { email: string | null }) {
               <li key={t.href}>
                 <Link
                   href={t.href}
+                  prefetch
                   className={cn(
                     'rounded-md px-5 py-2 text-base transition-colors',
                     t.isActive

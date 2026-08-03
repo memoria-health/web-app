@@ -8,7 +8,9 @@ import { TermsGate } from '@/app/_components/TermsGate';
 import { CURRENT_TOS_VERSION } from '@/lib/legal';
 import { TimezoneSync } from '@/app/_components/TimezoneSync';
 import { SessionSync } from '@/app/_components/SessionSync';
+import { WarmLiveChunks } from '@/app/_components/WarmLiveChunks';
 import { PatientProvider } from '@/app/_components/PatientProvider';
+import { PersonProvider } from '@/app/_components/PersonContext';
 import { AlertsProvider } from '@/app/_components/alerts/AlertsProvider';
 import { AlertsFirstRunPrompt } from '@/app/_components/alerts/AlertsFirstRunPrompt';
 import { PreloadVision } from '@/app/_components/PreloadVision';
@@ -87,6 +89,7 @@ export default async function AppLayout({
   return (
     <div className="flex flex-1 flex-col">
       <PatientProvider patients={patients} selected={selected}>
+        <PersonProvider>
         {/* AlertsProvider wraps TopNav (which hosts the bell) + children so
             the global browser-alert subscription runs on every signed-in
             page. See app/_components/alerts/AlertsProvider.tsx. */}
@@ -95,6 +98,7 @@ export default async function AppLayout({
           {/* Reconcile the tab if the browser's auth session changes to a
               different account or signs out (shared session across tabs). */}
           <SessionSync userId={userId} />
+          <WarmLiveChunks />
           <main className="flex-1 flex flex-col">{children}</main>
           {/* Terms gate takes precedence over onboarding: no dashboard
               access until the current Terms + Privacy version is accepted. */}
@@ -108,6 +112,7 @@ export default async function AppLayout({
               after first paint) so toggling blur is instant. No-op if unused. */}
           <PreloadVision />
         </AlertsProvider>
+        </PersonProvider>
       </PatientProvider>
     </div>
   );
