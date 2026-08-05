@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
   // UMD bundle Turbopack can't resolve, so alias it to an empty stub. Safe: the
   // BlazePose path is never invoked.
   turbopack: {
+    // Pin the filesystem root to THIS package (2026-08-04).
+    //
+    // Turbopack infers the workspace root from the nearest lockfile. An
+    // orphaned `package-lock.json` sitting in the user's HOME directory
+    // (no package.json beside it, dated 2023) won that election, so it
+    // treated all of ~ as the root and file-watched the entire home
+    // folder: next-server pegged 660% CPU at 1.76 GB RSS.
+    //
+    // Pinning here fixes it for everyone regardless of what stray
+    // lockfiles exist on a given machine, which deleting that one file
+    // would not.
+    root: __dirname,
     resolveAlias: {
       '@mediapipe/pose': './lib/stubs/mediapipe-pose.ts',
     },
