@@ -123,6 +123,10 @@ export interface Patient {
   // decision). decided_at === null ⇒ caregiver never asked ⇒ show the
   // first-open consent banner; non-null ⇒ never auto-show again.
   data_collection_enabled: boolean;
+  /** Evaluation mode: a Memoria specialist checks alerts before the
+   *  family is told. ON by default, so a backend that predates the
+   *  field must read as enabled rather than disabled. */
+  event_gate_enabled: boolean;
   data_collection_decided_at: string | null;
   // LEGACY patient-wide privacy mode. Superseded by per-camera
   // `Camera.privacy_enabled` (room-derived); no web UI reads or writes
@@ -433,6 +437,7 @@ export interface UpdatePatientRequest {
   // (so both true and false record a decision). Never send
   // `data_collection_decided_at` from the client.
   data_collection_enabled?: boolean;
+  event_gate_enabled?: boolean;
   // NOTE: the legacy `privacy_mode_enabled` toggle was removed — privacy
   // is now per-camera (`Camera.privacy_enabled`), derived from room_class
   // server-side and not client-settable.
