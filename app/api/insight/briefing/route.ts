@@ -2,6 +2,8 @@ import { google } from '@ai-sdk/google';
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
+import { scopedPatients } from '@/lib/insight/scope';
+import { BRIEFING_RATE_LIMIT, enforceRateLimit } from '@/lib/rateLimit';
 
 export const maxDuration = 30;
 
@@ -9,6 +11,18 @@ export const maxDuration = 30;
  * computed — the page paints instantly and this prose fades in after.
  * Model rides the Vercel AI Gateway (billed to the Vercel account). */
 export async function POST(req: Request) {
+  /* Check auth HERE, not only in proxy.ts. This handler goes straight
+   * from the request body to a paid model call, so if a future edit
+   * adds a path to PUBLIC_PATHS or widens the proxy matcher, the route
+   * silently becomes an open LLM proxy billed to us. The sibling chat
+   * route already checks for itself; this one now matches. */
+  const allowed = await scopedPatients();
+  if (!allowed) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
+  /* Every call is a paid generation, so cap it per caregiver. */
+  const limited = await enforceRateLimit(req, BRIEFING_RATE_LIMIT);
+  if (limited) return limited;
+
   const { facts } = await req.json();
   const name = facts?.name ?? 'her';
   const PROMPT = (p: string) => p;
