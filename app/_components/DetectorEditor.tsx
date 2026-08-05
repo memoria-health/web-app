@@ -24,6 +24,7 @@ import {
   roomsMeanAll,
 } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import { SELECTABLE_CATEGORIES } from '@/lib/categoryPalette';
 
 // One coherent editor for a custom detector, replacing the old stacked
 // "insight panel + raw enum form". Reads top-to-bottom as a narrative:
@@ -576,7 +577,7 @@ export function DetectorEditor({
         <div className="flex flex-col gap-1.5">
           <span className="text-xs uppercase tracking-wide text-ink3">Category</span>
           <div className="flex gap-2">
-            {(['safety', 'routine'] as DetectorCategory[]).map((c) => (
+            {SELECTABLE_CATEGORIES.map((c) => (
               <button
                 key={c}
                 type="button"

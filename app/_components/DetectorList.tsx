@@ -15,6 +15,7 @@ import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
 import { roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import { categoryTone } from '@/lib/categoryPalette';
 
 
 export function DetectorList({
@@ -241,11 +242,10 @@ function Section({
                   <div
                     className={cn(
                       'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border',
-                      d.category === 'safety'
-                        ? 'border-terra/30 bg-terra-soft text-terra-deep'
-                        : 'border-sky/30 bg-sky-soft text-sky',
+                      categoryTone(d.category).soft,
+                      categoryTone(d.category).deep,
                     )}
-                    title={d.category === 'safety' ? 'Safety' : 'Routine'}
+                    title={categoryTone(d.category).label}
                   >
                     <DetectorIcon name={d.icon_name} className="h-4 w-4" />
                   </div>

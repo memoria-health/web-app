@@ -37,6 +37,16 @@
   --color-sky: #6b8aa0;
   --color-sky-soft: #dde6ee;
 
+  /* Behaviour — plum.  Care — sage.
+     Muted to the same register as terra and sky: four category hues
+     must read as one family, not one shouting colour and three quiet
+     ones. Identical hexes to the iOS asset catalog (Plum/Sage
+     colorsets) so a category looks the same on both clients. */
+  --color-plum: #8a6e96;
+  --color-plum-soft: #e8e0ec;
+  --color-sage: #6e9070;
+  --color-sage-soft: #dfeadf;
+
   /* Semantic */
   --color-success: #4a5d3a;
   --color-warning: #c68a3d;
@@ -67,6 +77,10 @@
   --color-action-ink: var(--color-action-ink);
 
   --color-sky: var(--color-sky);
+  --color-plum: var(--color-plum);
+  --color-plum-soft: var(--color-plum-soft);
+  --color-sage: var(--color-sage);
+  --color-sage-soft: var(--color-sage-soft);
   --color-sky-soft: var(--color-sky-soft);
 
   --color-success: var(--color-success);

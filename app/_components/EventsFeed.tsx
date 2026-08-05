@@ -9,6 +9,7 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { formatLocalTime, timeAgo } from '@/lib/utils/time';
 import { cn } from '@/lib/utils/cn';
 import type { DetectionEvent } from '@/lib/api/types';
+import { categoryTone, escalates } from '@/lib/categoryPalette';
 
 export function EventsFeed({
   patientId,
@@ -157,15 +158,14 @@ export function EventsFeed({
           key={e.id}
           className={cn(
             'flex items-start gap-3 px-4 py-3',
-            e.category === 'safety' && 'bg-terra-soft/30',
+            escalates(e.category) && 'bg-terra-soft/30',
           )}
         >
           <span
             className={cn(
               'mt-1 inline-flex shrink-0 items-center rounded-sm border px-2 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider',
-              e.category === 'safety'
-                ? 'border-terra/40 bg-terra-soft text-terra-deep'
-                : 'border-sky/40 bg-sky-soft text-sky',
+              categoryTone(e.category).soft,
+              categoryTone(e.category).deep,
             )}
           >
             {e.category}

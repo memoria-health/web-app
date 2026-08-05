@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getBrowserNemara } from '@/lib/api/client';
 import { cn } from '@/lib/utils/cn';
 import type { Detector } from '@/lib/api/types';
+import { categoryTone } from '@/lib/categoryPalette';
 
 /**
  * Per-camera detector assignment toggles.
@@ -95,9 +96,8 @@ export function CameraDetectorsForm({
                   <span
                     className={cn(
                       'rounded border px-1.5 py-0.5 text-xs font-mono uppercase tracking-wide',
-                      d.category === 'safety'
-                        ? 'border-red-800 bg-red-950/40 text-terra'
-                        : 'border-sky/40 bg-sky-soft text-sky',
+                      categoryTone(d.category).soft,
+                      categoryTone(d.category).deep,
                     )}
                   >
                     {d.category}

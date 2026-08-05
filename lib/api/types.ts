@@ -15,7 +15,7 @@ export type Region = 'US' | 'IN';
 // 'GB'). Recorded verbatim; the residency `region` is derived from it. Any
 // valid ISO code — the picker offers the full country list.
 export type Country = string;
-export type DetectorCategory = 'safety' | 'routine';
+export type DetectorCategory = 'safety' | 'routine' | 'behaviour' | 'care';
 export type DetectorSource = 'preset' | 'custom';
 // 'state' = continuous/ongoing activity (e.g. watching TV) — collapses a
 // whole session into one event via rising-edge episodes.
