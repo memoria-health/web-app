@@ -57,3 +57,17 @@ export function BetaChip() {
     </span>
   );
 }
+
+/// Larger BETA badge for sticking onto a button. `BetaChip` is a 10px mono
+/// label, which disappears at that size against a real control, so this is
+/// its own thing rather than the chip with a bigger font.
+export function BetaBadge() {
+  return (
+    <span
+      title="Custom detectors are in beta. Accuracy can vary."
+      className="inline-flex items-center rounded-full bg-terra px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-terra-ink"
+    >
+      Beta
+    </span>
+  );
+}

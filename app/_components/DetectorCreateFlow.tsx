@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getBrowserNemara } from '@/lib/api/client';
 import type { Camera, Detector, ScheduleConfig } from '@/lib/api/types';
 import { DetectorEditor } from './DetectorEditor';
+import { CustomDetectorBetaNotice } from './CustomDetectorBetaNotice';
 
 /// Unified custom-detector creation.
 ///
@@ -111,6 +112,12 @@ export function DetectorCreateFlow({
           {error}
         </div>
       )}
+
+      {/* The full reasoning belongs HERE, at the moment someone is about to
+          create one, rather than as a caption on a badge. */}
+      <div className="mb-5">
+        <CustomDetectorBetaNotice />
+      </div>
 
       <label className="mb-1.5 block font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
         Detector name

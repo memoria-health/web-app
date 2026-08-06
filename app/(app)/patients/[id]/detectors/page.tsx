@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { DetectorList } from '@/app/_components/DetectorList';
-import { BetaChip } from '@/app/_components/CustomDetectorBetaNotice';
+import { BetaBadge } from '@/app/_components/CustomDetectorBetaNotice';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,8 +48,8 @@ export default async function DetectorsPage({
           >
             + New custom detector
           </Link>
-          <span className="pointer-events-none absolute -right-2 -top-2">
-            <BetaChip />
+          <span className="pointer-events-none absolute -top-3 right-3">
+            <BetaBadge />
           </span>
         </div>
       </header>
