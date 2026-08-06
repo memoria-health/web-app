@@ -24,6 +24,7 @@ import {
   roomsMeanAll,
 } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import { CustomDetectorBetaNotice } from './CustomDetectorBetaNotice';
 import { SELECTABLE_CATEGORIES } from '@/lib/categoryPalette';
 
 // One coherent editor for a custom detector, replacing the old stacked
@@ -339,6 +340,7 @@ export function DetectorEditor({
       <style>{`@keyframes detCriteriaIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}`}</style>
 
       {detector.accuracy_caveat && <AccuracyCaveatNotice />}
+      {detector.source === 'custom' && <CustomDetectorBetaNotice />}
 
       {/* Draft / off banner — the create flow lands here with the detector
           OFF so the caregiver reviews the compiled criteria first. The single

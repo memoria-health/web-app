@@ -15,6 +15,10 @@ import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
 import { roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import {
+  BetaChip,
+  CustomDetectorBetaNotice,
+} from './CustomDetectorBetaNotice';
 import { categoryTone } from '@/lib/categoryPalette';
 
 
@@ -254,6 +258,7 @@ function Section({
                       <span className="truncate font-serif text-xl text-ink">
                         {d.name}
                       </span>
+                      {d.source === 'custom' && <BetaChip />}
                       {d.source === 'custom' && d.identifier === null && (
                         // Background compile still in progress — the tick
                         // pipeline skips this detector until identifier lands.
@@ -284,6 +289,13 @@ function Section({
                     {d.accuracy_caveat && (
                       <div className="mt-1.5">
                         <AccuracyCaveatNotice compact />
+                      </div>
+                    )}
+                    {/* A detector can be both custom AND fine-detail; the two
+                        notices answer different questions, so both may show. */}
+                    {d.source === 'custom' && (
+                      <div className="mt-1.5">
+                        <CustomDetectorBetaNotice compact />
                       </div>
                     )}
                   </div>
