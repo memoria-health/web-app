@@ -8,28 +8,9 @@
 // one is about the DETECTOR being newly generated from a sentence the
 // caregiver typed, which we have never evaluated. A detector can be both,
 // so the two are allowed to appear together.
-//
-// `compact` is the one-line caption for dense lists; the full notice is
-// the default (create review + detail page).
-export function CustomDetectorBetaNotice({
-  compact = false,
-}: {
-  compact?: boolean;
-}) {
-  const full =
-    'Custom detectors are in beta. This one was built from your own ' +
-    'description, so it has not been tested the way our built-in detectors ' +
-    'have and its accuracy can vary. Treat any alert as a reason to check ' +
-    'in rather than something to rely on.';
-  const short = 'Beta. Built from your description, so accuracy can vary.';
+export function CustomDetectorBetaNotice() {
   return (
-    <div
-      className={
-        compact
-          ? 'inline-flex max-w-full items-start gap-1.5 rounded-md border border-terra/30 bg-terra-soft px-2 py-1.5 text-xs text-ink'
-          : 'flex items-start gap-2 rounded-md border border-terra/40 bg-terra-soft p-3 text-sm text-ink2'
-      }
-    >
+    <div className="flex items-start gap-2 rounded-md border border-terra/40 bg-terra-soft p-3 text-sm text-ink2">
       {/* Triangle, not the circle its sibling notice uses, so the two are
           distinguishable at a glance when a detector is both custom and
           fine-detail. h-4/w-4 + mt-px aligns it with the first line. */}
@@ -41,7 +22,7 @@ export function CustomDetectorBetaNotice({
       >
         <path fillRule="evenodd" clipRule="evenodd" d="M8.26 2.6a2 2 0 0 1 3.48 0l6 10.5A2 2 0 0 1 16 16H4a2 2 0 0 1-1.74-2.9l6-10.5zM10 6a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V7a1 1 0 0 1 1-1zm0 8.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
       </svg>
-      <span>{compact ? short : full}</span>
+      <span>Custom detectors are in beta. Built from your description, so accuracy can vary.</span>
     </div>
   );
 }

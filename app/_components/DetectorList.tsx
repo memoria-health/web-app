@@ -15,10 +15,7 @@ import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
 import { roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
-import {
-  BetaChip,
-  CustomDetectorBetaNotice,
-} from './CustomDetectorBetaNotice';
+import { BetaChip } from './CustomDetectorBetaNotice';
 import { categoryTone } from '@/lib/categoryPalette';
 
 
