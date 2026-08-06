@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { DetectorList } from '@/app/_components/DetectorList';
+import { BetaChip } from '@/app/_components/CustomDetectorBetaNotice';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,14 @@ export default async function DetectorsPage({
           + New custom detector
         </Link>
       </header>
+      {/* Beta marker sits with the create action, mirroring iOS and Android
+          where it sits above "Add a custom detector". */}
+      <div className="flex items-center gap-2">
+        <BetaChip />
+        <span className="text-sm text-ink3">
+          Custom detectors are new, so accuracy can vary.
+        </span>
+      </div>
       <DetectorList
         initial={detectors}
         patientId={patient.id}

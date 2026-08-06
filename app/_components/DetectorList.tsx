@@ -188,6 +188,7 @@ export function DetectorList({
       />
       <Section
         title="CUSTOM"
+        showsBeta
         detectors={customs}
         pending={pending}
         patch={patch}
@@ -214,6 +215,7 @@ function Section({
   remove,
   emptyHint,
   cameraCount,
+  showsBeta = false,
 }: {
   title: string;
   detectors: Detector[];
@@ -222,14 +224,20 @@ function Section({
   remove: (id: string, name: string) => void;
   emptyHint?: React.ReactNode;
   cameraCount: Record<string, number>;
+  showsBeta?: boolean;
 }) {
   // Which row's ⋯ overflow menu is open (Edit + Delete live in here now).
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   return (
     <section className="mt-6 first:mt-0">
-      <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
-        {title}
-      </h2>
+      {/* The BETA marker lives on the section header, not on each row.
+          Per-row it repeated the same thing on every custom detector. */}
+      <div className="mb-2 flex items-center gap-2">
+        <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
+          {title}
+        </h2>
+        {showsBeta && <BetaChip />}
+      </div>
       {detectors.length === 0 ? (
         <p className="rounded-lg border border-dashed border-line bg-card px-4 py-3 text-base text-ink3">
           {emptyHint ?? 'None.'}
@@ -258,7 +266,6 @@ function Section({
                       <span className="truncate font-serif text-xl text-ink">
                         {d.name}
                       </span>
-                      {d.source === 'custom' && <BetaChip />}
                       {d.source === 'custom' && d.identifier === null && (
                         // Background compile still in progress — the tick
                         // pipeline skips this detector until identifier lands.
@@ -289,13 +296,6 @@ function Section({
                     {d.accuracy_caveat && (
                       <div className="mt-1.5">
                         <AccuracyCaveatNotice compact />
-                      </div>
-                    )}
-                    {/* A detector can be both custom AND fine-detail; the two
-                        notices answer different questions, so both may show. */}
-                    {d.source === 'custom' && (
-                      <div className="mt-1.5">
-                        <CustomDetectorBetaNotice compact />
                       </div>
                     )}
                   </div>

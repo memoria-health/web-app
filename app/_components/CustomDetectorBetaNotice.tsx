@@ -26,8 +26,8 @@ export function CustomDetectorBetaNotice({
     <div
       className={
         compact
-          ? 'inline-flex max-w-full items-start gap-1.5 rounded-md border border-warning/30 bg-warning/10 px-2 py-1.5 text-xs text-ink'
-          : 'flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-ink2'
+          ? 'inline-flex max-w-full items-start gap-1.5 rounded-md border border-terra/30 bg-terra-soft px-2 py-1.5 text-xs text-ink'
+          : 'flex items-start gap-2 rounded-md border border-terra/40 bg-terra-soft p-3 text-sm text-ink2'
       }
     >
       {/* Triangle, not the circle its sibling notice uses, so the two are
@@ -37,7 +37,7 @@ export function CustomDetectorBetaNotice({
         viewBox="0 0 20 20"
         aria-hidden
         fill="currentColor"
-        className="mt-px h-4 w-4 shrink-0 text-warning"
+        className="mt-px h-4 w-4 shrink-0 text-terra"
       >
         <path fillRule="evenodd" clipRule="evenodd" d="M8.26 2.6a2 2 0 0 1 3.48 0l6 10.5A2 2 0 0 1 16 16H4a2 2 0 0 1-1.74-2.9l6-10.5zM10 6a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V7a1 1 0 0 1 1-1zm0 8.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
       </svg>
@@ -51,7 +51,7 @@ export function BetaChip() {
   return (
     <span
       title="Custom detector, in beta. Accuracy can vary."
-      className="inline-flex shrink-0 items-center rounded-sm bg-warning/15 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-warning"
+      className="inline-flex shrink-0 items-center rounded-sm bg-terra-soft px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-terra"
     >
       Beta
     </span>

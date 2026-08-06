@@ -682,13 +682,11 @@ function PrivateRoomNotices({ cameras }: { cameras: EnabledCamera[] }) {
         >
           <p className="text-sm text-ink2">
             <span className="font-medium text-ink">{c.room}:</span>{' '}
+            {/* The label already names the room as private, so the body no
+                longer restates it. Guess vs fact survives in two words. */}
             {c.room_class === 'bathroom' || c.room_class === 'bedroom'
-              ? "This camera looks like it's in a private room. Privacy is"
-                + ' on by default: no live view, and sensitive moments in'
-                + ' clips are always censored.'
-              : "This camera is in a private room. Privacy is on: no live"
-                + ' view, and sensitive moments in clips are always'
-                + ' censored.'}
+              ? 'Detected automatically. No live view, and sensitive moments in clips are censored.'
+              : 'No live view, and sensitive moments in clips are censored.'}
           </p>
           <button
             type="button"
