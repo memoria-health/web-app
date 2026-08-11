@@ -1,39 +1,33 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
-import { Pool } from 'pg';
-import { scopedPatients } from '@/lib/insight/scope';
+import { insightFetch, InsightAuthError } from '@/lib/insight/backend';
 
 export const maxDuration = 30;
 
 /* The FAMILY home view: one glanceable status, a written briefing, streaks,
  * and a plain-language feed. Everything here is an ANSWER, not a chart.
  *
+ * Data now arrives as ONE authenticated backend call
+ * (GET /v1/insights/home-data — raw rows, caregiver-scoped server-side);
+ * every line of composition below (status verdict, streaks, wake math,
+ * humanizing, the LLM briefing) is unchanged from the direct-SQL version,
+ * so the view reads identically.
+ *
  * Real data: status, streaks, wake time, the feed.
  * Preview data: sleep / night wakings / active time — feasible to compute
  * (state-machine over presence + the motion pipeline) but not collected yet;
  * returned with preview:true so the UI labels them honestly. */
 
-let _pool: Pool | null = null;
-function pool(): Pool {
-  if (!_pool) {
-    const url = process.env.DATABASE_URL ?? '';
-    _pool = new Pool({
-      connectionString: url,
-      // prod DB has max_connections=60 shared with Realtime + the backend —
-      // transaction-mode pooler (:6543) + tiny pool + fast idle shed keep this
-      // dashboard from ever pinning backends (it froze mobile sign-in once)
-      max: 2,
-      idleTimeoutMillis: 10_000,
-      allowExitOnIdle: true,
-      ssl: /127\.0\.0\.1|localhost/.test(url) ? undefined : { rejectUnauthorized: false },
-    });
-  }
-  return _pool;
-}
-
-const NIGHT = `(extract(hour from occurred_at) >= 22 or extract(hour from occurred_at) < 6)`;
-const SERIOUS = `(title ilike '%fall%' or title ilike '%chok%' or title ilike '%stroke%' or title ilike '%heart%' or title ilike '%seizure%')`;
+type HomeData = {
+  patient: { id: string; full_name: string; preferred_name: string | null };
+  cameras: { total: number; online: number };
+  recent: { title: string; occurred_at: string; reviewed: boolean; serious: boolean }[];
+  last_fall_at: string | null;
+  event_nights: string[];
+  feed: { title: string; narrative: string | null; occurred_at: string; room: string | null }[];
+  wakes: { day: string; wake: number | null }[];
+};
 
 /* "Fall Detection" / "Possible Fall" → a calm human sentence fragment */
 function humanize(title: string, room: string | null) {
@@ -57,62 +51,30 @@ function fmtHour(h: number) {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  let patient = url.searchParams.get('patient');
+  const patient = url.searchParams.get('patient');
 
   try {
-    // TENANT SCOPING — the caregiver's session decides which patients exist here
-    const allowed = await scopedPatients();
-    if (!allowed) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    if (patient && !allowed.some((p) => p.id === patient)) {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    let data: HomeData;
+    try {
+      data = await insightFetch<HomeData>(
+        `/v1/insights/home-data${patient ? `?patient_id=${patient}` : ''}`);
+    } catch (e: any) {
+      if (e instanceof InsightAuthError) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+      if (Number(e?.status) === 404) {
+        // covers both "no patients" and a foreign patient id (non-disclosing)
+        return NextResponse.json({ error: patient ? 'forbidden' : 'no patients' }, { status: patient ? 403 : 404 });
+      }
+      throw e;
     }
-    // no patient chosen → the caregiver's most recently active one (a real
-    // family account has exactly one loved one)
-    if (!patient) {
-      const { rows } = await pool().query(
-        `select p.id from patients p left join events e on e.patient_id = p.id
-         where p.id = any($1::uuid[])
-         group by p.id order by max(e.occurred_at) desc nulls last limit 1`,
-        [allowed.map((p) => p.id)]);
-      patient = rows[0]?.id ?? null;
-      if (!patient) return NextResponse.json({ error: 'no patients' }, { status: 404 });
-    }
-    const [pRes, camRes, recentRes, lastFallRes, nightRes, feedRes, wakeRes] = await Promise.all([
-      pool().query(`select id, full_name, preferred_name from patients where id = $1`, [patient]),
-      pool().query(`select count(*)::int as total, count(*) filter (where online)::int as online
-                    from cameras where not disabled and patient_id = $1`, [patient]),
-      // last 24h, newest first — drives the status verdict
-      pool().query(`select title, occurred_at, reviewed, ${SERIOUS} as serious
-                    from events where patient_id = $1 and occurred_at >= now() - interval '24 hours'
-                    order by occurred_at desc limit 20`, [patient]),
-      pool().query(`select max(occurred_at) as last from events where patient_id = $1 and title ilike '%fall%'`, [patient]),
-      // nights that HAD a night event, last 60 days → quiet-night streak in JS
-      pool().query(`select distinct (occurred_at - interval '6 hours')::date as night
-                    from events where patient_id = $1 and ${NIGHT}
-                      and occurred_at >= now() - interval '60 days'`, [patient]),
-      // feed: last 3 days of events with room
-      pool().query(`select e.title, e.narrative, e.occurred_at, c.room
-                    from events e left join cameras c on c.id = e.camera_id
-                    where e.patient_id = $1 and e.occurred_at >= now() - interval '30 days'
-                    order by e.occurred_at desc limit 15`, [patient]),
-      // first presence per day (wake proxy), last 14 days
-      pool().query(`select a.captured_at::date as day,
-                           min(extract(hour from a.captured_at) + extract(minute from a.captured_at)/60.0)
-                             filter (where a.people_present and extract(hour from a.captured_at) >= 4) as wake
-                    from analyses a join cameras c on c.id = a.camera_id
-                    where c.patient_id = $1 and a.captured_at >= now() - interval '14 days'
-                    group by 1 order by 1 desc`, [patient]),
-    ]);
 
-    const p = pRes.rows[0];
-    if (!p) return NextResponse.json({ error: 'unknown patient' }, { status: 404 });
+    const p = data.patient;
     const name = p.preferred_name || p.full_name;
 
     /* ── status: three states, ever ── */
-    const recent = recentRes.rows;
+    const recent = data.recent;
     const seriousRecent = recent.find((r) => r.serious && Date.now() - new Date(r.occurred_at).getTime() < 3 * 3600_000);
     const unreviewed = recent.filter((r) => !r.reviewed);
-    const cams = camRes.rows[0] ?? { total: 0, online: 0 };
+    const cams = data.cameras;
     let status: { level: 'green' | 'amber' | 'red'; line: string; sub: string };
     if (seriousRecent) {
       status = { level: 'red', line: `Something needs your attention`, sub: `${humanize(seriousRecent.title, null)} at ${fmtTime(new Date(seriousRecent.occurred_at))} — tap the moment below to review it` };
@@ -127,8 +89,8 @@ export async function GET(req: Request) {
     const camsSub = cams.total ? `${cams.online} of ${cams.total} camera${cams.total === 1 ? '' : 's'} watching` : 'no cameras set up yet';
 
     /* ── streaks ── */
-    const lastFall = lastFallRes.rows[0]?.last ? Math.floor((Date.now() - new Date(lastFallRes.rows[0].last).getTime()) / 86_400_000) : null;
-    const eventNights = new Set(nightRes.rows.map((r) => String(r.night).slice(0, 10)));
+    const lastFall = data.last_fall_at ? Math.floor((Date.now() - new Date(data.last_fall_at).getTime()) / 86_400_000) : null;
+    const eventNights = new Set(data.event_nights.map((n) => n.slice(0, 10)));
     let quietNights = 0;
     for (let i = 1; i <= 60; i++) {
       const d = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
@@ -143,10 +105,10 @@ export async function GET(req: Request) {
     ];
 
     /* ── wake time: today vs her usual ── */
-    const wakes = wakeRes.rows.filter((r) => r.wake != null);
+    const wakes = data.wakes.filter((r) => r.wake != null);
     const todayKey = new Date().toISOString().slice(0, 10);
-    const todayWake = wakes.find((r) => String(r.day).slice(0, 10) === todayKey)?.wake ?? null;
-    const priorWakes = wakes.filter((r) => String(r.day).slice(0, 10) !== todayKey).map((r) => Number(r.wake));
+    const todayWake = wakes.find((r) => r.day.slice(0, 10) === todayKey)?.wake ?? null;
+    const priorWakes = wakes.filter((r) => r.day.slice(0, 10) !== todayKey).map((r) => Number(r.wake));
     const typicalWake = priorWakes.length ? priorWakes.reduce((s, w) => s + w, 0) / priorWakes.length : null;
     const wake = todayWake != null
       ? {
@@ -160,7 +122,7 @@ export async function GET(req: Request) {
         : null;
 
     /* ── the feed: newest first, grouped client-side ── */
-    const feed = feedRes.rows.map((r) => ({
+    const feed = data.feed.map((r) => ({
       at: r.occurred_at,
       time: fmtTime(new Date(r.occurred_at)),
       day: String(new Date(r.occurred_at).toISOString().slice(0, 10)),
