@@ -5,14 +5,19 @@
 // absent → hidden). `compact` is the one-line caption for dense lists; the
 // full notice is the default (create review + detail page).
 export function AccuracyCaveatNotice({ compact = false }: { compact?: boolean }) {
+  // Kept BYTE-IDENTICAL to iOS AccuracyCaveatNotice.swift. This wording was
+  // reworded there on 2026-08-17 and the web copy was missed, so the two
+  // surfaces spent a month making different accuracy claims about the same
+  // detector. Leading with the mechanism ("reads small, fine details") also
+  // misdescribed whole-person detectors like choking, which carry this
+  // notice too. If you change one, change both.
   const full =
-    'This detector reads small, fine details, so how reliably it works ' +
-    'depends on how far away the camera is, the lighting, and the angle. ' +
-    'It can miss events or misread them. Treat any alert as a reason to ' +
-    'check in, not a guarantee that something did or did not happen.';
+    '100% accuracy is not guaranteed. How well this detector works ' +
+    'depends on camera distance, lighting, and angle, and it can miss ' +
+    'events or misread them. Treat any alert as a reason to check in, ' +
+    'not as proof that something did or did not happen.';
   const short =
-    'Accuracy varies with camera distance, lighting, and angle, so this can ' +
-    'miss events or misread them.';
+    '100% accuracy not guaranteed. Depends on camera distance, lighting, and angle.';
   return (
     <div
       className={
