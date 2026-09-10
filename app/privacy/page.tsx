@@ -1,3 +1,5 @@
+// GENERATED from nemara-backend/docs/legal/privacy-notice.md.
+// Do not hand-edit: edit the markdown and re-run render_privacy.py.
 import Link from 'next/link';
 
 export const metadata = {
@@ -16,543 +18,211 @@ export default function PrivacyPage() {
       </nav>
 
       <h1 className="font-serif text-4xl tracking-tight">Privacy Notice</h1>
-      <p className="mt-2 text-sm text-ink3">
-        In-Home Monitoring · Effective Date: May 26, 2026 · Last Revised: May 26, 2026
-      </p>
+      <p className="mt-2 text-sm text-ink3">Effective Date: August 23, 2026</p>
 
-      <section className="mt-8 rounded-lg border border-line bg-card-alt p-5">
-        <h2 className="font-serif text-xl">Summary</h2>
-        <p className="mt-2 text-sm text-ink2">
-          Memoria is a household-activity monitoring service. The Memoria
-          Sensor streams live video and audio in real time so that
-          our artificial-intelligence service can surface insights and
-          so that Authorized Users can &ldquo;look in&rdquo; through
-          the Memoria application or web Dashboard.{' '}
-          <strong>
-            Memoria does not maintain a stored library of video or audio
-            for later replay.
-          </strong>{' '}
-          Live streams pass through processing in real time and are
-          discarded; event clips are briefly retained for processing
-          and then automatically deleted. What is retained are short
-          text descriptions of household activity, account and
-          configuration data, and authentication metadata. Memoria does
-          not sell Personal Information, does not use it for
-          advertising, and does not permit the AI provider to retain
-          or train on it.
-        </p>
-      </section>
+      <h2 className="mt-10 font-serif text-2xl">Summary</h2>
+      <p className="mt-3 text-ink2">Memoria is a care-monitoring service. Sensors stream live video and audio for real-time analysis so that authorized caregivers can be alerted to possible safety and routine events, and so they can look in on the home. What is retained, and for how long, is set out in Section 17. Memoria does not sell personal information, does not use it for advertising, and does not permit its AI providers to train their models on your data. Memoria may train its own models on identifiable data only if you opt in.</p>
 
       <h2 className="mt-10 font-serif text-2xl">1. Introduction and Scope</h2>
-      <p className="mt-3 text-ink2">
-        This Privacy Notice (this &ldquo;<strong>Notice</strong>&rdquo;)
-        describes how Darda and Cui, Inc., a Delaware corporation
-        doing business as &ldquo;Memoria&rdquo; (together with its
-        affiliates, &ldquo;<strong>Memoria</strong>,&rdquo; &ldquo;
-        <strong>we</strong>,&rdquo; &ldquo;<strong>us</strong>,&rdquo;
-        or &ldquo;<strong>our</strong>&rdquo;), collects, uses,
-        discloses, and otherwise processes Personal Information in
-        connection with the Service. This Notice forms part of, and is
-        incorporated by reference into, the{' '}
-        <Link href="/terms" className="text-terra underline">
-          Memoria Wellness Terms of Use
-        </Link>{' '}
-        (the &ldquo;<strong>Terms</strong>&rdquo;). Capitalized terms
-        not defined herein have the meanings ascribed to them in the
-        Terms.
-      </p>
-      <p className="mt-3 text-ink2">
-        This Notice applies to all individuals who access or use the
-        Service, including Authorized Users, account holders, and
-        Monitored Persons whose audio or visual likeness may be
-        captured by a Sensor.
-      </p>
+      <p className="mt-3 text-ink2">This Notice describes how Darda and Cui, Inc., operating as Memoria, collects, uses, and processes personal information in connection with the Service. It applies to everyone whose information the Service touches, including account holders, authorized users, and monitored persons whose likeness or voice may be captured.</p>
+      <p className="mt-3 text-ink2">Memoria provides a care monitoring service that uses cameras, microphones, cloud-based analysis, alerting, and reporting to help legally authorized caregivers identify possible safety and routine-related events, including falls, choking, unusual inactivity, wandering, and other activities selected by the authorized caregiver.</p>
+      <p className="mt-3 text-ink2">The Service supports health and safety awareness and caregiver coordination. Under Section 7 of the DPDP Act, processing for medical emergencies and safety is a legitimate secondary line of defense, but imposes no proactive obligation on Memoria to act as an emergency response service. Unless stated otherwise in a separate written agreement, the Service is not a substitute for emergency response, professional medical care, diagnosis, treatment, or in-person supervision.</p>
 
       <h2 className="mt-10 font-serif text-2xl">2. Defined Terms</h2>
-      <p className="mt-3 text-ink2">
-        For purposes of this Notice, the following capitalized terms
-        shall have the meanings set forth below:
-      </p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>
-          &ldquo;<strong>Account Holder</strong>&rdquo; means the
-          natural person who creates a Memoria account and is the
-          subscriber to the Service.
-        </li>
-        <li>
-          &ldquo;<strong>Authorized User</strong>&rdquo; means any
-          individual whom the Account Holder grants access to the
-          Service.
-        </li>
-        <li>
-          &ldquo;<strong>Activity Record</strong>&rdquo; means a
-          time-stamped textual description of household activity
-          generated by the AI Provider, including but not limited to
-          observations of motion, possible falls, possible wandering,
-          and possible agitation.
-        </li>
-        <li>
-          &ldquo;<strong>AI Provider</strong>&rdquo; means a
-          third-party artificial-intelligence service that processes
-          Sensor streams in real time, as further described in
-          Section 6.
-        </li>
-        <li>
-          &ldquo;<strong>Dashboard</strong>&rdquo; means the
-          web-based application made available by Memoria at the
-          Memoria domain through which Authorized Users may access the
-          Service.
-        </li>
-        <li>
-          &ldquo;<strong>Monitored Person</strong>&rdquo; means any
-          natural person whose likeness, voice, or other personal
-          attribute may be captured by a Sensor during operation.
-        </li>
-        <li>
-          &ldquo;<strong>Personal Information</strong>&rdquo; means
-          any information that identifies, relates to, describes, or
-          could reasonably be linked, directly or indirectly, with a
-          particular individual or household.
-        </li>
-        <li>
-          &ldquo;<strong>Sensor</strong>&rdquo; means an Apple iPhone
-          device running the MemoriaSensor application and paired to an
-          Account Holder for the purpose of in-home monitoring.
-        </li>
-        <li>
-          &ldquo;<strong>Service</strong>&rdquo; means, collectively,
-          the Memoria iOS caregiver application, the MemoriaSensor iOS
-          application, the Dashboard, the Sensor while operating, and
-          all related cloud infrastructure, application programming
-          interfaces, and software made available by Memoria.
-        </li>
+        <li><strong>Account Holder.</strong> The natural person creating a Memoria account and subscribing to the Service.</li>
+        <li><strong>Authorized User.</strong> Any individual granted access by the Account Holder.</li>
+        <li><strong>Activity Record.</strong> Time-stamped textual descriptions of household activity generated by the AI Provider.</li>
+        <li><strong>AI Provider.</strong> Third-party artificial-intelligence service processing Sensor streams in real time.</li>
+        <li><strong>Dashboard.</strong> Web-based application for accessing the Service.</li>
+        <li><strong>Data Principal.</strong> The monitored individual, as that term is used under the DPDP Act.</li>
+        <li><strong>Monitored Person.</strong> Natural person whose likeness, voice, or personal attributes may be captured by a Sensor.</li>
+        <li><strong>Personal Information.</strong> Information identifying, relating to, or linked with a particular individual or household.</li>
+        <li><strong>Sensor.</strong> A device running Memoria camera software and paired to an Account Holder.</li>
+        <li><strong>Service.</strong> Memoria&rsquo;s caregiver app, camera app, Dashboard, Sensors, and related infrastructure.</li>
       </ul>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        3. Categories of Personal Information We Collect
-      </h2>
+      <h2 className="mt-10 font-serif text-2xl">3. People Covered by This Notice</h2>
+      <p className="mt-3 text-ink2">This Notice applies to the monitored areas of a residence or care facility; the monitored individual (Data Principal); the caregiver or clinician; other residents, visitors, care workers, and anyone else who may enter monitored areas; and legal representatives who consent on behalf of another person.</p>
+      <p className="mt-3 text-ink2">Individuals below the legally consenting age in their locality may not sign up as an account administrator.</p>
 
-      <h3 className="mt-5 font-serif text-lg">3.1. Account and Profile Information</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>Email address (used as the unique account identifier).</li>
-        <li>Display name elected by the Account Holder.</li>
-        <li>Telephone number (optional, only if provided).</li>
-        <li>
-          Password, stored exclusively in salted-and-hashed form by our
-          authentication processor.
-        </li>
-      </ul>
+      <h2 className="mt-10 font-serif text-2xl">4. Roles, Access, and Account Controls</h2>
+      <p className="mt-3 text-ink2">Roles should be assigned only to people with a legitimate care, safety, support, or legal need. Roles may include the monitored individual, a legal representative, the account administrator, a caregiver or clinician, and Memoria support personnel.</p>
+      <p className="mt-3 text-ink2">Support personnel review data strictly within a secure, closed environment on company-provided devices under confidentiality agreements.</p>
+      <p className="mt-3 text-ink2">The account administrator is responsible for ensuring each user has appropriate access. Unless settings state otherwise, authorized users may view sensitive information about the monitored person, including event clips, audio, activity history, health-related observations, and household information.</p>
+      <p className="mt-3 text-ink2">Memoria may provide audit logs, access history, role-based permissions, user removal, device disablement, clip deletion, download controls, and data and account erasure where available. The account administrator should promptly remove users who no longer need access.</p>
 
-      <h3 className="mt-5 font-serif text-lg">3.2. Configuration and Activity Records</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>The Monitored Persons, Sensors, and rooms configured by the Account Holder.</li>
-        <li>The detectors enabled per Sensor and any user-defined detector parameters.</li>
-        <li>Activity Records, including event type, time of occurrence, and a brief textual narrative.</li>
-        <li>Reviews and notes added by Authorized Users in connection with Activity Records.</li>
-        <li>Aggregated patterns derived from Activity Records over time, such as motion frequency or room-transition counts.</li>
-      </ul>
+      <h2 className="mt-10 font-serif text-2xl">5. Consent to Audio and Video Recording</h2>
+      <p className="mt-3 text-ink2">By using the Service, you consent to the collection, recording, transmission, storage, analysis, and use of video, audio, images, activity signals, event clips, and related data as described in this Notice.</p>
+      <p className="mt-3 text-ink2">Under the DPDP framework, primary regulatory responsibility and liability as a Data Fiduciary remain with Memoria. While account administrators facilitate setup and local notices, legal consent must be obtained directly from Data Principals or their verified legal representatives.</p>
+      <p className="mt-3 text-ink2">If the monitored person cannot give legally valid consent, the person authorizing the Service represents that they have legal authority to do so, such as guardianship, power of attorney, or health care proxy authority.</p>
+      <p className="mt-3 text-ink2">The Service should not be used where people reasonably expect heightened privacy, such as bathrooms, changing areas, or bedrooms used by visitors, unless all legally required consents are obtained and the use is lawful.</p>
 
-      <h3 className="mt-5 font-serif text-lg">3.3. Device and Technical Information</h3>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>Apple Push Notification (APNs) device tokens, for the delivery of operational notifications.</li>
-        <li>iOS version and device model of installed applications.</li>
-        <li>Session-level authentication tokens issued by our authentication processor.</li>
-        <li>IP addresses and timestamps recorded in server access logs for security and abuse-prevention purposes.</li>
-      </ul>
+      <h2 className="mt-10 font-serif text-2xl">6. Notice to Visitors and Care Workers</h2>
+      <p className="mt-3 text-ink2">The account administrator must give reasonable notice to visitors and care workers that audio and video monitoring may occur, by posted signs, verbal or written notice, QR codes, or other methods required by law.</p>
+      <p className="mt-3 text-ink2">Sample notice language: &ldquo;Audio and video monitoring may be active in this area for care and safety purposes. By entering monitored areas, you may be recorded. For questions, contact [Name / Phone / Email].&rdquo;</p>
 
-      <h3 className="mt-5 font-serif text-lg">3.4. Sensor Streams (Real-Time Only)</h3>
-      <p className="mt-2 text-ink2">
-        While a Sensor is in an active state, it captures live video
-        and audio of the room in which it is placed and streams that
-        signal in real time to the Service. The stream is not stored
-        for replay. Sensors may be paused or fully disconnected at any
-        time through the Service; in either state no video or audio
-        leaves the room.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">7. Categories of Personal Information We Collect</h2>
+      <p className="mt-3 text-ink2"><strong>Account and profile information.</strong> Email address, display name, telephone number (optional), and password stored exclusively in salted and hashed form. Account role, payment and billing status, and login activity.</p>
+      <p className="mt-3 text-ink2"><strong>Configuration and activity records.</strong> Monitored persons, Sensors, and rooms configured by the account holder; enabled detectors and their parameters; Activity Records with event type, time, and a brief narrative; authorized user reviews and notes; and aggregated patterns derived from Activity Records.</p>
+      <p className="mt-3 text-ink2"><strong>Sensor streams.</strong> Live video and audio from cameras in monitored areas.</p>
+      <p className="mt-3 text-ink2"><strong>Biometrics.</strong> Facial geometry and related characteristics used to distinguish individuals, as described in Section 14.</p>
+      <p className="mt-3 text-ink2"><strong>Health-related observations</strong> inferred from monitoring, such as a possible fall or possible choking event.</p>
+      <p className="mt-3 text-ink2"><strong>Device and technical information.</strong> Push notification tokens, OS version and device model, session authentication tokens, camera and network status, diagnostic logs, and IP addresses and timestamps in server access logs.</p>
+      <p className="mt-3 text-ink2"><strong>Communications with us,</strong> including support requests, feedback, and incident reports.</p>
+      <p className="mt-3 text-ink2">If the Service is used to monitor minors or individuals under guardianship, verifiable parental or legal guardian consent is required.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">4. How We Use Personal Information</h2>
-      <p className="mt-3 text-ink2">
-        We process Personal Information for the following legitimate
-        purposes:
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">8. How We Use Personal Information</h2>
+      <p className="mt-3 text-ink2">Personal information is processed to operate, maintain, and improve the Service; detect and surface possible safety and routine events; send alerts, summaries, clips, and insights to authorized users; configure custom activity monitoring; troubleshoot Sensors, alerts, and account access; maintain security and prevent fraud; comply with legal obligations and enforce our terms; establish, exercise, or defend legal claims; and develop and evaluate product features subject to the limits in this Notice.</p>
+      <p className="mt-3 text-ink2">Memoria does not process personal information for advertising, does not sell it, and does not engage in cross-context behavioral advertising.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">9. Consent Conflicts and Withdrawal</h2>
+      <p className="mt-3 text-ink2">The Service should be used only where all legally required consents have been obtained and remain valid. If the monitored individual withdraws consent, objects to monitoring, or asks that monitoring stop, the account administrator must promptly disable monitoring and notify Memoria to delete the raw data and account information relating to that individual.</p>
+      <p className="mt-3 text-ink2">Active monitoring ceases immediately on withdrawal of consent. Previously collected data is retained after withdrawal only where a specific and valid statutory or legal retention basis applies.</p>
+      <p className="mt-3 text-ink2">If disputes arise among family members, caregivers, or legal representatives about consent, access, or deletion, Memoria may request legal documentation such as a power of attorney or court order, restrict access, preserve data where legally required, or suspend monitoring until the dispute is resolved.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">10. How We Handle Sensor Video and Audio</h2>
+      <p className="mt-3 text-ink2">Active Sensor streams are transmitted in real time to the AI Provider for analysis and to authorized users viewing live sessions. Live look-in sessions are not recorded by Memoria. Retention of streams and event clips is governed by Section 17.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">11. AI, Automated Analysis, and Model Training</h2>
+      <p className="mt-3 text-ink2">The Service uses automated systems, including machine learning models, to analyze audio, video, and activity data. These systems may identify patterns consistent with safety and routine events, and may produce false positives, false negatives, delayed alerts, or incorrect classifications. Automated analysis may be affected by environment, lighting, placement, or network stability.</p>
+      <p className="mt-3 text-ink2"><strong>Security in processing.</strong> Video, audio, and event data are encrypted in transit and at rest. Analyzing this data requires the Service to process it in unencrypted form on Memoria&rsquo;s systems and those of the service providers listed in Section 15.</p>
+      <p className="mt-3 text-ink2"><strong>Model training.</strong> Memoria does not permit the AI Provider, or any other service provider, to use your data to train their models. Provider contracts prohibit it, and that prohibition is not something you can opt into waiving.</p>
+      <p className="mt-3 text-ink2">Memoria may train or fine-tune its own models on identifiable video, audio, and event data, and does so only with your explicit opt-in consent. Opt-in is off by default and can be withdrawn at any time.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">12. Human Review</h2>
+      <p className="mt-3 text-ink2">In limited circumstances, authorized Memoria personnel or contractors may review video, audio, event clips, or technical logs for troubleshooting, safety verification, or quality assurance.</p>
+      <p className="mt-3 text-ink2">Material under review is pseudonymized: it is identified by opaque record and device identifiers rather than by the monitored person&rsquo;s name or account details.</p>
+      <p className="mt-3 text-ink2">Review is limited to authorized personnel with a clear need to know, takes place within a secure closed environment on encrypted company-managed hardware, and is subject to confidentiality agreements, access logging, and data-isolation controls.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">13. Live Look-In and Access Controls</h2>
+      <p className="mt-3 text-ink2">Authorized users may view live Sensor streams through the application or Dashboard. Look-in sessions are transmitted in real time, require authentication, and are not recorded by Memoria. Access is limited to the account holder and the authorized users they grant access to.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">14. Biometric Data</h2>
+      <p className="mt-3 text-ink2">Some features process biometric information, such as facial geometry, to distinguish individuals and reduce false alerts. Biometric data is retained only as long as necessary to provide the enabled feature or as required by law. Where a jurisdiction requires specific written biometric consent, the feature remains disabled until valid consent is logged.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">15. Disclosure to Service Providers</h2>
+      <p className="mt-3 text-ink2">The Service operates through contractually bound service providers that process personal information solely for Service delivery:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>To operate, maintain, and provide the features and functionality of the Service;</li>
-        <li>To authenticate Authorized Users and to maintain account security;</li>
-        <li>To deliver operational notifications, including event alerts, password-reset confirmations, and account-related communications;</li>
-        <li>To diagnose technical problems, prevent abuse, and improve the accuracy and reliability of the Service;</li>
-        <li>To comply with applicable laws, regulations, court orders, and legal process; and</li>
-        <li>To establish, exercise, or defend legal claims.</li>
+        <li><strong>LiveKit Cloud.</strong> Real-time relay for Sensor streams. Does not retain content.</li>
+        <li><strong>Google LLC (Gemini API).</strong> Primary AI Provider, under enterprise terms prohibiting data retention and model training.</li>
+        <li><strong>OpenAI, L.L.C.</strong> Secondary AI Provider fallback with identical restrictions.</li>
+        <li><strong>Supabase, Inc.</strong> Database, authentication, messaging, and storage. US-hosted on AWS.</li>
+        <li><strong>Railway Corporation.</strong> Hosts the Memoria backend.</li>
+        <li><strong>Vercel Inc.</strong> Hosts the Dashboard.</li>
+        <li><strong>Apple Inc.</strong> Push notification delivery.</li>
       </ul>
-      <p className="mt-3 text-ink2">
-        We do not process Personal Information for advertising, do not
-        sell Personal Information to third parties, and do not engage
-        in cross-context behavioral advertising as those terms are
-        defined under applicable law.
-      </p>
+      <p className="mt-3 text-ink2">Memoria may also disclose personal information to authorized family members and caregivers designated by the account administrator; to emergency contacts or responders where escalation features are enabled; to health care providers authorized by the monitored person or their legal representative; to successor entities in a merger, acquisition, or asset sale under non-disclosure protections; and to legal, regulatory, or safety authorities where required by law or under emergency provisions.</p>
+      <p className="mt-3 text-ink2">Memoria does not sell raw video or audio recordings.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        5. How We Handle Sensor Video and Audio
-      </h2>
-      <p className="mt-3 text-ink2">
-        While a Sensor is active, live video and audio captured by
-        the Sensor are streamed in real time to:
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">16. Downloads and Onward Sharing by Users</h2>
+      <p className="mt-3 text-ink2">Authorized users may view, download, screenshot, or forward alerts, clips, and summaries. Once information is exported outside the Service, that party acts independently in respect of it, and Memoria is not responsible for downstream misuse it did not initiate or direct.</p>
+      <p className="mt-3 text-ink2">Users must not use exported information for harassment, public posting, employment discrimination, insurance decisions, or unlawful purposes.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">17. Data Retention</h2>
+      <p className="mt-3 text-ink2">Personal information is retained only as long as necessary for the purposes in this Notice, unless a longer period is required by contract, legal dispute, or law.</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>
-          The AI Provider, which analyzes the stream in real time to
-          generate Activity Records (for example, observations
-          consistent with a possible fall, a person leaving a room,
-          or sustained restless motion);
-        </li>
-        <li>
-          Authorized Users who elect to view a live look-in session
-          through the Service.
-        </li>
+        <li><strong>Continuous raw video and audio.</strong> Up to 6 months, and only where the user has explicitly enabled it.</li>
+        <li><strong>Event clips and alerts.</strong> Retained for the life of the account.</li>
+        <li><strong>Metadata, thumbnails, and AI logs.</strong> 12 months.</li>
+        <li><strong>Security logs.</strong> 12 months.</li>
+        <li><strong>System backups.</strong> 2 weeks.</li>
+        <li><strong>Account, profile, configuration, and Activity Records.</strong> Retained while the account is active.</li>
+        <li><strong>Account closure.</strong> Personal information is deleted within thirty (30) days, except where retention is required by law or for legal claims.</li>
       </ul>
-      <p className="mt-3 text-ink2">
-        Once a stream has passed through processing, the live video
-        and audio is discarded. When the AI Provider flags a possible
-        event, a short clip covering that event is briefly retained
-        for the purpose of completing the analysis and is then
-        automatically deleted. Memoria does not maintain a library of
-        stored video, audio, or media content accessible for later
-        replay. Live look-in sessions are not recorded.
-      </p>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        6. Disclosure to Service Providers
-      </h2>
-      <p className="mt-3 text-ink2">
-        The Service is delivered through several third-party service
-        providers (each a &ldquo;<strong>Service Provider</strong>&rdquo;
-        and collectively the &ldquo;<strong>Service Providers</strong>&rdquo;).
-        Each Service Provider is contractually bound to process
-        Personal Information solely in furtherance of the Service and
-        in accordance with industry-standard security practices. Our
-        Service Providers and their respective functions are:
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">18. International Data Transfers</h2>
+      <p className="mt-3 text-ink2">Personal information is processed and stored primarily in the United States. Users accessing the Service from outside the United States consent to transfer and processing there, which may have different data-protection rules. Memoria implements appropriate safeguards where required by law.</p>
+      <p className="mt-3 text-ink2">The Service is approved for operational use in the United States and India. Serving Indian users from a US-incorporated entity is permissible provided the DPDP framework is satisfied.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">19. Privacy, Intimate Recordings, and Quiet Hours</h2>
+      <p className="mt-3 text-ink2">Sensors are placed in private home or care environments. Users may schedule quiet hours or activate privacy mode to suspend recording, and may disable audio or individual cameras.</p>
+      <p className="mt-3 text-ink2">Memoria is not liable for accidental recordings that occur despite reasonable technical safeguards, including those caused by misconfigured settings or improper physical placement of devices.</p>
+
+      <h2 className="mt-10 font-serif text-2xl">20. Information Security</h2>
+      <p className="mt-3 text-ink2">Memoria employs administrative, technical, and physical safeguards protecting personal information against unauthorized access, alteration, disclosure, or destruction:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>
-          <strong>LiveKit Cloud</strong> — operates the real-time
-          relay through which Sensor streams are transmitted. LiveKit
-          does not retain stream contents.
-        </li>
-        <li>
-          <strong>Google LLC (Gemini API)</strong> — the AI Provider,
-          which processes streams to generate Activity Records.
-          Operates from United States data centers under enterprise
-          terms that prohibit data retention and model training on
-          customer content.
-        </li>
-        <li>
-          <strong>OpenAI, L.L.C.</strong> — a secondary AI Provider
-          used as a fallback when the primary AI Provider is
-          unavailable. Subject to the same restrictions described above.
-        </li>
-        <li>
-          <strong>Supabase, Inc.</strong> — provides the relational
-          database, authentication, realtime messaging, and object
-          storage that underpin the Service. Hosted in the United
-          States on Amazon Web Services infrastructure.
-        </li>
-        <li>
-          <strong>Railway Corporation</strong> — hosts the Memoria
-          backend application.
-        </li>
-        <li>
-          <strong>Vercel Inc.</strong> — hosts the Dashboard.
-        </li>
-        <li>
-          <strong>Apple Inc.</strong> — operates the Apple Push
-          Notification service used to deliver operational alerts.
-        </li>
+        <li>Transport-layer encryption (TLS) for all data in transit.</li>
+        <li>Encryption at rest for stored personal information.</li>
+        <li>Row-level security policies scoped to authenticated principals.</li>
+        <li>Secure authentication token storage in the device keychain.</li>
+        <li>Logical and physical access controls over service provider infrastructure.</li>
+        <li>Access logging for personnel review.</li>
       </ul>
-      <p className="mt-3 text-ink2">
-        Beyond the foregoing Service Providers, Memoria may disclose
-        Personal Information (a) to a successor entity in connection
-        with a merger, acquisition, financing, or sale of all or
-        substantially all of Memoria&rsquo;s assets, (b) in response
-        to a lawful request from a governmental authority or in
-        connection with legal process where Memoria reasonably
-        believes disclosure is required by law, or (c) to enforce
-        these terms or protect the rights, property, or safety of
-        Memoria, its users, or others.
-      </p>
+      <p className="mt-3 text-ink2">No system can be guaranteed entirely secure.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">7. Data Retention</h2>
-      <p className="mt-3 text-ink2">
-        Memoria retains Personal Information only for as long as is
-        reasonably necessary to fulfill the purposes set forth in
-        this Notice, subject to the following retention periods:
-      </p>
-      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>
-          <strong>Live Sensor streams:</strong> held in memory only
-          for the seconds required to complete real-time analysis;
-          not persisted.
-        </li>
-        <li>
-          <strong>Event clips:</strong> briefly retained for
-          processing and then automatically deleted; not made
-          available for later replay.
-        </li>
-        <li>
-          <strong>Activity Records, configuration, account and
-          profile information, and aggregated patterns:</strong>{' '}
-          retained for the duration of the Account Holder&rsquo;s
-          active account.
-        </li>
-        <li>
-          <strong>Server access logs:</strong> retained for up to
-          ninety (90) days for security and abuse-prevention purposes.
-        </li>
-        <li>
-          <strong>Account closure:</strong> upon account closure,
-          Personal Information associated with that account is
-          deleted within thirty (30) days, except where retention is
-          required by law or for the establishment, exercise, or
-          defense of legal claims.
-        </li>
-      </ul>
+      <h2 className="mt-10 font-serif text-2xl">21. Data Breach and Incident Notification</h2>
+      <p className="mt-3 text-ink2">If a security incident affecting personal data occurs, Memoria will investigate and notify impacted users and regulatory authorities without unreasonable delay as required by applicable law. Containment may include credential resets, device isolation, log preservation, and access restriction.</p>
+      <p className="mt-3 text-ink2">Report incidents or privacy concerns to contact@memoria-health.com.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        8. International Data Transfers
-      </h2>
-      <p className="mt-3 text-ink2">
-        Personal Information is processed and stored primarily in the
-        United States. If you access the Service from outside the
-        United States, you understand and consent to the transfer of
-        Personal Information to, and processing in, the United
-        States, which may have data-protection rules different from
-        those in your jurisdiction. Where required by applicable law,
-        Memoria implements appropriate safeguards in connection with
-        such transfers.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">22. Your Rights and Choices</h2>
+      <h3 className="mt-6 font-semibold text-ink">22.1 Controls in the Service</h3>
+      <p className="mt-3 text-ink2">Depending on configuration and local law, you may pause monitoring or enable privacy mode, disable audio or specific cameras, review and label event clips, request deletion of specific recording timeframes, and withdraw consent or close the account.</p>
+      <h3 className="mt-6 font-semibold text-ink">22.2 General Rights</h3>
+      <p className="mt-3 text-ink2">Subject to applicable law and identity verification, you may request access to personal information held about you, correction of inaccurate or incomplete information, deletion, a portable copy, and withdrawal of consent with deactivation of the associated Sensors. You may also seek grievance redressal through Memoria or escalate to your regional regulator, such as the Data Protection Board.</p>
+      <p className="mt-3 text-ink2">To exercise these rights, email contact@memoria-health.com. Verified requests receive a response within thirty (30) days, or longer where permitted by law.</p>
+      <h3 className="mt-6 font-semibold text-ink">22.3 California (CCPA/CPRA)</h3>
+      <p className="mt-3 text-ink2">California residents may know the categories and specific pieces of personal information collected in the preceding twelve (12) months, request deletion, correct inaccurate information, opt out of sale or sharing, and limit the use of sensitive personal information. Memoria does not sell or share personal information as defined under the CCPA. You may designate an authorized agent subject to identity verification.</p>
+      <h3 className="mt-6 font-semibold text-ink">22.4 Europe and the United Kingdom (GDPR)</h3>
+      <p className="mt-3 text-ink2">Residents of the EEA, United Kingdom, or Switzerland may have rights of access, rectification, erasure, restriction of processing, data portability, and objection, and may lodge a complaint with a supervisory authority. Lawful bases include contract performance, legitimate interests, consent where required, and compliance with legal obligations.</p>
+      <h3 className="mt-6 font-semibold text-ink">22.5 Canada (PIPEDA)</h3>
+      <p className="mt-3 text-ink2">Canadian residents have rights of access, correction, and consent withdrawal under PIPEDA and analogous provincial legislation, and may complain to the Office of the Privacy Commissioner of Canada.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        9. Live Look-In and Access Controls
-      </h2>
-      <p className="mt-3 text-ink2">
-        Authorized Users may, at their election, open the application
-        or Dashboard and view the live Sensor stream. Look-in sessions
-        are transmitted in real time, are subject to authentication,
-        and are not recorded by Memoria. Access to the live stream is
-        limited to:
-      </p>
-      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>The Account Holder;</li>
-        <li>Any Authorized User to whom the Account Holder has granted access.</li>
-      </ul>
-      <p className="mt-3 text-ink2">
-        Memoria personnel, including the founders, do not have the
-        ability to view the live Sensor stream. The AI Provider
-        processes streams algorithmically; AI Provider personnel do
-        not view streams.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">23. Facility, Shared Housing, and Resident Rights</h2>
+      <p className="mt-3 text-ink2">Where the Service is used in an assisted living facility, nursing home, group home, or shared housing, additional facility policies, lease terms, and resident rights apply.</p>
+      <p className="mt-3 text-ink2">The account administrator must obtain all necessary permissions from residents, roommates, facility management, and legal representatives before installation. Monitoring equipment must not be installed in shared private spaces without explicit, legally valid consent from all affected parties.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">10. Information Security</h2>
-      <p className="mt-3 text-ink2">
-        Memoria employs administrative, technical, and physical
-        safeguards designed to protect Personal Information against
-        unauthorized access, alteration, disclosure, or destruction.
-        These safeguards include:
-      </p>
-      <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Transport-layer encryption (TLS) for all data in transit;</li>
-        <li>Encryption at rest for stored Personal Information;</li>
-        <li>Row-level security policies scoped to the authenticated principal;</li>
-        <li>Secure storage of authentication tokens in the iOS Keychain;</li>
-        <li>Logical and physical access controls over our Service Provider infrastructure.</li>
-      </ul>
-      <p className="mt-3 text-ink2">
-        Despite these measures, no system can be guaranteed entirely
-        secure. In the event of a security incident that creates a
-        material risk of significant harm to affected individuals,
-        Memoria will provide notice in accordance with applicable
-        breach-notification laws.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">24. Care Workers and Employees</h2>
+      <p className="mt-3 text-ink2">Where the Service monitors paid care workers, nurses, or agency employees, additional workplace privacy and labor notice requirements apply. Account administrators should review local employment regulations before monitoring workplace tasks.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">11. Your Rights</h2>
+      <h2 className="mt-10 font-serif text-2xl">25. Law Enforcement, Legal Requests, and Emergencies</h2>
+      <p className="mt-3 text-ink2">Memoria has no duty to police or report general crimes, but may disclose information in response to valid court orders, subpoenas, or statutory obligations.</p>
+      <p className="mt-3 text-ink2">Memoria may disclose information without prior notice where reasonably necessary for a medical emergency, public safety, or preventing serious physical harm.</p>
 
-      <h3 className="mt-5 font-serif text-lg">11.1. General Rights</h3>
-      <p className="mt-2 text-ink2">
-        Subject to applicable law and to verification of identity,
-        you have the right to:
-      </p>
-      <ul className="mt-2 list-disc pl-6 text-ink2 space-y-1">
-        <li>Request access to the Personal Information we hold about you;</li>
-        <li>Request correction of inaccurate or incomplete Personal Information;</li>
-        <li>Request deletion of your Personal Information;</li>
-        <li>Withdraw your consent and have associated Sensors deactivated;</li>
-        <li>Request a portable copy of your Personal Information.</li>
-      </ul>
-      <p className="mt-2 text-ink2">
-        You may exercise these rights by contacting Memoria at the
-        address set forth in Section 16. We respond to verified
-        requests within thirty (30) days, or such longer period as
-        permitted by applicable law.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">26. Children&rsquo;s Privacy</h2>
+      <p className="mt-3 text-ink2">The Service is not directed to children under thirteen (13) and Memoria does not knowingly collect personal information from anyone under thirteen (13). On learning of such collection, that information is promptly deleted. Report suspected collection to contact@memoria-health.com.</p>
 
-      <h3 className="mt-5 font-serif text-lg">
-        11.2. California Privacy Rights (CCPA / CPRA)
-      </h3>
-      <p className="mt-2 text-ink2">
-        If you are a resident of the State of California, the
-        California Consumer Privacy Act, as amended by the California
-        Privacy Rights Act (collectively, &ldquo;CCPA&rdquo;), confers
-        additional rights, including the right to (a) know the
-        categories and specific pieces of Personal Information we
-        have collected about you in the preceding twelve (12) months,
-        (b) request deletion of Personal Information, (c) correct
-        inaccurate Personal Information, (d) opt out of the sale or
-        sharing of Personal Information, and (e) limit the use of
-        Sensitive Personal Information.
-      </p>
-      <p className="mt-2 text-ink2">
-        Memoria does not sell or share Personal Information as those
-        terms are defined under the CCPA. Memoria does not use or
-        disclose Sensitive Personal Information for purposes other
-        than those permitted under the CCPA without offering the
-        opportunity to limit such use. To exercise any California
-        privacy right, contact us at the address in Section 16. You
-        may designate an authorized agent to make a request on your
-        behalf, subject to identity verification.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">27. Cookies and Similar Technologies</h2>
+      <p className="mt-3 text-ink2">The Dashboard uses strictly necessary cookies and session-management technologies for authentication and session state. Memoria does not use third-party advertising cookies, tracking pixels, or behavioral-advertising trackers. Browser Do Not Track signals are honored where technically feasible.</p>
 
-      <h3 className="mt-5 font-serif text-lg">
-        11.3. European Privacy Rights (GDPR)
-      </h3>
-      <p className="mt-2 text-ink2">
-        If you are located in the European Economic Area, the United
-        Kingdom, or Switzerland, you may have additional rights under
-        the General Data Protection Regulation or analogous law,
-        including the rights of access, rectification, erasure,
-        restriction of processing, data portability, and objection.
-        You also have the right to lodge a complaint with a
-        supervisory authority. The lawful bases on which we process
-        Personal Information include performance of a contract,
-        legitimate interests, consent (where required), and
-        compliance with legal obligations.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">28. Wellness Service, Not a Medical Device</h2>
+      <p className="mt-3 text-ink2">The Service provides household-activity insights for informational purposes. <strong>The Service is not a medical device</strong> and is not intended to diagnose, treat, cure, prevent, or monitor any disease, condition, or symptom, and is not a substitute for professional medical care, supervision, or emergency response.</p>
+      <p className="mt-3 text-ink2">Safety alerts describe possible events, such as a possible fall or possible choking, and are not medical determinations. The Service does not guarantee detection of every emergency event. In an emergency, contact local emergency services directly.</p>
 
-      <h3 className="mt-5 font-serif text-lg">
-        11.4. Canadian Privacy Rights (PIPEDA)
-      </h3>
-      <p className="mt-2 text-ink2">
-        If you are located in Canada, you have rights under the
-        Personal Information Protection and Electronic Documents Act
-        and analogous provincial legislation, including the rights
-        to access, correct, and withdraw consent. You may also lodge
-        a complaint with our privacy contact or with the Office of
-        the Privacy Commissioner of Canada.
-      </p>
-
-      <h2 className="mt-10 font-serif text-2xl">12. Children&rsquo;s Privacy</h2>
-      <p className="mt-3 text-ink2">
-        The Service is not directed to children under the age of
-        thirteen (13) and Memoria does not knowingly collect Personal
-        Information from anyone under thirteen (13). If we learn that
-        we have collected Personal Information from a child under
-        thirteen (13), we will delete that information promptly. If
-        you believe a child under thirteen (13) has provided us
-        Personal Information, please contact us using the
-        information in Section 16.
-      </p>
-
-      <h2 className="mt-10 font-serif text-2xl">
-        13. Consent of Monitored Persons
-      </h2>
-      <p className="mt-3 text-ink2">
-        It is the responsibility of the Account Holder to obtain and
-        document the consent of each Monitored Person prior to
-        installing or activating a Sensor, and to inform visitors and
-        third parties who enter the monitored space that Sensors are
-        in use. Do not install a Sensor in any location where any
-        person present has not agreed to be monitored. Recording
-        individuals without consent may violate applicable law in
-        your jurisdiction; the Account Holder bears sole
-        responsibility for compliance.
-      </p>
-
-      <h2 className="mt-10 font-serif text-2xl">14. Limitations on Use</h2>
+      <h2 className="mt-10 font-serif text-2xl">29. Limitations on Use</h2>
       <p className="mt-3 text-ink2">Memoria will not:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Maintain a video or audio archive accessible for later replay;</li>
-        <li>Sell, rent, or trade Personal Information to any third party;</li>
-        <li>Use Personal Information for advertising, marketing, or commercial profiling purposes;</li>
-        <li>Disclose Personal Information to insurance companies, employers, or government agencies, except as required by law;</li>
-        <li>Permit the AI Provider or any other Service Provider to retain Personal Information beyond the period necessary to deliver the Service, or to use Personal Information to train its artificial-intelligence models.</li>
+        <li>Sell, rent, or trade personal information to third parties.</li>
+        <li>Use personal information for advertising, marketing, or commercial profiling.</li>
+        <li>Disclose personal information to insurance companies, employers, or government agencies except as required by law.</li>
+        <li>Permit the AI Provider, or any other service provider, to use personal information to train their models.</li>
+        <li>Train Memoria&rsquo;s own models on identifiable video, audio, or event data without explicit opt-in consent.</li>
+        <li>Permit service providers to retain personal information beyond the periods in Section 17.</li>
       </ul>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        15. Cookies and Similar Technologies
-      </h2>
-      <p className="mt-3 text-ink2">
-        The Dashboard uses strictly necessary cookies and
-        session-management technologies to authenticate users and to
-        maintain session state. Memoria does not use third-party
-        advertising cookies, tracking pixels, or behavioral-
-        advertising trackers. Memoria honors browser &ldquo;Do Not
-        Track&rdquo; signals to the extent technically feasible.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">30. Business and Facility Customers</h2>
+      <p className="mt-3 text-ink2">Where the Service is provided through senior living operators, healthcare agencies, or institutional facilities, contractual agreements such as Data Processing Agreements or Business Associate Agreements govern. Where such an executed agreement conflicts with this Notice, the executed agreement controls to the extent permitted by law.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">
-        16. Wellness Service; Not a Medical Device
-      </h2>
-      <p className="mt-3 text-ink2">
-        The Service is a general wellness service intended to provide
-        household-activity insights for informational and convenience
-        purposes only. The Service is{' '}
-        <strong>not a medical device</strong> and is not intended to
-        diagnose, treat, cure, prevent, or monitor any disease,
-        medical condition, or symptom. The Service is not a
-        substitute for professional medical care, supervision, or
-        emergency response. Please review the{' '}
-        <Link href="/terms" className="text-terra underline">
-          Memoria Wellness Terms of Use
-        </Link>{' '}
-        for the scope and limitations of the Service.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">31. Changes to This Notice</h2>
+      <p className="mt-3 text-ink2">Memoria may amend this Notice periodically. Material changes trigger notification to active users through the Service or by email before they take effect. The Effective Date indicates the most recent update. Continued use of the Service after notice constitutes acceptance.</p>
 
-      <h2 className="mt-10 font-serif text-2xl">17. Changes to this Notice</h2>
-      <p className="mt-3 text-ink2">
-        Memoria may amend this Notice from time to time. If we make
-        material changes, we will notify active users by means of the
-        Service or by email. The &ldquo;Last Revised&rdquo; date at
-        the top of this Notice indicates when it was last updated.
-        Continued use of the Service following such notice
-        constitutes acceptance of the amended Notice.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">32. Contact</h2>
+      <p className="mt-3 text-ink2">For privacy questions, rights requests, or complaints:</p>
+      <p className="mt-3 text-ink2">Memoria Privacy Team 959 Stewart Drive, Apt 632 Sunnyvale, CA 94085, USA contact@memoria-health.com</p>
+      <p className="mt-3 text-ink2">For security incidents: contact@memoria-health.com</p>
 
-      <h2 className="mt-10 font-serif text-2xl">18. Contact</h2>
-      <p className="mt-3 text-ink2">
-        Privacy questions, rights requests, or complaints may be
-        directed to the privacy contact below. We endeavor to
-        respond to verified requests within thirty (30) days.
-      </p>
+      <h2 className="mt-10 font-serif text-2xl">33. Consent Acknowledgment</h2>
+      <p className="mt-3 text-ink2">By completing electronic acceptance, you acknowledge that:</p>
       <ul className="mt-3 list-disc pl-6 text-ink2 space-y-1">
-        <li>Privacy Contact: Sunny Cui</li>
-        <li>
-          Email:{' '}
-          <a className="text-terra underline" href="mailto:sunnycui@stanford.edu">
-            sunnycui@stanford.edu
-          </a>
-        </li>
-        <li>
-          Telephone:{' '}
-          <a className="text-terra underline" href="tel:+17166021101">
-            716-602-1101
-          </a>
-        </li>
+        <li>You have read and understand this Notice.</li>
+        <li>You explicitly consent to the collection, processing, transmission, and storage of video, audio, and activity data as described.</li>
+        <li>You confirm that you have legal capacity to consent, or are a co-signing family member or verified legal representative.</li>
+        <li>Automated safety analysis may be delayed or limited by environmental conditions.</li>
+        <li>The Service is not an emergency dispatch or medical treatment service.</li>
+        <li>You agree to manage account access responsibly and to notify visitors and staff entering monitored areas.</li>
       </ul>
+      <p className="mt-3 text-ink2">If you are setting up monitoring for another person, you confirm that you have the legal authority to consent on their behalf.</p>
 
-      <p className="mt-12 text-sm text-ink3">
-        See also our{' '}
-        <Link href="/terms" className="text-terra underline">
-          Memoria Wellness Terms of Use
-        </Link>
-        .
-      </p>
     </main>
   );
 }
