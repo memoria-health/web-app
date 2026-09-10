@@ -24,6 +24,8 @@ import {
   roomsMeanAll,
 } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import { CustomDetectorBetaNotice } from './CustomDetectorBetaNotice';
+import { SELECTABLE_CATEGORIES } from '@/lib/categoryPalette';
 
 // One coherent editor for a custom detector, replacing the old stacked
 // "insight panel + raw enum form". Reads top-to-bottom as a narrative:
@@ -338,6 +340,7 @@ export function DetectorEditor({
       <style>{`@keyframes detCriteriaIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}`}</style>
 
       {detector.accuracy_caveat && <AccuracyCaveatNotice />}
+      {detector.source === 'custom' && <CustomDetectorBetaNotice />}
 
       {/* Draft / off banner — the create flow lands here with the detector
           OFF so the caregiver reviews the compiled criteria first. The single
@@ -576,7 +579,7 @@ export function DetectorEditor({
         <div className="flex flex-col gap-1.5">
           <span className="text-xs uppercase tracking-wide text-ink3">Category</span>
           <div className="flex gap-2">
-            {(['safety', 'routine'] as DetectorCategory[]).map((c) => (
+            {SELECTABLE_CATEGORIES.map((c) => (
               <button
                 key={c}
                 type="button"

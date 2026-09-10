@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { formatLocalTime, timeAgo } from '@/lib/utils/time';
 import type { DetectionEvent } from '@/lib/api/types';
+import { escalates } from '@/lib/categoryPalette';
 
 // Custom sonner toast for a live event alert. Mirrors an EventsFeed row so the
 // alert feels like the app's own event cards — category accent (terra=safety /
@@ -23,7 +24,7 @@ export function AlertToast({
   who: string;
   onClose: () => void;
 }) {
-  const isSafety = event.category === 'safety';
+  const isSafety = escalates(event.category);
   return (
     <div
       className={cn(

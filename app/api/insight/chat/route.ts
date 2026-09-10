@@ -3,6 +3,7 @@ import { convertToModelMessages, stepCountIs, streamText, tool, type UIMessage }
 import { z } from 'zod';
 import * as db from '@/lib/insight/db';
 import { scopedPatients } from '@/lib/insight/scope';
+import { CHAT_RATE_LIMIT, enforceRateLimit } from '@/lib/rateLimit';
 
 export const maxDuration = 60;
 
@@ -281,6 +282,13 @@ export async function POST(req: Request) {
    * resolving it WITHIN the tenant set. No session → 401. */
   const allowed = await scopedPatients();
   if (!allowed) return new Response('unauthorized', { status: 401 });
+
+  /* One message drives a multi-step agent loop — several paid model
+   * calls each. Uncapped, a signed-in caller (or a stolen session)
+   * could run up the OpenAI bill without limit. */
+  const limited = await enforceRateLimit(req, CHAT_RATE_LIMIT);
+  if (limited) return limited;
+
   const tenant = allowed.map((p) => p.id);
   // scope arrives as a patient ID (names are not unique in prod)
   let scoped: string | null = null;

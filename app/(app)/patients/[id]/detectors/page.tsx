@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerNemara } from '@/lib/api/server';
 import { DetectorList } from '@/app/_components/DetectorList';
+import { BetaBadge } from '@/app/_components/CustomDetectorBetaNotice';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,12 +39,19 @@ export default async function DetectorsPage({
     <div className="anim-stagger flex flex-1 flex-col gap-6 px-6 py-6 max-w-7xl w-full mx-auto">
       <header className="flex items-center justify-between gap-3">
         <h1 className="font-serif text-4xl tracking-tight text-ink">Detectors</h1>
-        <Link
-          href={`/patients/${patient.id}/detectors/new`}
-          className="rounded bg-action px-4 py-2 text-sm font-medium text-action-ink transition-colors hover:bg-ink2"
-        >
-          + New custom detector
-        </Link>
+        {/* BETA is stuck ONTO the button rather than sitting on its own
+            line, matching iOS and Android. */}
+        <div className="relative">
+          <Link
+            href={`/patients/${patient.id}/detectors/new`}
+            className="inline-block rounded bg-action px-4 py-2 text-sm font-medium text-action-ink transition-colors hover:bg-ink2"
+          >
+            + New custom detector
+          </Link>
+          <span className="pointer-events-none absolute -top-3 right-3">
+            <BetaBadge />
+          </span>
+        </div>
       </header>
       <DetectorList
         initial={detectors}

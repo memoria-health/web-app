@@ -15,6 +15,8 @@ import type { Detector } from '@/lib/api/types';
 import { DetectorIcon } from '@/lib/icons/detectorIcons';
 import { roomsLabel } from '@/lib/detectors/labels';
 import { AccuracyCaveatNotice } from './AccuracyCaveatNotice';
+import { BetaChip } from './CustomDetectorBetaNotice';
+import { categoryTone } from '@/lib/categoryPalette';
 
 
 export function DetectorList({
@@ -183,6 +185,7 @@ export function DetectorList({
       />
       <Section
         title="CUSTOM"
+        showsBeta
         detectors={customs}
         pending={pending}
         patch={patch}
@@ -209,6 +212,7 @@ function Section({
   remove,
   emptyHint,
   cameraCount,
+  showsBeta = false,
 }: {
   title: string;
   detectors: Detector[];
@@ -217,14 +221,20 @@ function Section({
   remove: (id: string, name: string) => void;
   emptyHint?: React.ReactNode;
   cameraCount: Record<string, number>;
+  showsBeta?: boolean;
 }) {
   // Which row's ⋯ overflow menu is open (Edit + Delete live in here now).
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   return (
     <section className="mt-6 first:mt-0">
-      <h2 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
-        {title}
-      </h2>
+      {/* The BETA marker lives on the section header, not on each row.
+          Per-row it repeated the same thing on every custom detector. */}
+      <div className="mb-2 flex items-center gap-2">
+        <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-ink3">
+          {title}
+        </h2>
+        {showsBeta && <BetaChip />}
+      </div>
       {detectors.length === 0 ? (
         <p className="rounded-lg border border-dashed border-line bg-card px-4 py-3 text-base text-ink3">
           {emptyHint ?? 'None.'}
@@ -241,11 +251,10 @@ function Section({
                   <div
                     className={cn(
                       'flex h-9 w-9 shrink-0 items-center justify-center rounded-md border',
-                      d.category === 'safety'
-                        ? 'border-terra/30 bg-terra-soft text-terra-deep'
-                        : 'border-sky/30 bg-sky-soft text-sky',
+                      categoryTone(d.category).soft,
+                      categoryTone(d.category).deep,
                     )}
-                    title={d.category === 'safety' ? 'Safety' : 'Routine'}
+                    title={categoryTone(d.category).label}
                   >
                     <DetectorIcon name={d.icon_name} className="h-4 w-4" />
                   </div>

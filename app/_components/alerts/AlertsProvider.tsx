@@ -16,6 +16,7 @@ import { getAuthedBrowserSupabase } from '@/lib/supabase/client';
 import { formatLocalTime } from '@/lib/utils/time';
 import type { DetectionEvent, Patient } from '@/lib/api/types';
 import { AlertToast } from './AlertToast';
+import { escalates } from '@/lib/categoryPalette';
 
 // ---------------------------------------------------------------------------
 // Browser alerts (Tier 1 + 2) — the web analog of iOS push notifications.
@@ -189,7 +190,7 @@ export function AlertsProvider({
     (e: DetectionEvent) => {
       const who = nameById.get(e.patient_id) ?? 'A loved one';
       const title = `${who}: ${e.title}`;
-      const isSafety = e.category === 'safety';
+      const isSafety = escalates(e.category);
       // Desktop Notification bodies are plain text only: the narrative plus a
       // "location · time" meta line (the same details the app shows for the
       // event). The in-app toast renders these richly via <AlertToast>.

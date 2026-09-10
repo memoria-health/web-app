@@ -108,7 +108,16 @@ export function FamilyHome({ patients, fixedPatient }: { patients: { id: string;
 
         {!data ? (
           <div className="py-24 text-center text-[16px] text-ink4">Checking in on {name || 'things'}…</div>
-        ) : data.error ? (
+        ) : data.error || !st ? (
+          // `!st` matters as much as `data.error`. A 500 from
+          // /api/insight/home does not necessarily carry an `error` field —
+          // it can resolve to a body with no `status`, which left `st`
+          // undefined and crashed the whole page on `st.level` below.
+          // Everything under this branch dereferences `st` freely, so it has
+          // to be proven present here, not assumed.
+          //
+          // Matches how the iOS client treats these endpoints: optional,
+          // degrade to a message, never take the screen down.
           <div className="py-24 text-center text-[16px] text-ink4">Couldn’t reach the house right now — trying again shortly.</div>
         ) : (
           <>
